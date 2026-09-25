@@ -1,0 +1,10 @@
+v1.0.19 FullClone R16 regression record
+Date: 2026-09-24 Asia/Shanghai
+
+Scope changed from R15:
+  forward preserve_owner through create_local_units to each author clone,
+  fixing the Ctrl+N and panel mass-clone TypeError for both owner modes.
+  The persistent native helper and protocol 73 are unchanged.
+
+Final complete source/native regression on the release tree:
+  1747 passed, 12 skipped, 113 subtests passed in 224.52s (0:03:44)
