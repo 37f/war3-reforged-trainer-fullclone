@@ -2,25 +2,41 @@
 
 这是基于[原作者的 v1.0.19 源码提交](https://github.com/dc114154qq/war3-reforged-trainer/tree/4124cd582ed624eeb85d665484755fa8cae65697)制作的非官方扩展版。本仓库不代表原作者发布；原项目的功能与本扩展的改动请分别参看源码和[迁移审计](releases/v1.0.19-R16/FULLCLONE_MIGRATION_AUDIT.md)。
 
-当前发布版本是 **v1.0.19 FullClone R16**，目标游戏版本为 **Warcraft III 2.0.4.23745**。R16 修复了“大量复制”和 `Ctrl+N` 因批量方法不接收 `preserve_owner` 参数而弹错的问题；批量复制会把面板归属选择传给每一次复制。
+当前发布版本是 **v1.0.19 FullClone R18**，目标游戏版本为 **Warcraft III 2.0.4.23745**。R18 保留 R16 的全部扩展与复制归属修复，包含 R17 的选中玩家队伍监视，并针对全光环、全被动、六神器和全屏群星陨落进行窄范围修复。**R18 已通过离线回归与冻结包验证，尚未完成这四项功能的真实地图验收。**
 
 ## 下载
 
-- [Windows 单文件 EXE](releases/v1.0.19-R16/War3ReforgedTrainer-v1.0.19-FullClone-R16.exe)
-- [R16 源码 ZIP](releases/v1.0.19-R16/war3-reforged-trainer-v1.0.19-fullclone-r16-source.zip)，也可直接浏览 [source/](source/)
-- [完整中文使用说明](releases/v1.0.19-R16/V19_FULL_USAGE_GUIDE_ZH.md)
-- [SHA-256 校验文件](releases/v1.0.19-R16/SHA256SUMS.txt)
+- [R18 发布与下载页面](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v1.0.19-fullclone-r18)
+- [Windows 单文件 EXE](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v1.0.19-fullclone-r18/War3ReforgedTrainer-v1.0.19-FullClone-R18.exe)
+- [R18 完整源码 ZIP](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v1.0.19-fullclone-r18/war3-reforged-trainer-1.0.19-fullclone-r18-source.zip)，也可直接浏览 [source/](source/)
+- [完整中文使用说明](releases/v1.0.19-R18/V19_FULL_USAGE_GUIDE_ZH.md)
+- [R18 修复说明与游戏验收步骤](releases/v1.0.19-R18/R18_ELEPHANT_REPAIR_NOTES.md)
+- [验证记录](releases/v1.0.19-R18/R18_VERIFICATION.md)及[包校验报告](releases/v1.0.19-R18/r18-package-verification.json)
+- [SHA-256 校验文件](releases/v1.0.19-R18/SHA256SUMS.txt)
+
+旧版 [R16 发布](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v1.0.19-fullclone-r16)及仓库中的 `releases/v1.0.19-R16/` 文件保留，便于回退。R18 是新的独立程序，不覆盖旧 EXE。
+
+## R17 / R18 更新
+
+| 版本 | 内容 |
+| --- | --- |
+| R17 | 在目标单位面板监视实时选中单位的所属玩家、队伍和中立槽位，切换队伍前可先确认；查询不改变归属、队伍或外交关系。 |
+| R18：全光环 / 全被动 | 查询地图技能的实际等级上限，将这两项预设的请求等级限制在 `min(112, 上限)`；不改变普通手动技能等级设置。 |
+| R18：获得 6 个神器 | 允许安全地确保 `AInv` 背包存在，保留已有背包；仍按作者原规则替换六槽物品。**先存档或使用空背包。** |
+| R18：全屏群星陨落 | 只针对 `AEsb` 修复结束清理：不打断后来接受的新命令，不覆盖地图随后写入的新范围；保留真实失败及对象身份校验。 |
+
+测试前请关闭旧修改器、退出并重启游戏，再只运行 R18。旧 helper 可能常驻于游戏进程，仅换一个 EXE 不会清除旧 helper 或失败状态。
 
 ## 历次 FullClone 扩展功能
 
-以下列的是本扩展在作者 v1.0.19 功能之外增加或调整的项目；不是原作者版本的功能清单。操作位置、参数、完整快捷键及限制见[完整中文使用说明](releases/v1.0.19-R16/V19_FULL_USAGE_GUIDE_ZH.md)。
+以下列的是本扩展在作者 v1.0.19 功能之外增加或调整的项目；不是原作者版本的功能清单。操作位置、参数、完整快捷键及限制见[完整中文使用说明](releases/v1.0.19-R18/V19_FULL_USAGE_GUIDE_ZH.md)。
 
 | 分类 | 扩展内容 |
 | --- | --- |
 | 复制与归属 | 在“大象功能 → 创建与物品”增加“启用面板复制归属”开关。默认关闭，面板复制、大量复制和 `Ctrl+B` 保留源单位归属，呼叫增援沿用作者的本地玩家逻辑；开启后，它们和 `Ctrl+K` 呼叫增援按面板选择给自己、选中单位所属玩家或指定玩家（玩家 1～24、中立敌对、中立被动）。`Ctrl+A` 始终复制给自己。 |
 | 完整复制事务 | 复制单位及大量复制无需预先读取选中单位；复制英雄等级/经验、永久三围、可用技能点、技能及等级、生命/魔法、背包物品数量和作者开放的物品实例字段。 |
 | 单位归属与玩家控制 | `Ctrl+I+U` 把选中单位交给指定玩家；`Ctrl+I+O` 控制或恢复选中单位所属玩家，不改变归属或阵营。不存在的普通玩家槽位会拒绝操作。 |
-| 队伍与中立玩家 | `Ctrl+F1` 将选中单位所属玩家加入队伍 1～12，或套用中立敌对/中立被动外交模板；“恢复原队伍”使用首次切换前保存的队伍和双向联盟关系，不把中立玩家猜成普通队伍。 |
+| 队伍与中立玩家 | `Ctrl+F1` 将选中单位所属玩家加入队伍 1～12，或套用中立敌对/中立被动外交模板；“恢复原队伍”使用首次切换前保存的队伍和双向联盟关系，不把中立玩家猜成普通队伍。R17 起增加选中玩家队伍监视，方便切换前核对。 |
 | 单位操作 | `Ctrl+U+8` 按输入的四字符 ID 替换选中单位（默认 `zhyd`）；`Ctrl+空格` 将选中单位生命、可用魔法加满；`Alt+L` 切换碰撞，再按一次恢复。另可设置单位显示颜色或所属玩家颜色，不改变归属。 |
 | 英雄与金矿 | `Ctrl+F+H` 把选中单位所属玩家的阵亡英雄复活到鼠标位置；`Ctrl+Q` 默认每次升 1 级、勾选后使用自定义等级；`Alt+Q` 默认永久三围各加 2、勾选后使用自定义值；`Alt+空格` 设置选中金矿的剩余黄金。非英雄、非金矿目标分别静默跳过。 |
 | 地狱火与胜利 | `Ctrl+F2` 在鼠标位置施放 `AUin` 地狱火，使用临时施法载体触发技能的陨石、落地和眩晕效果；`Alt+B` 可选择作者原胜利秘籍或“玩家直接胜利”。 |
@@ -33,6 +49,6 @@ R16 另修复了大量复制和 `Ctrl+N` 调用批量方法时的 `preserve_owne
 
 ## 验证范围
 
-R16 源码完整回归结果为 `1747 passed, 12 skipped, 113 subtests passed`。冻结包验证确认应用版本 `1.0.19`、helper 协议 `73`、内置 DLL 身份和离线自检。R16 的大量复制归属结果仍需在游戏地图内复测。
+R18 源码完整回归结果为 `1815 passed, 12 skipped, 113 subtests passed`。冻结包验证确认应用版本 `1.0.19`、helper 协议 `75`、内置 DLL 身份、源码一致性和离线自检。跳过的 12 项不算通过；受控测试不等于真实地图验证。R18 四项修复的游戏效果及既有功能在不同地图上的表现仍需要实测。
 
-本仓库的 `source/` 来自 R16 提交 `2f1cf8f`。公开打包时排除了一份含本机路径的旧环境审计，并清理了主程序文件末尾的空白行；程序逻辑、测试和 helper 文件未改。
+本仓库的 `source/` 更新自 R18 提交 `a32aa55957cd85be0836f5326301e8b086b493fe`，延续 R16 公开目录对旧环境审计和文件末尾空白的处理；程序逻辑、测试和 helper 文件与 R18 对应。发布附件中的完整源码 ZIP 是该 R18 提交的独立归档，含原有审计记录；编译生成的 EXE 与附件校验值一致。R16 历史测试为 `1747 passed, 12 skipped, 113 subtests passed`，协议为 `73`；不要混用不同版本的 DLL。

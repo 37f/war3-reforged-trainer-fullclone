@@ -32,6 +32,7 @@ EXTENSION_OPERATIONS = {
     "EXT_ADD_HERO_ATTRIBUTES": 313,
     "EXT_GOLD_MINE": 314,
     "EXT_LOCAL_VICTORY": 315,
+    "EXT_QUERY_SELECTED_OWNER_TEAM": 316,
 }
 AUTHOR_PYTHON_OPERATIONS_SHA256 = (
     "13175af7125e57021cd919fa3d94bbdfe01a1fc3c89278569bfccd81ebaf071c"
@@ -53,17 +54,17 @@ def make_transport_trainer(tmp_path):
     return trainer
 
 
-def test_protocol_73_is_packed_and_protocol_72_is_rejected():
+def test_protocol_75_is_packed_and_protocol_74_is_rejected():
     trainer = object.__new__(module.War3Trainer)
     operation = (module.War3Trainer.NATIVE_HELPER_OP_EXT_LOCAL_VICTORY, 0, 0, 0, 0)
 
     payload = trainer._pack_native_helper_command(0, (operation,))
 
     header = trainer.NATIVE_HELPER_HEADER_STRUCT.unpack_from(payload)
-    assert trainer.NATIVE_HELPER_VERSION == 73
-    assert header[1] == 73
+    assert trainer.NATIVE_HELPER_VERSION == 75
+    assert header[1] == 75
     protocol_69 = bytearray(payload)
-    protocol_69[4:8] = (72).to_bytes(4, "little")
+    protocol_69[4:8] = (74).to_bytes(4, "little")
     with pytest.raises(RuntimeError, match="协议不匹配"):
         trainer._parse_native_helper_results(bytes(protocol_69), 1)
 
@@ -74,7 +75,7 @@ def test_extension_operations_reach_the_real_python_transport(tmp_path):
     for name, expected in EXTENSION_OPERATIONS.items():
         kind = getattr(trainer, f"NATIVE_HELPER_OP_{name}")
         assert kind == expected
-        unit_address = 1 if kind in (305, 306, 311, 313, 314) else 0
+        unit_address = 1 if kind in (305, 306, 311, 313, 314, 316) else 0
         trainer._run_native_helper_ops_locked(
             unit_address,
             ((kind, 0, 0, 0, 0),),
@@ -127,7 +128,7 @@ def test_c_protocol_and_extension_declarations_match_python():
         re.findall(r"^#define WAR3_NATIVE_OP_(EXT_[A-Z0-9_]+) (\d+)u$", helper_source, re.MULTILINE)
     )
 
-    assert version and int(version.group(1)) == module.War3Trainer.NATIVE_HELPER_VERSION == 73
+    assert version and int(version.group(1)) == module.War3Trainer.NATIVE_HELPER_VERSION == 75
     assert {name: int(value) for name, value in declarations.items()} == EXTENSION_OPERATIONS
 
 
@@ -288,7 +289,7 @@ __declspec(dllexport) DWORD protocol_dispatch(
     cmd.status = WAR3_NATIVE_STATUS_PENDING;
     cmd.op_count = 1;
     cmd.ops[0].kind = kind;
-    if (valid && ((kind >= 300 && kind <= 304) || (kind >= 307 && kind <= 310))) {
+    if (valid && ((kind >= 300 && kind <= 304) || (kind >= 307 && kind <= 310) || kind == 316)) {
         ZeroMemory(protocol_object, sizeof(protocol_object));
         ZeroMemory(protocol_other, sizeof(protocol_other));
         ZeroMemory(protocol_owner, sizeof(protocol_owner));
@@ -431,26 +432,26 @@ def test_special_extension_operations_are_no_longer_placeholder_cases():
 
 @pytest.mark.parametrize("kind", range(300, 304))
 def test_real_c_dispatcher_accepts_valid_implemented_transactions(c_dispatcher, kind):
-    assert dispatch(c_dispatcher, 73, kind, valid=True) == (2, 0, 0)
+    assert dispatch(c_dispatcher, 75, kind, valid=True) == (2, 0, 0)
 
 
-@pytest.mark.parametrize("kind", (304, 307, 308, 309, 310))
+@pytest.mark.parametrize("kind", (304, 307, 308, 309, 310, 316))
 def test_real_c_dispatcher_accepts_valid_relation_and_color_transactions(c_dispatcher, kind):
-    assert dispatch(c_dispatcher, 73, kind, valid=True) == (2, 0, 0)
+    assert dispatch(c_dispatcher, 75, kind, valid=True) == (2, 0, 0)
 
 
-@pytest.mark.parametrize("kind", (301, 302, 303, 304, 307, 308, 309, 310))
+@pytest.mark.parametrize("kind", (301, 302, 303, 304, 307, 308, 309, 310, 316))
 def test_real_c_dispatcher_rejects_invalid_implemented_transactions_without_placeholder_error(
     c_dispatcher, kind
 ):
-    status, last_error, operation_error = dispatch(c_dispatcher, 73, kind)
+    status, last_error, operation_error = dispatch(c_dispatcher, 75, kind)
     assert status == 3
     assert last_error == operation_error != 0
     assert operation_error != module.ERROR_NOT_SUPPORTED
 
 
 def test_real_c_dispatcher_keeps_reserved_extension_range_unsupported(c_dispatcher):
-    for kind in range(316, 321):
-        status, last_error, operation_error = dispatch(c_dispatcher, 73, kind)
+    for kind in range(317, 321):
+        status, last_error, operation_error = dispatch(c_dispatcher, 75, kind)
         assert status == 3
         assert last_error == operation_error != 0

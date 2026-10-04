@@ -5,7 +5,7 @@
 #include <string.h>
 
 #define WAR3_NATIVE_MAGIC 0x33524757u
-#define WAR3_NATIVE_VERSION 73u
+#define WAR3_NATIVE_VERSION 75u
 #define WAR3_NATIVE_STATUS_PENDING 1u
 #define WAR3_NATIVE_STATUS_OK 2u
 #define WAR3_NATIVE_STATUS_FAILED 3u
@@ -134,6 +134,7 @@
 #define WAR3_NATIVE_OP_EXT_ADD_HERO_ATTRIBUTES 313u
 #define WAR3_NATIVE_OP_EXT_GOLD_MINE 314u
 #define WAR3_NATIVE_OP_EXT_LOCAL_VICTORY 315u
+#define WAR3_NATIVE_OP_EXT_QUERY_SELECTED_OWNER_TEAM 316u
 
 #define WAR3_PLAYER_TEAM_MAX_PEERS 28u
 #define WAR3_PLAYER_TEAM_ALLIANCE_TYPES 6u
@@ -585,6 +586,7 @@ static const char *g_persistent_native_names[] = {
     "ConvertPlayerGameResult",
     "RemovePlayer",
     "EndGame",
+    "BlzGetAbilityIntegerField", /* R18 bounded presets; append to keep native indices stable. */
 };
 
 static War3PersistentNative g_persistent_natives[
@@ -1715,6 +1717,71 @@ static DWORD war3_ext_team(
     return ERROR_SUCCESS;
 }
 
+/* R17 read-only monitor: do not invoke SetPlayerTeam or SetPlayerAlliance here. */
+static DWORD war3_ext_query_selected_owner_team(
+    NativeCommand *cmd, NativeOp *op, uint32_t index,
+    uint64_t **output_extra, uint32_t *output_count
+) {
+    JassGetOwningPlayerFn get_owner;
+    JassGetPlayerIdFn get_id;
+    JassGetPlayerTeamFn get_team;
+    JassPlayerFn player_fn;
+    JassGetPlayerSlotStateFn get_slot;
+    JassConvertPlayerSlotStateFn convert_slot;
+    JassGetPlayerAllianceFn get_alliance;
+    War3TeamPeerSnapshot peers[WAR3_PLAYER_TEAM_MAX_PEERS];
+    uint64_t owner, playing;
+    int32_t owner_id, team;
+    uint32_t count = 0;
+    if (index != 1u || cmd->op_count != 2u || !cmd->unit_handle ||
+        cmd->ops[0].kind != WAR3_NATIVE_OP_VALIDATE_UNIT_IDENTITY ||
+        op->rawcode || op->handler || op->arg0 || op->arg1 || cmd->reserved)
+        return ERROR_INVALID_DATA;
+    get_owner = (JassGetOwningPlayerFn)(uintptr_t)war3_persistent_native_handler("GetOwningPlayer");
+    get_id = (JassGetPlayerIdFn)(uintptr_t)war3_persistent_native_handler("GetPlayerId");
+    get_team = (JassGetPlayerTeamFn)(uintptr_t)war3_persistent_native_handler("GetPlayerTeam");
+    player_fn = (JassPlayerFn)(uintptr_t)war3_persistent_native_handler("Player");
+    get_slot = (JassGetPlayerSlotStateFn)(uintptr_t)war3_persistent_native_handler("GetPlayerSlotState");
+    convert_slot = (JassConvertPlayerSlotStateFn)(uintptr_t)war3_persistent_native_handler("ConvertPlayerSlotState");
+    get_alliance = (JassGetPlayerAllianceFn)(uintptr_t)war3_persistent_native_handler("GetPlayerAlliance");
+    if (!get_owner || !get_id || !get_team || !player_fn || !get_slot ||
+        !convert_slot || !get_alliance) return ERROR_PROC_NOT_FOUND;
+    ZeroMemory(peers, sizeof(peers));
+    __try {
+        owner = get_owner(cmd->unit_handle);
+        if (!owner) return ERROR_NOT_FOUND;
+        owner_id = get_id(owner);
+        team = get_team(owner);
+        if (owner_id < 0 || owner_id >= 28 || team < 0 || team >= 64)
+            return ERROR_INVALID_DATA;
+        playing = convert_slot(1);
+        if (!playing) return ERROR_INVALID_DATA;
+        for (uint32_t n = 0; n < WAR3_PLAYER_TEAM_MAX_PEERS; ++n) {
+            uint64_t peer;
+            int special = n == 24u || n == 27u;
+            int32_t peer_team;
+            if (n == (uint32_t)owner_id || (n >= 24u && !special)) continue;
+            peer = player_fn((int32_t)n);
+            if (!peer || peer == owner || (!special && get_slot(peer) != playing)) continue;
+            peer_team = get_team(peer);
+            if (peer_team < 0 || peer_team >= 64) return ERROR_INVALID_DATA;
+            peers[count].player_index = n;
+            peers[count].team = peer_team;
+            peers[count].owner_to_peer_mask = war3_team_read_mask(get_alliance, owner, peer);
+            peers[count].peer_to_owner_mask = war3_team_read_mask(get_alliance, peer, owner);
+            ++count;
+        }
+        *output_extra = count ? (uint64_t *)HeapAlloc(GetProcessHeap(), 0, count * sizeof(uint64_t)) : NULL;
+        if (count && !*output_extra) return ERROR_OUTOFMEMORY;
+        for (uint32_t n = 0; n < count; ++n) (*output_extra)[n] = war3_team_pack(&peers[n]);
+        *output_count = count;
+        op->result = (uint32_t)team;
+        op->arg0 = owner;
+        op->arg1 = (uint32_t)owner_id | ((uint64_t)count << 8u);
+    } __except (EXCEPTION_EXECUTE_HANDLER) { return GetExceptionCode(); }
+    return ERROR_SUCCESS;
+}
+
 static int war3_readable_span(uint64_t address, size_t length);
 
 /* Guard a pinned unit in the same game-thread callback as its mutations.
@@ -1753,7 +1820,7 @@ static int war3_is_internal_item_op(uint32_t kind) {
     return kind >= WAR3_NATIVE_OP_REMOVE_ITEM_SLOT && kind <= WAR3_NATIVE_OP_GET_ITEM_TYPE_IN_SLOT;
 }
 static int war3_is_fullclone_extension_op(uint32_t kind) {
-    return kind >= WAR3_NATIVE_OP_EXT_VALIDATE_PLAYER_TARGET && kind <= WAR3_NATIVE_OP_EXT_LOCAL_VICTORY;
+    return kind >= WAR3_NATIVE_OP_EXT_VALIDATE_PLAYER_TARGET && kind <= WAR3_NATIVE_OP_EXT_QUERY_SELECTED_OWNER_TEAM;
 }
 
 static int war3_readable_span(uint64_t address, size_t length) {
@@ -4681,6 +4748,7 @@ static void run_command(void) {
                 op->kind != WAR3_NATIVE_OP_EXT_SHARE_SELECTED_OWNER_CONTROL &&
                 op->kind != WAR3_NATIVE_OP_EXT_SET_SELECTED_OWNER_TEAM &&
                 op->kind != WAR3_NATIVE_OP_EXT_RESTORE_SELECTED_OWNER_TEAM &&
+                op->kind != WAR3_NATIVE_OP_EXT_QUERY_SELECTED_OWNER_TEAM &&
                 op->kind != WAR3_NATIVE_OP_EXT_SET_UNIT_COLOR &&
                 op->kind != WAR3_NATIVE_OP_EXT_SET_SELECTED_OWNER_COLOR &&
                 op->kind != WAR3_NATIVE_OP_EXT_REVIVE_SELECTED_OWNER_HEROES &&
@@ -4837,6 +4905,11 @@ static void run_command(void) {
                 break;
             case WAR3_NATIVE_OP_EXT_LOCAL_VICTORY:
                 last_error = war3_ext_local_victory(&cmd, op, i);
+                if (last_error) { op->last_error = last_error; goto finish; }
+                break;
+            case WAR3_NATIVE_OP_EXT_QUERY_SELECTED_OWNER_TEAM:
+                last_error = war3_ext_query_selected_owner_team(&cmd, op, i,
+                    &extra_results, &extra_result_count);
                 if (last_error) { op->last_error = last_error; goto finish; }
                 break;
             case WAR3_NATIVE_OP_MANAGE_BOUND_ABILITY: {

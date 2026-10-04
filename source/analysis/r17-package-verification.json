@@ -1,0 +1,44 @@
+{
+  "ok": true,
+  "app_version": "1.0.19",
+  "native_protocol": 74,
+  "extension_operations": {
+    "NATIVE_HELPER_OP_EXT_VALIDATE_PLAYER_TARGET": 300,
+    "NATIVE_HELPER_OP_EXT_SET_UNIT_OWNER_PLAYER": 301,
+    "NATIVE_HELPER_OP_EXT_CREATE_UNIT_PLAYER": 302,
+    "NATIVE_HELPER_OP_EXT_CLONE_SELECTED_WITH_OWNER": 303,
+    "NATIVE_HELPER_OP_EXT_SHARE_SELECTED_OWNER_CONTROL": 304,
+    "NATIVE_HELPER_OP_EXT_REVIVE_SELECTED_OWNER_HEROES": 305,
+    "NATIVE_HELPER_OP_EXT_FILL_UNIT_VITALS": 306,
+    "NATIVE_HELPER_OP_EXT_SET_SELECTED_OWNER_TEAM": 307,
+    "NATIVE_HELPER_OP_EXT_RESTORE_SELECTED_OWNER_TEAM": 308,
+    "NATIVE_HELPER_OP_EXT_SET_UNIT_COLOR": 309,
+    "NATIVE_HELPER_OP_EXT_SET_SELECTED_OWNER_COLOR": 310,
+    "NATIVE_HELPER_OP_EXT_REPLACE_UNIT": 311,
+    "NATIVE_HELPER_OP_EXT_CAST_INFERNAL": 312,
+    "NATIVE_HELPER_OP_EXT_ADD_HERO_ATTRIBUTES": 313,
+    "NATIVE_HELPER_OP_EXT_GOLD_MINE": 314,
+    "NATIVE_HELPER_OP_EXT_LOCAL_VICTORY": 315,
+    "NATIVE_HELPER_OP_EXT_QUERY_SELECTED_OWNER_TEAM": 316
+  },
+  "legacy_helpers": [],
+  "required_helper": "tools/war3_native_helper.dll",
+  "helper_sha256": "B2CCAC7CCF7CFC0393492BFEF08C784A9602F7284C808C9AECA942C42D2B2B46",
+  "exe": "C:\\Users\\22824\\Documents\\Codex\\2026-08-21\\new-chat\\work\\v19-migration\\fullclone-r17-team-monitor\\dist\\War3ReforgedTrainer-v1.0.19-FullClone-R17.exe",
+  "exe_bytes": 15468372,
+  "exe_sha256": "F9BC124EDB5528BBFB95665FD0C1A1B6B01ED62797677A7C027A5D8C844A493E",
+  "bundled_sources_match": true,
+  "offline_runtime": {
+    "ok": true,
+    "frozen": true,
+    "decoder": "C:\\Users\\22824\\AppData\\Local\\Temp\\_MEI000050042\\capstone\\lib\\capstone.dll",
+    "decoder_sha256": "76958e18380023a68fd1714fa2e01c594cc6db1955a07ad6937b66e66dc5d6c3",
+    "instructions": [
+      "mov",
+      "mov",
+      "call",
+      "ret"
+    ],
+    "helper_sha256": "b2ccac7ccf7cfc0393492bfef08c784a9602f7284c808c9aeca942c42d2b2b46"
+  }
+}

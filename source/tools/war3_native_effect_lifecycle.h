@@ -87,6 +87,7 @@ static DWORD war3_effect_cleanup_probe(War3AbilityEffect *s,int *gone) {
    retry. Never restore a field overwritten by a trigger with a third value. */
 static DWORD war3_effect_cleanup(War3AbilityEffect *s) {
     DWORD error;uint32_t bits;int gone=0;
+    int starfall=s->id==0x41457362u; /* R18: limit compatibility cleanup to AEsb. */
     if(!s->captured) return ERROR_INVALID_DATA;
     error=war3_effect_cleanup_probe(s,&gone);if(error) return error;
     if(gone) {ZeroMemory(s,sizeof(*s));return ERROR_SUCCESS;}
@@ -99,18 +100,31 @@ static DWORD war3_effect_cleanup(War3AbilityEffect *s) {
         /* A zero order means the unit is already idle. Do not send a new
            stop command just to clean up its original ability fields. */
         if(order) {
-            if(order!=s->order) return ERROR_INVALID_DATA;
-            uint32_t stopped=stop(s->bound.unit_handle,851972);
-            error=war3_effect_cleanup_probe(s,&gone);if(error) return error;
-            if(gone) {ZeroMemory(s,sizeof(*s));return ERROR_SUCCESS;}
-            if(!stopped) return ERROR_INVALID_DATA;
+            if(order!=s->order) {
+                if(!starfall) return ERROR_INVALID_DATA;
+                /* A new user/map command is no longer ours. Clean up the
+                   starfall ability below, but never stop this new command. */
+            } else {
+                uint32_t stopped=stop(s->bound.unit_handle,851972);
+                error=war3_effect_cleanup_probe(s,&gone);if(error) return error;
+                if(gone) {ZeroMemory(s,sizeof(*s));return ERROR_SUCCESS;}
+                if(!stopped) return ERROR_INVALID_DATA;
+            }
         }
         s->invoked=0;
     }
     if(s->area_touched) {
-        error=war3_effect_area(s,&bits);if(error) return error;
-        if(bits!=s->original_area && bits!=s->requested_area) return ERROR_INVALID_DATA;
-        if(bits!=s->original_area) {error=war3_effect_store_area(s,s->original_area);if(error) return error;}
+        /* A temporary AEsb is about to be removed: restoring its disposable
+           field can only introduce another failure. Existing skills keep
+           their original area unless a map has since replaced our value. */
+        if(!starfall || !s->added) {
+            error=war3_effect_area(s,&bits);if(error) return error;
+            if(bits!=s->original_area && bits!=s->requested_area) {
+                if(!starfall) return ERROR_INVALID_DATA;
+            } else if(bits!=s->original_area) {
+                error=war3_effect_store_area(s,s->original_area);if(error) return error;
+            }
+        }
         s->area_touched=0;
     }
     if(s->added) {

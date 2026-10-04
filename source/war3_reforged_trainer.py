@@ -925,6 +925,37 @@ class PlayerTeamSnapshot:
     virtual_team: bool = False
 
 
+@dataclass(frozen=True)
+class PlayerTeamStatus:
+    process_id: int
+    player_slot: int
+    owner_handle: int
+    native_team: int
+    assigned_team: int | None = None
+    assignment_verified: bool = False
+    virtual_team: bool = False
+
+
+def format_player_team_status(value: PlayerTeamStatus) -> str:
+    """Describe live native state and only a readback-verified virtual assignment."""
+    neutral = {24: "中立敌对", 27: "中立被动"}.get(value.player_slot)
+    player = f"玩家 {value.player_slot + 1}"
+    if neutral:
+        player += f"（{neutral}槽位）"
+    if value.assignment_verified and value.virtual_team:
+        team = {12: "中立敌对队伍", 13: "中立被动队伍"}.get(
+            value.assigned_team, f"队伍 {value.assigned_team + 1}"
+        )
+        return f"{player}：{team}（外交模板）；原生队伍编号 {value.native_team}"
+    if neutral or value.native_team >= 12:
+        text = f"{player}：原生队伍编号 {value.native_team}"
+    else:
+        text = f"{player}：队伍 {value.native_team + 1}"
+    if value.assigned_team is not None and not value.assignment_verified:
+        text += "；关系已变化"
+    return text
+
+
 PLAYER_TEAM_SNAPSHOT_BASE_MASK = (1 << 23) - 1
 PLAYER_TEAM_SNAPSHOT_ASSIGNED_MASK = ((1 << 36) - 1) ^ (
     PLAYER_TEAM_SNAPSHOT_BASE_MASK
@@ -2859,7 +2890,7 @@ class War3Trainer:
         )
     )
     NATIVE_HELPER_MAGIC = 0x33524757
-    NATIVE_HELPER_VERSION = 73
+    NATIVE_HELPER_VERSION = 75
     NATIVE_HELPER_CLONE_FLAG_HERO = 0x01
     NATIVE_HELPER_CLONE_FLAG_INVENTORY = 0x02
     NATIVE_HELPER_CLONE_FLAG_PRESERVE_OWNER = 0x04
@@ -2991,6 +3022,7 @@ class War3Trainer:
     NATIVE_HELPER_OP_EXT_ADD_HERO_ATTRIBUTES = 313
     NATIVE_HELPER_OP_EXT_GOLD_MINE = 314
     NATIVE_HELPER_OP_EXT_LOCAL_VICTORY = 315
+    NATIVE_HELPER_OP_EXT_QUERY_SELECTED_OWNER_TEAM = 316
     PERSISTENT_NATIVE_SNAPSHOT_QWORDS = 154
     NATIVE_BASIC_FIELD_ARGUMENTS = {
         "hp_current": ("target_hp", "hp"),
@@ -3103,11 +3135,13 @@ class War3Trainer:
         "ConvertPlayerGameResult",
         "RemovePlayer",
         "EndGame",
+        "BlzGetAbilityIntegerField",  # R18 preset limit; existing native indices stay unchanged.
     )
     # These handlers are resolved for extension operations inside the helper.
     # Keep them out of the public Python cache so the author's on-demand native
     # discovery behavior remains unchanged while the panel switch is off.
     PERSISTENT_EXTENSION_NATIVE_NAMES = frozenset({
+        "BlzGetAbilityIntegerField",  # Keep the author's on-demand field discovery unchanged.
         "CreateUnit",
         "RemoveUnit",
         "GetUnitFacing",
@@ -5075,6 +5109,7 @@ class War3Trainer:
             self.NATIVE_HELPER_OP_EXT_ADD_HERO_ATTRIBUTES,
             self.NATIVE_HELPER_OP_EXT_GOLD_MINE,
             self.NATIVE_HELPER_OP_EXT_LOCAL_VICTORY,
+            self.NATIVE_HELPER_OP_EXT_QUERY_SELECTED_OWNER_TEAM,
         }
         if any(kind not in allowed_kinds for kind, _rawcode, _handler, _arg0, _arg1 in op_list):
             raise RuntimeError("native helper 仅允许结构化验证后的白名单操作")
@@ -5136,6 +5171,7 @@ class War3Trainer:
         unit_kinds.add(self.NATIVE_HELPER_OP_EXT_REPLACE_UNIT)
         unit_kinds.add(self.NATIVE_HELPER_OP_EXT_ADD_HERO_ATTRIBUTES)
         unit_kinds.add(self.NATIVE_HELPER_OP_EXT_GOLD_MINE)
+        unit_kinds.add(self.NATIVE_HELPER_OP_EXT_QUERY_SELECTED_OWNER_TEAM)
         if any(kind in unit_kinds for kind, _rawcode, _handler, _arg0, _arg1 in op_list) and not unit_address:
             raise RuntimeError("当前单位缺少运行时 unit 指针，不能调用 native helper")
         command_path = self._native_helper_command_path()
@@ -6475,6 +6511,40 @@ class War3Trainer:
             bool((packed >> 32) & 1),
         )
 
+    def query_selected_owner_team(self) -> PlayerTeamStatus:
+        """R17: read current team/alliance state without creating a restore snapshot."""
+        candidate, unit_handle = self._direct_selected_context()
+        response = self._run_native_helper_ops(
+            unit_handle,
+            (self._bound_identity_operation(candidate),
+             (self.NATIVE_HELPER_OP_EXT_QUERY_SELECTED_OWNER_TEAM, 0, 0, 0, 0)),
+        )
+        if len(response) != 2:
+            raise RuntimeError("选中玩家队伍读取结果不完整")
+        operation = response[1]
+        native_team = int(operation.result)
+        metadata = int(operation.arg1)
+        player_slot, peer_count = metadata & 0xFF, (metadata >> 8) & 0xFF
+        owner = int(operation.arg0)
+        relationships = tuple(int(value) for value in response[0].extra_results)
+        if (operation.kind != self.NATIVE_HELPER_OP_EXT_QUERY_SELECTED_OWNER_TEAM
+                or not owner or not 0 <= player_slot < 28
+                or not 0 <= native_team < 64 or metadata >> 16
+                or peer_count > 28 or len(relationships) != peer_count
+                or _team_relationships_by_player(relationships) is None):
+            raise RuntimeError("选中玩家队伍读取结果无效")
+        snapshot = getattr(self, "_player_team_snapshots", {}).get((int(self.pid), player_slot))
+        if snapshot is not None and snapshot.owner_handle != owner:
+            snapshot = None
+        verified = bool(snapshot and _player_team_snapshot_matches_current_state(
+            snapshot, native_team, relationships
+        ))
+        return PlayerTeamStatus(
+            int(self.pid), player_slot, owner, native_team,
+            snapshot.assigned_team if snapshot else None,
+            verified, bool(snapshot and snapshot.virtual_team),
+        )
+
     def set_selected_owner_team(
         self,
         team_index: int,
@@ -7265,8 +7335,8 @@ class War3Trainer:
         self, entries: Iterable[tuple[int, int, int, int]], candidate: UnitCandidate | None = None,
     ) -> list[NativeHelperOpResult]:
         entries = tuple(entries)
-        if any(action not in (1, 2, 3, 4) or not 0 < rawcode <= 0xFFFFFFFF
-               or not 0 <= level <= 100000 or (action == 3 and not level)
+        if any(action not in (1, 2, 3, 4, 5) or not 0 < rawcode <= 0xFFFFFFFF
+               or not 0 <= level <= 100000 or (action in (3, 5) and not level)
                or (action in (2, 4) and level) or not 0 <= full < (1 << 64)
                for action, rawcode, level, full in entries):
             raise ValueError("Invalid native ability action")
@@ -7321,6 +7391,7 @@ class War3Trainer:
     def add_ability_bundle_to_selected_unit(
         self,
         entries: Iterable[tuple[int | str, int | None]],
+        *, bounded_levels: bool = False,
     ) -> tuple[int, int]:
         bundle = tuple((int(self._coerce_memory_value("rawcode", rawcode)) & 0xFFFFFFFF,
                         None if level is None else int(level)) for rawcode, level in entries)
@@ -7328,7 +7399,10 @@ class War3Trainer:
             raise ValueError("技能组合无效")
         if any(level is not None and not 1 <= level <= 100000 for _, level in bundle):
             raise ValueError("技能组合等级必须在 1 到 100000 之间")
-        results = self._run_bound_ability_actions((1, rawcode, level or 0, 0) for rawcode, level in bundle)
+        # R18: only aura/passive presets opt into the map-defined level cap.
+        results = self._run_bound_ability_actions(
+            (5 if bounded_levels and level is not None else 1, rawcode, level or 0, 0)
+            for rawcode, level in bundle)
         return sum(bool(item.result) for item in results), len(bundle)
 
     def replace_selected_inventory_items(
@@ -15319,6 +15393,8 @@ def run_gui() -> None:
     elephant_target_player = tk.StringVar(value="2")
     elephant_clone_target_player = tk.StringVar(value="2")
     elephant_selected_player_team = tk.StringVar(value="队伍 1")
+    elephant_team_monitor_enabled = tk.BooleanVar(value=False)
+    elephant_current_player_team = LocalizedStringVar(value="选中玩家队伍：尚未读取")
     elephant_player_color = tk.StringVar(value="1")
     elephant_hero_attributes = tk.StringVar(value="20000")
     elephant_hotkey_attributes_fixed = tk.BooleanVar(value=False)
@@ -15365,6 +15441,8 @@ def run_gui() -> None:
         "item_field_snapshot": None,
         "item_field_rows": {},
         "closing": False,
+        "team_monitor_busy": False,
+        "team_monitor_generation": 0,
     }
 
     def start_operation_thread(target: Callable[[], None], name: str) -> None:
@@ -17109,7 +17187,7 @@ def run_gui() -> None:
             ("ACac", None),
         )
         results = elephant_batch(
-            lambda: elephant_trainer().add_ability_bundle_to_selected_unit(entries),
+            lambda: elephant_trainer().add_ability_bundle_to_selected_unit(entries, bounded_levels=True),
             "添加全光环",
         )
         return (
@@ -17129,7 +17207,7 @@ def run_gui() -> None:
             ("ACpv", None),
         )
         results = elephant_batch(
-            lambda: elephant_trainer().add_ability_bundle_to_selected_unit(entries),
+            lambda: elephant_trainer().add_ability_bundle_to_selected_unit(entries, bounded_levels=True),
             "添加全被动",
         )
         return (
@@ -17288,6 +17366,65 @@ def run_gui() -> None:
         action = "获得控制权" if mask == 3 else "恢复原控制状态"
         return f"已对选中玩家（handle=0x{owner_handle:x}）{action}；单位所属和阵营未改变"
 
+    def request_selected_player_team_read() -> None:
+        # R17 shares the existing operation lock; no overlapping helper commands.
+        if state.get("closing") or state.get("team_monitor_busy"):
+            return
+        obj = state.get("trainer")
+        if not isinstance(obj, War3Trainer):
+            elephant_current_player_team.set("选中玩家队伍：未连接游戏")
+            return
+        generation = int(state["team_monitor_generation"])
+        state["team_monitor_busy"] = True
+
+        def finish(value: PlayerTeamStatus | None, error: str) -> None:
+            state["team_monitor_busy"] = False
+            if (state.get("closing") or state.get("trainer") is not obj
+                    or generation != state["team_monitor_generation"]):
+                return
+            if value is not None and value.process_id == int(obj.pid):
+                elephant_current_player_team.set(format_player_team_status(value))
+                pid_var.set(str(obj.pid))
+            else:
+                elephant_current_player_team.set(error or "选中玩家队伍：暂时无法读取")
+
+        def worker() -> None:
+            value = None
+            error = "队伍读取等待其他操作结束"
+            acquired = operation_lock.acquire(blocking=False)
+            if acquired:
+                try:
+                    obj.refresh_window(allow_pid_change=True)
+                    value = obj.query_selected_owner_team()
+                    error = ""
+                except Exception as exc:
+                    error = f"选中玩家队伍：未选中单位或无法读取（{exc}）"
+                finally:
+                    operation_lock.release()
+            if not state.get("closing"):
+                root.after(0, finish, value, error)
+
+        try:
+            start_operation_thread(worker, "war3-team-monitor")
+        except Exception:
+            state["team_monitor_busy"] = False
+            raise
+
+    def toggle_selected_player_team_monitor() -> None:
+        state["team_monitor_generation"] = int(state["team_monitor_generation"]) + 1
+        if elephant_team_monitor_enabled.get():
+            elephant_current_player_team.set("监视队伍：等待选中单位")
+            request_selected_player_team_read()
+        else:
+            elephant_current_player_team.set("队伍监视已关闭；可点击读取队伍")
+
+    def selected_player_team_monitor_tick() -> None:
+        if state.get("closing"):
+            return
+        if elephant_team_monitor_enabled.get():
+            request_selected_player_team_read()
+        root.after(1000, selected_player_team_monitor_tick)
+
     def selected_player_team_index() -> int:
         value = elephant_selected_player_team.get().strip()
         if value == ui_text("恢复原队伍") or value == "恢复原队伍":
@@ -17313,6 +17450,7 @@ def run_gui() -> None:
                 t.set_selected_owner_team(target)
             )
             note = "（中立虚拟队伍外交模板）" if virtual else ""
+            root.after(0, request_selected_player_team_read)
             return (f"已把选中玩家（handle=0x{owner:x}）加入队伍 {actual + 1}{note}；"
                     f"首次记录的原队伍编号为 {original + 1}，关系玩家 {peers} 名")
         _unit, owner_handle, _mask = t.query_selected_owner_shared_control()
@@ -17321,6 +17459,7 @@ def run_gui() -> None:
         if len(snapshots) != 1:
             raise RuntimeError("没有该玩家唯一可用的原队伍记录")
         owner, previous, actual, peers = t.restore_selected_owner_team(snapshots[0])
+        root.after(0, request_selected_player_team_read)
         return (f"已将选中玩家（handle=0x{owner:x}）从队伍 {previous + 1}"
                 f"恢复到原队伍 {actual + 1}；恢复关系玩家 {peers} 名")
 
@@ -17810,6 +17949,7 @@ def run_gui() -> None:
             item_field_summary,
             item_field_detail,
             elephant_hotkey_status,
+            elephant_current_player_team,
             *id_catalog_statuses.values(),
         ):
             variable.refresh()
@@ -18476,12 +18616,25 @@ def run_gui() -> None:
     ttk.Button(target_frame, text="控制/恢复选中玩家 (Ctrl+I+O，不改变阵营)",
                command=lambda: call_async(elephant_control_selected_player)).grid(
                    row=3, column=0, columnspan=2, sticky="ew", pady=3)
-    ttk.Button(target_frame, text="把选中玩家加入队伍 (Ctrl+F1)",
+    team_controls = ttk.Frame(target_frame)
+    team_controls.grid(row=4, column=0, columnspan=2, sticky="ew", pady=(8, 3))
+    team_controls.columnconfigure(0, weight=1)
+    team_controls.columnconfigure(1, weight=1)
+    ttk.Button(team_controls, text="把选中玩家加入队伍 (Ctrl+F1)",
                command=lambda: call_async(elephant_set_selected_player_team)).grid(
-                   row=4, column=0, sticky="ew", padx=(0, 6), pady=(8, 3))
-    ttk.Combobox(target_frame, textvariable=elephant_selected_player_team,
+                   row=0, column=0, sticky="ew", padx=(0, 6))
+    ttk.Combobox(team_controls, textvariable=elephant_selected_player_team,
                  values=player_team_display_values(), state="readonly", width=12).grid(
-                     row=4, column=1, sticky="ew", pady=(8, 3))
+                     row=0, column=1, sticky="ew")
+    ttk.Button(team_controls, text="读取队伍", command=request_selected_player_team_read).grid(
+        row=1, column=0, sticky="ew", padx=(0, 6), pady=(4, 0))
+    ttk.Checkbutton(team_controls, text="监视队伍（每秒刷新）",
+                    variable=elephant_team_monitor_enabled,
+                    command=toggle_selected_player_team_monitor).grid(
+        row=1, column=1, sticky="w", pady=(4, 0))
+    ttk.Label(team_controls, textvariable=elephant_current_player_team,
+              wraplength=350, justify="left").grid(
+        row=2, column=0, columnspan=2, sticky="ew", pady=(4, 0))
     ttk.Button(target_frame, text="替换单位 (Ctrl+U+8)",
                command=lambda: call_async(elephant_replace_unit)).grid(
                    row=5, column=0, sticky="ew", padx=(0, 6), pady=(8, 3))
@@ -18772,6 +18925,7 @@ def run_gui() -> None:
     root.after(100, init)
     root.after(1500, lock_tick)
     root.after(100, ally_health_lock_tick)
+    root.after(1000, selected_player_team_monitor_tick)
     root.mainloop()
 
 
