@@ -7,6 +7,7 @@ import struct
 import subprocess
 import sys
 import tempfile
+from types import SimpleNamespace
 from unittest.mock import Mock
 
 import pytest
@@ -86,6 +87,32 @@ def test_empty_name_is_unavailable_and_selection_failure_does_not_reuse_last_nam
     trainer._direct_selected_context.side_effect = RuntimeError("未选中单位")
     with pytest.raises(RuntimeError, match="未选中单位"):
         trainer.query_selected_owner_team(include_player_name=True)
+
+
+@pytest.mark.parametrize("change", ["clear", "unit", "generation", "owner", "handle"])
+def test_completed_name_query_rejects_selection_changed_while_waiting(change):
+    trainer = named_reader("晚到的玩家A".encode())
+    response = trainer._run_native_helper_ops.return_value
+    def complete(*args, **kwargs):
+        if change == "clear":
+            trainer._direct_selected_context.side_effect = RuntimeError("未选中单位")
+        else:
+            current = candidate()
+            field = {"unit": "unit_address", "generation": "handle", "owner": "owner_address"}.get(change)
+            if field:
+                setattr(current, field, getattr(current, field) + 8)
+            trainer._direct_selected_context.return_value = (current, 0x6008 if change == "handle" else 0x6000)
+        return response
+    trainer._run_native_helper_ops.side_effect = complete
+    with pytest.raises(RuntimeError, match="选中|选择"):
+        trainer.query_selected_owner_team(include_player_name=True)
+
+
+def test_legacy_316_does_not_add_a_selection_read():
+    trainer = named_reader()
+    trainer._run_native_helper_ops.return_value = [result(), result(kind=316, result=3, arg0=0x111, arg1=7)]
+    trainer.query_selected_owner_team()
+    assert trainer._direct_selected_context.call_count == 1
 
 
 NAME_HARNESS = r'''
@@ -208,6 +235,7 @@ def test_existing_gui_monitor_refreshes_name_and_clears_stale_results(monkeypatc
     from tkinter import messagebox
 
     real_tk = tk.Tk
+    real_query = module.War3Trainer.query_selected_owner_team
     instances = []
     status = [module.PlayerTeamStatus(4321, 7, 0x111, 3, player_name="森林巡逻队Alpha")]
     popup = Mock()
@@ -225,6 +253,8 @@ def test_existing_gui_monitor_refreshes_name_and_clears_stale_results(monkeypatc
         assert include_player_name, "The existing GUI must request actual names"
         if isinstance(status[0], Exception):
             raise status[0]
+        if callable(status[0]):
+            return status[0]()
         return status[0]
 
     def walk(widget):
@@ -286,6 +316,25 @@ def test_existing_gui_monitor_refreshes_name_and_clears_stale_results(monkeypatc
         by_text["监视队伍（每秒刷新）"].invoke()
         root.update()
         assert "已关闭" in value() and "过期名字" not in value()
+        # Manual read, monitor OFF: selection changes while the helper is pending.
+        # Run the real query/parser; the controlled helper completion changes the
+        # selection before returning its old A result to the GUI worker.
+        for cleared in (False, True):
+            delayed = named_reader("晚到的玩家A".encode())
+            response = delayed._run_native_helper_ops.return_value
+            def complete(*args, **kwargs):
+                if cleared:
+                    delayed._direct_selected_context.side_effect = RuntimeError("未选中单位")
+                else:
+                    other = SimpleNamespace(**vars(candidate()))
+                    other.unit_address += 8
+                    delayed._direct_selected_context.return_value = (other, 0x6008)
+                return response
+            delayed._run_native_helper_ops.side_effect = complete
+            status[0] = lambda: real_query(delayed, include_player_name=True)
+            by_text["读取队伍"].invoke()
+            root.update()
+            assert "晚到的玩家A" not in value() and "选中" in value()
         popup.assert_not_called()
         root.destroy()
 

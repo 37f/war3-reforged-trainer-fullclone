@@ -6580,6 +6580,15 @@ class War3Trainer:
         verified = bool(snapshot and _player_team_snapshot_matches_current_state(
             snapshot, native_team, relationships
         ))
+        if include_player_name:
+            # R19: a valid captured unit may no longer be selected after waiting
+            # for the helper. Recheck in the worker, never block Tk for a native
+            # query, and let its existing error path clear a late old name.
+            current, current_handle = self._direct_selected_context()
+            if (int(self.pid) != process_id or current_handle != unit_handle
+                    or self._bound_identity_operation(current)
+                    != self._bound_identity_operation(candidate)):
+                raise RuntimeError("选中单位已变化，请重新读取玩家信息")
         return PlayerTeamStatus(
             process_id, player_slot, owner, native_team,
             snapshot.assigned_team if snapshot else None,

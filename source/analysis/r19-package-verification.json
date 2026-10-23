@@ -26,13 +26,13 @@
   "required_helper": "tools/war3_native_helper.dll",
   "helper_sha256": "2F0A9597D27C54C8ED7AF9884DDC448C504D8759707B74E11E1EC039BD16F5D9",
   "exe": "C:\\Users\\22824\\Documents\\Codex\\2026-08-21\\new-chat\\work\\v19-migration\\fullclone-r19-player-name\\source\\dist\\War3ReforgedTrainer-v1.0.19-FullClone-R19.exe",
-  "exe_bytes": 15471949,
-  "exe_sha256": "6F8415B315BCF4C5E80C020E11B5E53F0F99F48AC9B1125B7B42130EEE343637",
+  "exe_bytes": 15474903,
+  "exe_sha256": "54929BC3B7365A51B5FFBC0EA156BFC393A8F3DE3F0887CD32DF5B13AFB2B109",
   "bundled_sources_match": true,
   "offline_runtime": {
     "ok": true,
     "frozen": true,
-    "decoder": "C:\\Users\\22824\\AppData\\Local\\Temp\\_MEI00001c482\\capstone\\lib\\capstone.dll",
+    "decoder": "C:\\Users\\22824\\AppData\\Local\\Temp\\_MEI00000ea82\\capstone\\lib\\capstone.dll",
     "decoder_sha256": "76958e18380023a68fd1714fa2e01c594cc6db1955a07ad6937b66e66dc5d6c3",
     "instructions": [
       "mov",

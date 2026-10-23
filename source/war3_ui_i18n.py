@@ -782,6 +782,7 @@ _EN_TRANSLATIONS.update(
     "选中玩家名字读取结果不完整": "Incomplete selected-player name readback",
     "选中玩家名字读取结果无效": "Invalid selected-player name readback",
     "选中玩家名字填充数据无效": "Invalid selected-player name padding",
+    "选中单位已变化，请重新读取玩家信息": "The selected unit changed; read player information again",
     "外交模板": "diplomacy template",
     "槽位": "slot",
     "颜色": "Color",
