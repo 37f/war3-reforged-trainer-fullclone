@@ -2,21 +2,21 @@
 
 这是基于[原作者的 v1.0.19 源码提交](https://github.com/dc114154qq/war3-reforged-trainer/tree/4124cd582ed624eeb85d665484755fa8cae65697)制作的非官方扩展版。本仓库不代表原作者发布；原项目的功能与本扩展的改动请分别参看源码和[迁移审计](releases/v1.0.19-R16/FULLCLONE_MIGRATION_AUDIT.md)。
 
-当前发布版本是 **v1.0.19 FullClone R19.1**，目标游戏版本为 **Warcraft III 2.0.4.23745**。本版保留此前全部扩展及 R18 的四项修复；R19 在原队伍监视中加入所属玩家的实际名字，R19.1 去掉中立敌对/中立被动名字不可用时的占位提示。**R19 名字与队伍监视已获用户游戏内核对；R19.1 文字小修通过自动化与冻结包检查，尚待其新 EXE 的游戏内验收。** 这不代表其他功能或所有地图均已实测。
+当前发布版本是 **v1.0.19 FullClone R19.2**，目标游戏版本为 **Warcraft III 2.0.4.23745**。本版保留此前全部扩展及 R18 的四项修复；R19 在原队伍监视中加入所属玩家的实际名字，R19.1 精简中立名字提示，R19.2 修复自定义战役中原生队伍为 `-1` 时监视报错误13的问题。**当前战役的问题单位已连续三次成功读回，用户已确认 R19.2 正式 EXE“显示正常，无原错误”。** 这不代表其他功能或所有地图均已实测。
 
 ## 下载
 
-- [R19.1 发布与下载页面](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v1.0.19-fullclone-r19.1)
-- [Windows 单文件 EXE](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v1.0.19-fullclone-r19.1/War3ReforgedTrainer-v1.0.19-FullClone-R19.1.exe)
-- [R19.1 完整源码 ZIP](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v1.0.19-fullclone-r19.1/war3-reforged-trainer-v1.0.19-fullclone-r19.1-source.zip)，也可直接浏览 [source/](source/)
-- [完整中文使用说明](releases/v1.0.19-R19.1/V19_FULL_USAGE_GUIDE_ZH.md)
-- [R19.1 显示调整说明](releases/v1.0.19-R19.1/R19_1_NEUTRAL_LABEL_NOTES.md)
-- [验证记录](releases/v1.0.19-R19.1/R19_1_VERIFICATION.md)及[包校验报告](releases/v1.0.19-R19.1/r19.1-package-verification.json)
-- [SHA-256 校验文件](releases/v1.0.19-R19.1/SHA256SUMS.txt)
+- [R19.2 发布与下载页面](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v1.0.19-fullclone-r19.2)
+- [Windows 单文件 EXE](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v1.0.19-fullclone-r19.2/War3ReforgedTrainer-v1.0.19-FullClone-R19.2.exe)
+- [R19.2 完整源码 ZIP](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v1.0.19-fullclone-r19.2/war3-reforged-trainer-v1.0.19-fullclone-r19.2-source.zip)，也可直接浏览 [source/](source/)
+- [完整中文使用说明](releases/v1.0.19-R19.2/V19_FULL_USAGE_GUIDE_ZH.md)
+- [R19.2 战役队伍监视修复说明](releases/v1.0.19-R19.2/R19_2_UNASSIGNED_TEAM_NOTES.md)
+- [验证记录](releases/v1.0.19-R19.2/R19_2_VERIFICATION.md)及[包校验报告](releases/v1.0.19-R19.2/r19.2-package-verification.json)
+- [SHA-256 校验文件](releases/v1.0.19-R19.2/SHA256SUMS.txt)
 
-旧版 [R18 发布](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v1.0.19-fullclone-r18)、[R16 发布](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v1.0.19-fullclone-r16)及其仓库目录保留，便于回退。R19.1 是新的独立程序，不覆盖旧 EXE。
+旧版 [R19.1 发布](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v1.0.19-fullclone-r19.1)、[R18 发布](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v1.0.19-fullclone-r18)、[R16 发布](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v1.0.19-fullclone-r16)及其仓库目录保留，便于回退。R19.2 是新的独立程序，不覆盖旧 EXE。
 
-## R17～R19.1 更新
+## R17～R19.2 更新
 
 | 版本 | 内容 |
 | --- | --- |
@@ -26,12 +26,13 @@
 | R18：全屏群星陨落 | 只针对 `AEsb` 修复结束清理：不打断后来接受的新命令，不覆盖地图随后写入的新范围；保留真实失败及对象身份校验。 |
 | R19：实际玩家名字 | 合并到原“读取队伍”和每秒监视，显示选中单位所属玩家的编号、实际名字和队伍；中文名字在英文界面保持原文。名字读取失败不沿用旧名字，读取期间改选或取消选择时拒绝迟到结果，不修改名字或队伍。 |
 | R19.1：中立显示 | 玩家25（中立敌对）及玩家28（中立被动）名字不可用时省略“名称暂无法读取”；保留编号、中立标识和队伍信息，普通玩家提示不变。 |
+| R19.2：战役未分配队伍 | 监视允许原生队伍 `-1`，显示“未分配普通队伍（原始值 -1）”，继续显示玩家编号和能读取的名字，不误报为未选择、队伍0或中立队伍。只兼容只读监视，不改变加入/恢复队伍或其他修改功能。 |
 
-从 R18 或更旧版本切换前，请关闭旧修改器、退出并重启游戏，再只运行 R19.1。旧 helper 可能常驻，仅换 EXE 不会清除它。R19 与 R19.1 的 helper 字节及协议均相同，R19→R19.1 只需关闭旧修改器、打开新版并重新连接，无需仅为这次显示调整重开游戏。不要同时运行多个修改器版本。
+升级到 R19.2 前，请先保存进度、关闭旧修改器，完整退出并重启游戏，再只运行 R19.2。新版 helper 已重新编译，旧 helper 可能常驻，仅换 EXE 不会清除它；不要同时运行多个修改器版本。R19→R19.1 曾仅为显示调整，无需重开游戏的旧说明不适用于升级 R19.2。
 
 ## 历次 FullClone 扩展功能
 
-以下列的是本扩展在作者 v1.0.19 功能之外增加或调整的项目；不是原作者版本的功能清单。操作位置、参数、完整快捷键及限制见[完整中文使用说明](releases/v1.0.19-R19.1/V19_FULL_USAGE_GUIDE_ZH.md)。
+以下列的是本扩展在作者 v1.0.19 功能之外增加或调整的项目；不是原作者版本的功能清单。操作位置、参数、完整快捷键及限制见[完整中文使用说明](releases/v1.0.19-R19.2/V19_FULL_USAGE_GUIDE_ZH.md)。
 
 | 分类 | 扩展内容 |
 | --- | --- |
@@ -51,6 +52,6 @@ R16 另修复了大量复制和 `Ctrl+N` 调用批量方法时的 `preserve_owne
 
 ## 验证范围
 
-R19.1 源码完整回归结果为 `1868 passed, 12 skipped, 113 subtests passed`。冻结包验证确认应用版本 `1.0.19`、helper 协议 `76`、内置 DLL 身份、源码一致性和离线自检。跳过的 12 项不算通过。用户已核对 R19 在当前地图中的实际玩家名字与队伍，并确认其正式监视界面；R19.1 新 EXE 的文字调整仍需实际画面确认。受控测试不等于所有地图验收，R18 四项修复及其他功能的跨地图效果仍需另测。
+R19.2 源码完整回归结果为 `1890 passed, 12 skipped, 113 subtests passed`。冻结包验证确认应用版本 `1.0.19`、helper 协议 `76`、内置 DLL 身份、源码一致性和离线自检。跳过的 12 项不算通过。当前战役原先出错单位的监视已连续三次成功读回“玩家7、队伍-1”，用户确认正式 R19.2 界面“显示正常，无原错误”。该玩家名字目前没有可读取内容，按原有普通玩家规则提示，不再让其阻断归属/队伍显示。受控测试和当前单位验收不等于所有地图验收，其他功能的跨地图效果仍需另测。
 
-本仓库的 `source/` 与 R19.1 实现提交 `91d0e4910d99fe314e9d7c511e98c87ac0c0cf7e` 对应；发布附件中的完整源码 ZIP 是该提交 `source/` 的独立归档，内含测试和历史审计记录。程序、源码 ZIP、使用说明及验证报告使用本次已校验的原始文件，不因发布而重编译 EXE。源码中的本地交付记录描述上传前状态；这次公开发布另经用户授权。历史 R18 为协议75，R16为协议73；不要跨 helper 版本混用 DLL。
+本仓库的 `source/` 与 R19.2 源码提交 `dbb20d0cd19625f57b470a4e41f289be055732a3` 对应；发布附件中的完整源码 ZIP 是该提交 `source/` 的原始字节独立归档，258个文件全部核对提交对象并通过 ZIP CRC。程序、源码 ZIP、使用说明及验证报告使用已校验的原始文件，不因发布而重编译 EXE。源码中的本地交付记录描述上传前状态；这次公开发布另经用户授权。R19.2 保持协议76，但 helper 字节与 R19/R19.1 不同，升级仍须重开游戏；历史 R18 为协议75，R16为协议73，不要混用 DLL。

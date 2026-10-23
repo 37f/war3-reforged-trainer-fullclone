@@ -1,0 +1,45 @@
+{
+  "ok": true,
+  "app_version": "1.0.19",
+  "native_protocol": 76,
+  "extension_operations": {
+    "NATIVE_HELPER_OP_EXT_VALIDATE_PLAYER_TARGET": 300,
+    "NATIVE_HELPER_OP_EXT_SET_UNIT_OWNER_PLAYER": 301,
+    "NATIVE_HELPER_OP_EXT_CREATE_UNIT_PLAYER": 302,
+    "NATIVE_HELPER_OP_EXT_CLONE_SELECTED_WITH_OWNER": 303,
+    "NATIVE_HELPER_OP_EXT_SHARE_SELECTED_OWNER_CONTROL": 304,
+    "NATIVE_HELPER_OP_EXT_REVIVE_SELECTED_OWNER_HEROES": 305,
+    "NATIVE_HELPER_OP_EXT_FILL_UNIT_VITALS": 306,
+    "NATIVE_HELPER_OP_EXT_SET_SELECTED_OWNER_TEAM": 307,
+    "NATIVE_HELPER_OP_EXT_RESTORE_SELECTED_OWNER_TEAM": 308,
+    "NATIVE_HELPER_OP_EXT_SET_UNIT_COLOR": 309,
+    "NATIVE_HELPER_OP_EXT_SET_SELECTED_OWNER_COLOR": 310,
+    "NATIVE_HELPER_OP_EXT_REPLACE_UNIT": 311,
+    "NATIVE_HELPER_OP_EXT_CAST_INFERNAL": 312,
+    "NATIVE_HELPER_OP_EXT_ADD_HERO_ATTRIBUTES": 313,
+    "NATIVE_HELPER_OP_EXT_GOLD_MINE": 314,
+    "NATIVE_HELPER_OP_EXT_LOCAL_VICTORY": 315,
+    "NATIVE_HELPER_OP_EXT_QUERY_SELECTED_OWNER_TEAM": 316,
+    "NATIVE_HELPER_OP_EXT_QUERY_SELECTED_OWNER_STATUS": 317
+  },
+  "legacy_helpers": [],
+  "required_helper": "tools/war3_native_helper.dll",
+  "helper_sha256": "9EDB76E2BA02C6A2F5BFD502E314E9A8BD8E5B6F45176F054B928FE4C0397E1C",
+  "exe": "C:\\Users\\22824\\Documents\\Codex\\2026-08-21\\new-chat\\work\\v19-migration\\fullclone-r19-player-name\\source\\dist\\War3ReforgedTrainer-v1.0.19-FullClone-R19.2.exe",
+  "exe_bytes": 15490765,
+  "exe_sha256": "7776320F1FF27E8A05171AF6E29DCF50ADEF2B97A93864277AF383A373B54BF1",
+  "bundled_sources_match": true,
+  "offline_runtime": {
+    "ok": true,
+    "frozen": true,
+    "decoder": "C:\\Users\\22824\\AppData\\Local\\Temp\\_MEI0000ad502\\capstone\\lib\\capstone.dll",
+    "decoder_sha256": "76958e18380023a68fd1714fa2e01c594cc6db1955a07ad6937b66e66dc5d6c3",
+    "instructions": [
+      "mov",
+      "mov",
+      "call",
+      "ret"
+    ],
+    "helper_sha256": "9edb76e2ba02c6a2f5bfd502e314e9a8bd8e5b6f45176f054b928fe4c0397e1c"
+  }
+}
