@@ -31,11 +31,11 @@
 
 **Interfaces:** Existing `query_selected_owner_team(include_player_name=True) -> PlayerTeamStatus`; native operation 317 stores -1 as zero-extended uint32 `0xffffffff` in result with peer_count=0. No signature/layout change. Legacy 316 continues rejecting -1.
 
-- [ ] Run existing name/team/package regression baseline.
-- [ ] Add RED tests: real compiled C operation 317 with owner team -1 succeeds, produces result 0xffffffff and bounded name payload with zero setters; legacy 316 and setters still reject -1; malformed other teams fail. Python sentinel decode retains name/slot, no restore snapshot, stale selection rejected; formatter shows explicit unassigned value in both languages.
-- [ ] Run those tests and retain actual expected RED failures.
-- [ ] Implement narrowly gated C acceptance and empty peer snapshot only for 317/-1; Python sentinel handling, display and translations. Preserve unknown-value rejection and final identity checks.
-- [ ] Run focused and complete pytest suite; use existing SEH compiler and dependencies.
-- [ ] Rebuild helper and independent R19.2 EXE; verify embedded source/DLL, offline frozen self-test, source ZIP CRC and delivery hashes.
-- [ ] Fresh whole-change review; address important findings with RED/GREEN tests. Record any deliberate deviations.
-- [ ] Leave a local commit and separately named delivery; describe real-game test boundary and required restart. No merge/push/release.
+- [x] Run existing name/team/package regression baseline.
+- [x] Add RED tests: real compiled C operation 317 with owner team -1 succeeds, produces result 0xffffffff and bounded name payload with zero setters; legacy 316 and setters still reject -1; malformed other teams fail. Python sentinel decode retains name/slot, no restore snapshot, stale selection rejected; formatter shows explicit unassigned value in both languages.
+- [x] Run those tests and retain actual expected RED failures.
+- [x] Implement narrowly gated C acceptance and empty peer snapshot only for 317/-1; Python sentinel handling, display and translations. Preserve unknown-value rejection and final identity checks.
+- [x] Run focused and complete pytest suite; use existing SEH compiler and dependencies.
+- [x] Rebuild helper and independent R19.2 EXE; verify embedded source/DLL, offline frozen self-test, source ZIP CRC and delivery hashes.
+- [x] Fresh whole-change review; address important findings with RED/GREEN tests. Record any deliberate deviations.
+- [x] Leave a local commit and separately named delivery; describe real-game test boundary and required restart. No merge/push/release.
