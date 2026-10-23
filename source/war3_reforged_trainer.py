@@ -934,26 +934,37 @@ class PlayerTeamStatus:
     assigned_team: int | None = None
     assignment_verified: bool = False
     virtual_team: bool = False
+    # R19: optional read-only name from the same owner/team snapshot.
+    player_name: str | None = None
+    player_name_error: int = 0
 
 
-def format_player_team_status(value: PlayerTeamStatus) -> str:
+def format_player_team_status(value: PlayerTeamStatus, language: str = "zh") -> str:
     """Describe live native state and only a readback-verified virtual assignment."""
     neutral = {24: "中立敌对", 27: "中立被动"}.get(value.player_slot)
     player = f"玩家 {value.player_slot + 1}"
     if neutral:
         player += f"（{neutral}槽位）"
+    # R19: localize labels only; live player names must remain byte-for-byte text.
+    player = translate_ui_text(player, language)
+    if value.player_name is not None:
+        player += f"({value.player_name})" if language == "en" else f"（{value.player_name}）"
+    elif value.player_name_error:
+        player += translate_ui_text("（名称暂无法读取）", language)
     if value.assignment_verified and value.virtual_team:
         team = {12: "中立敌对队伍", 13: "中立被动队伍"}.get(
             value.assigned_team, f"队伍 {value.assigned_team + 1}"
         )
-        return f"{player}：{team}（外交模板）；原生队伍编号 {value.native_team}"
+        return player + translate_ui_text(
+            f"：{team}（外交模板）；原生队伍编号 {value.native_team}", language
+        )
     if neutral or value.native_team >= 12:
-        text = f"{player}：原生队伍编号 {value.native_team}"
+        text = f"：原生队伍编号 {value.native_team}"
     else:
-        text = f"{player}：队伍 {value.native_team + 1}"
+        text = f"：队伍 {value.native_team + 1}"
     if value.assigned_team is not None and not value.assignment_verified:
         text += "；关系已变化"
-    return text
+    return player + translate_ui_text(text, language)
 
 
 PLAYER_TEAM_SNAPSHOT_BASE_MASK = (1 << 23) - 1
@@ -2890,7 +2901,7 @@ class War3Trainer:
         )
     )
     NATIVE_HELPER_MAGIC = 0x33524757
-    NATIVE_HELPER_VERSION = 75
+    NATIVE_HELPER_VERSION = 76
     NATIVE_HELPER_CLONE_FLAG_HERO = 0x01
     NATIVE_HELPER_CLONE_FLAG_INVENTORY = 0x02
     NATIVE_HELPER_CLONE_FLAG_PRESERVE_OWNER = 0x04
@@ -3023,6 +3034,7 @@ class War3Trainer:
     NATIVE_HELPER_OP_EXT_GOLD_MINE = 314
     NATIVE_HELPER_OP_EXT_LOCAL_VICTORY = 315
     NATIVE_HELPER_OP_EXT_QUERY_SELECTED_OWNER_TEAM = 316
+    NATIVE_HELPER_OP_EXT_QUERY_SELECTED_OWNER_STATUS = 317
     PERSISTENT_NATIVE_SNAPSHOT_QWORDS = 154
     NATIVE_BASIC_FIELD_ARGUMENTS = {
         "hp_current": ("target_hp", "hp"),
@@ -5110,6 +5122,7 @@ class War3Trainer:
             self.NATIVE_HELPER_OP_EXT_GOLD_MINE,
             self.NATIVE_HELPER_OP_EXT_LOCAL_VICTORY,
             self.NATIVE_HELPER_OP_EXT_QUERY_SELECTED_OWNER_TEAM,
+            self.NATIVE_HELPER_OP_EXT_QUERY_SELECTED_OWNER_STATUS,
         }
         if any(kind not in allowed_kinds for kind, _rawcode, _handler, _arg0, _arg1 in op_list):
             raise RuntimeError("native helper 仅允许结构化验证后的白名单操作")
@@ -5172,6 +5185,7 @@ class War3Trainer:
         unit_kinds.add(self.NATIVE_HELPER_OP_EXT_ADD_HERO_ATTRIBUTES)
         unit_kinds.add(self.NATIVE_HELPER_OP_EXT_GOLD_MINE)
         unit_kinds.add(self.NATIVE_HELPER_OP_EXT_QUERY_SELECTED_OWNER_TEAM)
+        unit_kinds.add(self.NATIVE_HELPER_OP_EXT_QUERY_SELECTED_OWNER_STATUS)
         if any(kind in unit_kinds for kind, _rawcode, _handler, _arg0, _arg1 in op_list) and not unit_address:
             raise RuntimeError("当前单位缺少运行时 unit 指针，不能调用 native helper")
         command_path = self._native_helper_command_path()
@@ -6511,13 +6525,17 @@ class War3Trainer:
             bool((packed >> 32) & 1),
         )
 
-    def query_selected_owner_team(self) -> PlayerTeamStatus:
+    def query_selected_owner_team(self, *, include_player_name: bool = False) -> PlayerTeamStatus:
         """R17: read current team/alliance state without creating a restore snapshot."""
+        # R19 leaves the original 316 response intact for existing callers.
+        query_kind = (self.NATIVE_HELPER_OP_EXT_QUERY_SELECTED_OWNER_STATUS
+                      if include_player_name else self.NATIVE_HELPER_OP_EXT_QUERY_SELECTED_OWNER_TEAM)
+        process_id = int(self.pid)
         candidate, unit_handle = self._direct_selected_context()
         response = self._run_native_helper_ops(
             unit_handle,
             (self._bound_identity_operation(candidate),
-             (self.NATIVE_HELPER_OP_EXT_QUERY_SELECTED_OWNER_TEAM, 0, 0, 0, 0)),
+             (query_kind, 0, 0, 0, 0)),
         )
         if len(response) != 2:
             raise RuntimeError("选中玩家队伍读取结果不完整")
@@ -6526,13 +6544,36 @@ class War3Trainer:
         metadata = int(operation.arg1)
         player_slot, peer_count = metadata & 0xFF, (metadata >> 8) & 0xFF
         owner = int(operation.arg0)
-        relationships = tuple(int(value) for value in response[0].extra_results)
-        if (operation.kind != self.NATIVE_HELPER_OP_EXT_QUERY_SELECTED_OWNER_TEAM
+        extras = tuple(int(value) for value in response[0].extra_results)
+        relationships = extras[:peer_count] if include_player_name else extras
+        if (operation.kind != query_kind or int(self.pid) != process_id
                 or not owner or not 0 <= player_slot < 28
                 or not 0 <= native_team < 64 or metadata >> 16
                 or peer_count > 28 or len(relationships) != peer_count
                 or _team_relationships_by_player(relationships) is None):
             raise RuntimeError("选中玩家队伍读取结果无效")
+        player_name, name_error = None, 0
+        if include_player_name:
+            payload = extras[peer_count:]
+            if len(payload) < 2 or any(not 0 <= word < (1 << 64) for word in payload):
+                raise RuntimeError("选中玩家名字读取结果不完整")
+            name_error, byte_length = payload[:2]
+            if (name_error > 0xFFFFFFFF or byte_length > 0x10000
+                    or len(payload) != 2 + (byte_length + 7) // 8
+                    or (name_error and byte_length)):
+                raise RuntimeError("选中玩家名字读取结果无效")
+            data = b"".join(word.to_bytes(8, "little") for word in payload[2:])
+            if any(data[byte_length:]):
+                raise RuntimeError("选中玩家名字填充数据无效")
+            if not name_error:
+                try:
+                    if byte_length > 512 or b"\0" in data[:byte_length]:
+                        raise UnicodeError("invalid bounded player name")
+                    player_name = data[:byte_length].decode("utf-8", errors="strict")
+                    if not player_name:
+                        name_error, player_name = ERROR_NOT_FOUND, None
+                except UnicodeError:
+                    name_error, player_name = 1113, None
         snapshot = getattr(self, "_player_team_snapshots", {}).get((int(self.pid), player_slot))
         if snapshot is not None and snapshot.owner_handle != owner:
             snapshot = None
@@ -6540,9 +6581,10 @@ class War3Trainer:
             snapshot, native_team, relationships
         ))
         return PlayerTeamStatus(
-            int(self.pid), player_slot, owner, native_team,
+            process_id, player_slot, owner, native_team,
             snapshot.assigned_team if snapshot else None,
             verified, bool(snapshot and snapshot.virtual_team),
+            player_name, name_error,
         )
 
     def set_selected_owner_team(
@@ -15319,6 +15361,26 @@ def run_gui() -> None:
         def source_text(self) -> str:
             return self._source_text
 
+    class PlayerTeamMonitorVar(LocalizedStringVar):
+        """R19: retain the snapshot so language changes cannot translate names."""
+        _snapshot: PlayerTeamStatus | None = None
+
+        def set(self, value: object) -> None:
+            self._snapshot = None
+            super().set(value)
+
+        def set_status(self, value: PlayerTeamStatus) -> None:
+            self._snapshot = value
+            self.refresh()
+
+        def refresh(self) -> None:
+            if self._snapshot is None:
+                super().refresh()
+            else:
+                tk.StringVar.set(self, format_player_team_status(
+                    self._snapshot, ui_language["code"]
+                ))
+
     language_choice = tk.StringVar(
         value="中文" if ui_language["code"] == "zh" else "English"
     )
@@ -15394,7 +15456,7 @@ def run_gui() -> None:
     elephant_clone_target_player = tk.StringVar(value="2")
     elephant_selected_player_team = tk.StringVar(value="队伍 1")
     elephant_team_monitor_enabled = tk.BooleanVar(value=False)
-    elephant_current_player_team = LocalizedStringVar(value="选中玩家队伍：尚未读取")
+    elephant_current_player_team = PlayerTeamMonitorVar(value="选中玩家队伍：尚未读取")
     elephant_player_color = tk.StringVar(value="1")
     elephant_hero_attributes = tk.StringVar(value="20000")
     elephant_hotkey_attributes_fixed = tk.BooleanVar(value=False)
@@ -17383,7 +17445,7 @@ def run_gui() -> None:
                     or generation != state["team_monitor_generation"]):
                 return
             if value is not None and value.process_id == int(obj.pid):
-                elephant_current_player_team.set(format_player_team_status(value))
+                elephant_current_player_team.set_status(value)
                 pid_var.set(str(obj.pid))
             else:
                 elephant_current_player_team.set(error or "选中玩家队伍：暂时无法读取")
@@ -17395,7 +17457,7 @@ def run_gui() -> None:
             if acquired:
                 try:
                     obj.refresh_window(allow_pid_change=True)
-                    value = obj.query_selected_owner_team()
+                    value = obj.query_selected_owner_team(include_player_name=True)
                     error = ""
                 except Exception as exc:
                     error = f"选中玩家队伍：未选中单位或无法读取（{exc}）"

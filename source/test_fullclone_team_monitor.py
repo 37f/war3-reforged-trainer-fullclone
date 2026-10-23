@@ -215,6 +215,8 @@ def test_real_gui_team_controls_read_without_changing_destination(monkeypatch):
     monkeypatch.setattr(tk.Misc, "mainloop", exercise)
     monkeypatch.setattr(module.War3Trainer, "__init__", fake_init)
     monkeypatch.setattr(module.War3Trainer, "refresh_window", lambda self, **kwargs: None)
+    monkeypatch.setattr(module.War3Trainer, "list_resource_caches", lambda self: [])
+    monkeypatch.setattr(module.War3Trainer, "prewarm_selected_unit_cache", lambda self: candidate())
     monkeypatch.setattr(module.War3Trainer, "query_selected_owner_team", query)
     monkeypatch.setattr(module.threading.Thread, "start", lambda self: self.run())
     monkeypatch.setattr(messagebox, "showerror", popup)

@@ -5,7 +5,7 @@
 #include <string.h>
 
 #define WAR3_NATIVE_MAGIC 0x33524757u
-#define WAR3_NATIVE_VERSION 75u
+#define WAR3_NATIVE_VERSION 76u
 #define WAR3_NATIVE_STATUS_PENDING 1u
 #define WAR3_NATIVE_STATUS_OK 2u
 #define WAR3_NATIVE_STATUS_FAILED 3u
@@ -135,6 +135,7 @@
 #define WAR3_NATIVE_OP_EXT_GOLD_MINE 314u
 #define WAR3_NATIVE_OP_EXT_LOCAL_VICTORY 315u
 #define WAR3_NATIVE_OP_EXT_QUERY_SELECTED_OWNER_TEAM 316u
+#define WAR3_NATIVE_OP_EXT_QUERY_SELECTED_OWNER_STATUS 317u
 
 #define WAR3_PLAYER_TEAM_MAX_PEERS 28u
 #define WAR3_PLAYER_TEAM_ALLIANCE_TYPES 6u
@@ -1820,7 +1821,7 @@ static int war3_is_internal_item_op(uint32_t kind) {
     return kind >= WAR3_NATIVE_OP_REMOVE_ITEM_SLOT && kind <= WAR3_NATIVE_OP_GET_ITEM_TYPE_IN_SLOT;
 }
 static int war3_is_fullclone_extension_op(uint32_t kind) {
-    return kind >= WAR3_NATIVE_OP_EXT_VALIDATE_PLAYER_TARGET && kind <= WAR3_NATIVE_OP_EXT_QUERY_SELECTED_OWNER_TEAM;
+    return kind >= WAR3_NATIVE_OP_EXT_VALIDATE_PLAYER_TARGET && kind <= WAR3_NATIVE_OP_EXT_QUERY_SELECTED_OWNER_STATUS;
 }
 
 static int war3_readable_span(uint64_t address, size_t length) {
@@ -1843,6 +1844,8 @@ static int war3_readable_span(uint64_t address, size_t length) {
 /* Exact 23745 FirstOfGroup body. Only its three rel32 operands vary. Its
    tail call converts a validated unit object to a JASS handle with flag 1,
    just as the selection snapshot does. Never execute scanned byte hits. */
+#include "war3_native_player_name.h"
+
 static const uint8_t war3_first_group_code[51]={
     0x48,0x83,0xec,0x28,0xe8,0x07,0x7a,0xdc,0xff,0x48,0x85,0xc0,0x74,0x1e,
     0x48,0x8d,0x48,0x58,0x33,0xd2,0xe8,0x57,0x97,0x13,0x00,0x48,0x85,0xc0,
@@ -4749,6 +4752,7 @@ static void run_command(void) {
                 op->kind != WAR3_NATIVE_OP_EXT_SET_SELECTED_OWNER_TEAM &&
                 op->kind != WAR3_NATIVE_OP_EXT_RESTORE_SELECTED_OWNER_TEAM &&
                 op->kind != WAR3_NATIVE_OP_EXT_QUERY_SELECTED_OWNER_TEAM &&
+                op->kind != WAR3_NATIVE_OP_EXT_QUERY_SELECTED_OWNER_STATUS &&
                 op->kind != WAR3_NATIVE_OP_EXT_SET_UNIT_COLOR &&
                 op->kind != WAR3_NATIVE_OP_EXT_SET_SELECTED_OWNER_COLOR &&
                 op->kind != WAR3_NATIVE_OP_EXT_REVIVE_SELECTED_OWNER_HEROES &&
@@ -4909,6 +4913,11 @@ static void run_command(void) {
                 break;
             case WAR3_NATIVE_OP_EXT_QUERY_SELECTED_OWNER_TEAM:
                 last_error = war3_ext_query_selected_owner_team(&cmd, op, i,
+                    &extra_results, &extra_result_count);
+                if (last_error) { op->last_error = last_error; goto finish; }
+                break;
+            case WAR3_NATIVE_OP_EXT_QUERY_SELECTED_OWNER_STATUS:
+                last_error = war3_ext_query_selected_owner_status(&cmd, op, i,
                     &extra_results, &extra_result_count);
                 if (last_error) { op->last_error = last_error; goto finish; }
                 break;
