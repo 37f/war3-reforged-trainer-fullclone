@@ -1,2 +1,3 @@
 # Release files must retain exact bytes so their published SHA-256 checksums remain valid.
 releases/v1.0.19-R18/* -text
+releases/v1.0.19-R19.1/* -text

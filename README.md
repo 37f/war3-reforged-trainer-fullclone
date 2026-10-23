@@ -2,21 +2,21 @@
 
 这是基于[原作者的 v1.0.19 源码提交](https://github.com/dc114154qq/war3-reforged-trainer/tree/4124cd582ed624eeb85d665484755fa8cae65697)制作的非官方扩展版。本仓库不代表原作者发布；原项目的功能与本扩展的改动请分别参看源码和[迁移审计](releases/v1.0.19-R16/FULLCLONE_MIGRATION_AUDIT.md)。
 
-当前发布版本是 **v1.0.19 FullClone R18**，目标游戏版本为 **Warcraft III 2.0.4.23745**。R18 保留 R16 的全部扩展与复制归属修复，包含 R17 的选中玩家队伍监视，并针对全光环、全被动、六神器和全屏群星陨落进行窄范围修复。**R18 已通过离线回归与冻结包验证，尚未完成这四项功能的真实地图验收。**
+当前发布版本是 **v1.0.19 FullClone R19.1**，目标游戏版本为 **Warcraft III 2.0.4.23745**。本版保留此前全部扩展及 R18 的四项修复；R19 在原队伍监视中加入所属玩家的实际名字，R19.1 去掉中立敌对/中立被动名字不可用时的占位提示。**R19 名字与队伍监视已获用户游戏内核对；R19.1 文字小修通过自动化与冻结包检查，尚待其新 EXE 的游戏内验收。** 这不代表其他功能或所有地图均已实测。
 
 ## 下载
 
-- [R18 发布与下载页面](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v1.0.19-fullclone-r18)
-- [Windows 单文件 EXE](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v1.0.19-fullclone-r18/War3ReforgedTrainer-v1.0.19-FullClone-R18.exe)
-- [R18 完整源码 ZIP](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v1.0.19-fullclone-r18/war3-reforged-trainer-1.0.19-fullclone-r18-source.zip)，也可直接浏览 [source/](source/)
-- [完整中文使用说明](releases/v1.0.19-R18/V19_FULL_USAGE_GUIDE_ZH.md)
-- [R18 修复说明与游戏验收步骤](releases/v1.0.19-R18/R18_ELEPHANT_REPAIR_NOTES.md)
-- [验证记录](releases/v1.0.19-R18/R18_VERIFICATION.md)及[包校验报告](releases/v1.0.19-R18/r18-package-verification.json)
-- [SHA-256 校验文件](releases/v1.0.19-R18/SHA256SUMS.txt)
+- [R19.1 发布与下载页面](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v1.0.19-fullclone-r19.1)
+- [Windows 单文件 EXE](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v1.0.19-fullclone-r19.1/War3ReforgedTrainer-v1.0.19-FullClone-R19.1.exe)
+- [R19.1 完整源码 ZIP](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v1.0.19-fullclone-r19.1/war3-reforged-trainer-v1.0.19-fullclone-r19.1-source.zip)，也可直接浏览 [source/](source/)
+- [完整中文使用说明](releases/v1.0.19-R19.1/V19_FULL_USAGE_GUIDE_ZH.md)
+- [R19.1 显示调整说明](releases/v1.0.19-R19.1/R19_1_NEUTRAL_LABEL_NOTES.md)
+- [验证记录](releases/v1.0.19-R19.1/R19_1_VERIFICATION.md)及[包校验报告](releases/v1.0.19-R19.1/r19.1-package-verification.json)
+- [SHA-256 校验文件](releases/v1.0.19-R19.1/SHA256SUMS.txt)
 
-旧版 [R16 发布](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v1.0.19-fullclone-r16)及仓库中的 `releases/v1.0.19-R16/` 文件保留，便于回退。R18 是新的独立程序，不覆盖旧 EXE。
+旧版 [R18 发布](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v1.0.19-fullclone-r18)、[R16 发布](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v1.0.19-fullclone-r16)及其仓库目录保留，便于回退。R19.1 是新的独立程序，不覆盖旧 EXE。
 
-## R17 / R18 更新
+## R17～R19.1 更新
 
 | 版本 | 内容 |
 | --- | --- |
@@ -24,12 +24,14 @@
 | R18：全光环 / 全被动 | 查询地图技能的实际等级上限，将这两项预设的请求等级限制在 `min(112, 上限)`；不改变普通手动技能等级设置。 |
 | R18：获得 6 个神器 | 允许安全地确保 `AInv` 背包存在，保留已有背包；仍按作者原规则替换六槽物品。**先存档或使用空背包。** |
 | R18：全屏群星陨落 | 只针对 `AEsb` 修复结束清理：不打断后来接受的新命令，不覆盖地图随后写入的新范围；保留真实失败及对象身份校验。 |
+| R19：实际玩家名字 | 合并到原“读取队伍”和每秒监视，显示选中单位所属玩家的编号、实际名字和队伍；中文名字在英文界面保持原文。名字读取失败不沿用旧名字，读取期间改选或取消选择时拒绝迟到结果，不修改名字或队伍。 |
+| R19.1：中立显示 | 玩家25（中立敌对）及玩家28（中立被动）名字不可用时省略“名称暂无法读取”；保留编号、中立标识和队伍信息，普通玩家提示不变。 |
 
-测试前请关闭旧修改器、退出并重启游戏，再只运行 R18。旧 helper 可能常驻于游戏进程，仅换一个 EXE 不会清除旧 helper 或失败状态。
+从 R18 或更旧版本切换前，请关闭旧修改器、退出并重启游戏，再只运行 R19.1。旧 helper 可能常驻，仅换 EXE 不会清除它。R19 与 R19.1 的 helper 字节及协议均相同，R19→R19.1 只需关闭旧修改器、打开新版并重新连接，无需仅为这次显示调整重开游戏。不要同时运行多个修改器版本。
 
 ## 历次 FullClone 扩展功能
 
-以下列的是本扩展在作者 v1.0.19 功能之外增加或调整的项目；不是原作者版本的功能清单。操作位置、参数、完整快捷键及限制见[完整中文使用说明](releases/v1.0.19-R18/V19_FULL_USAGE_GUIDE_ZH.md)。
+以下列的是本扩展在作者 v1.0.19 功能之外增加或调整的项目；不是原作者版本的功能清单。操作位置、参数、完整快捷键及限制见[完整中文使用说明](releases/v1.0.19-R19.1/V19_FULL_USAGE_GUIDE_ZH.md)。
 
 | 分类 | 扩展内容 |
 | --- | --- |
@@ -49,6 +51,6 @@ R16 另修复了大量复制和 `Ctrl+N` 调用批量方法时的 `preserve_owne
 
 ## 验证范围
 
-R18 源码完整回归结果为 `1815 passed, 12 skipped, 113 subtests passed`。冻结包验证确认应用版本 `1.0.19`、helper 协议 `75`、内置 DLL 身份、源码一致性和离线自检。跳过的 12 项不算通过；受控测试不等于真实地图验证。R18 四项修复的游戏效果及既有功能在不同地图上的表现仍需要实测。
+R19.1 源码完整回归结果为 `1868 passed, 12 skipped, 113 subtests passed`。冻结包验证确认应用版本 `1.0.19`、helper 协议 `76`、内置 DLL 身份、源码一致性和离线自检。跳过的 12 项不算通过。用户已核对 R19 在当前地图中的实际玩家名字与队伍，并确认其正式监视界面；R19.1 新 EXE 的文字调整仍需实际画面确认。受控测试不等于所有地图验收，R18 四项修复及其他功能的跨地图效果仍需另测。
 
-本仓库的 `source/` 更新自 R18 提交 `a32aa55957cd85be0836f5326301e8b086b493fe`，延续 R16 公开目录对旧环境审计和文件末尾空白的处理；程序逻辑、测试和 helper 文件与 R18 对应。发布附件中的完整源码 ZIP 是该 R18 提交的独立归档，含原有审计记录；编译生成的 EXE 与附件校验值一致。R16 历史测试为 `1747 passed, 12 skipped, 113 subtests passed`，协议为 `73`；不要混用不同版本的 DLL。
+本仓库的 `source/` 与 R19.1 实现提交 `91d0e4910d99fe314e9d7c511e98c87ac0c0cf7e` 对应；发布附件中的完整源码 ZIP 是该提交 `source/` 的独立归档，内含测试和历史审计记录。程序、源码 ZIP、使用说明及验证报告使用本次已校验的原始文件，不因发布而重编译 EXE。源码中的本地交付记录描述上传前状态；这次公开发布另经用户授权。历史 R18 为协议75，R16为协议73；不要跨 helper 版本混用 DLL。
