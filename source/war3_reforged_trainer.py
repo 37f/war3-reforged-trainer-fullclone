@@ -952,6 +952,9 @@ def format_player_team_status(value: PlayerTeamStatus, language: str = "zh") -> 
     # R19.1: the two named neutral slots need no unavailable-name placeholder.
     elif value.player_name_error and not neutral:
         player += translate_ui_text("（名称暂无法读取）", language)
+    # R19.2: preserve the campaign's sentinel; -1 is not lobby team zero.
+    if value.native_team == -1:
+        return player + translate_ui_text("：未分配普通队伍（原始值 -1）", language)
     if value.assignment_verified and value.virtual_team:
         team = {12: "中立敌对队伍", 13: "中立被动队伍"}.get(
             value.assigned_team, f"队伍 {value.assigned_team + 1}"
@@ -6542,6 +6545,10 @@ class War3Trainer:
             raise RuntimeError("选中玩家队伍读取结果不完整")
         operation = response[1]
         native_team = int(operation.result)
+        # R19.2: 317 alone transports native int32 -1 as zero-extended uint32.
+        unassigned_team = include_player_name and native_team == 0xFFFFFFFF
+        if unassigned_team:
+            native_team = -1
         metadata = int(operation.arg1)
         player_slot, peer_count = metadata & 0xFF, (metadata >> 8) & 0xFF
         owner = int(operation.arg0)
@@ -6549,7 +6556,8 @@ class War3Trainer:
         relationships = extras[:peer_count] if include_player_name else extras
         if (operation.kind != query_kind or int(self.pid) != process_id
                 or not owner or not 0 <= player_slot < 28
-                or not 0 <= native_team < 64 or metadata >> 16
+                or not (unassigned_team or 0 <= native_team < 64) or metadata >> 16
+                or (unassigned_team and peer_count != 0)
                 or peer_count > 28 or len(relationships) != peer_count
                 or _team_relationships_by_player(relationships) is None):
             raise RuntimeError("选中玩家队伍读取结果无效")
@@ -6576,6 +6584,10 @@ class War3Trainer:
                 except UnicodeError:
                     name_error, player_name = 1113, None
         snapshot = getattr(self, "_player_team_snapshots", {}).get((int(self.pid), player_slot))
+        # No alliance snapshot is available for an unassigned team. Do not
+        # display a cached assignment as verified or alter its restore record.
+        if unassigned_team:
+            snapshot = None
         if snapshot is not None and snapshot.owner_handle != owner:
             snapshot = None
         verified = bool(snapshot and _player_team_snapshot_matches_current_state(

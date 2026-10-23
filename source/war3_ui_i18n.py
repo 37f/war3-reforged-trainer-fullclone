@@ -777,6 +777,7 @@ _EN_TRANSLATIONS.update(
     "选中玩家队伍读取结果不完整": "Incomplete selected-player team readback",
     "选中玩家队伍读取结果无效": "Invalid selected-player team readback",
     "原生队伍编号": "Native team ID",
+    "未分配普通队伍（原始值 -1）": "No ordinary team assigned (raw value -1)",
     "关系已变化": "Alliances have changed",
     "名称暂无法读取": "Name temporarily unavailable",
     "选中玩家名字读取结果不完整": "Incomplete selected-player name readback",

@@ -1753,6 +1753,17 @@ static DWORD war3_ext_query_selected_owner_team(
         if (!owner) return ERROR_NOT_FOUND;
         owner_id = get_id(owner);
         team = get_team(owner);
+        /* R19.2: campaign units may belong to an unassigned ordinary team.
+           Only status 317 accepts -1; never pack it as a six-bit peer team or
+           weaken legacy 316 / team mutation and restoration validation. */
+        if (op->kind == WAR3_NATIVE_OP_EXT_QUERY_SELECTED_OWNER_STATUS &&
+            owner_id >= 0 && owner_id < 28 && team == -1) {
+            *output_extra = NULL; *output_count = 0;
+            op->result = (uint32_t)team;
+            op->arg0 = owner;
+            op->arg1 = (uint32_t)owner_id;
+            return ERROR_SUCCESS;
+        }
         if (owner_id < 0 || owner_id >= 28 || team < 0 || team >= 64)
             return ERROR_INVALID_DATA;
         playing = convert_slot(1);

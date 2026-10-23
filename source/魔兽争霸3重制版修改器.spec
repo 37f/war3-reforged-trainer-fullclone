@@ -25,7 +25,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='War3ReforgedTrainer-v1.0.19-FullClone-R19.1',
+    name='War3ReforgedTrainer-v1.0.19-FullClone-R19.2',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

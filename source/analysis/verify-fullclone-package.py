@@ -1,4 +1,4 @@
-"""Verify the v1.0.19 FullClone R19.1 frozen package without opening Warcraft III."""
+"""Verify the v1.0.19 FullClone R19.2 frozen package without opening Warcraft III."""
 from __future__ import annotations
 
 import hashlib
@@ -17,7 +17,7 @@ from PyInstaller.archive.readers import CArchiveReader
 
 
 ROOT = Path(__file__).resolve().parents[1]
-EXE = ROOT / "dist" / "War3ReforgedTrainer-v1.0.19-FullClone-R19.1.exe"
+EXE = ROOT / "dist" / "War3ReforgedTrainer-v1.0.19-FullClone-R19.2.exe"
 EXPECTED_OPERATIONS = {
     "NATIVE_HELPER_OP_EXT_VALIDATE_PLAYER_TARGET": 300,
     "NATIVE_HELPER_OP_EXT_SET_UNIT_OWNER_PLAYER": 301,

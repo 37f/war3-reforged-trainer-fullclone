@@ -134,6 +134,60 @@ def test_legacy_316_does_not_add_a_selection_read():
     assert trainer._direct_selected_context.call_count == 1
 
 
+@pytest.mark.parametrize("name,error", [("战役玩家", 0), (None, 1168)])
+def test_named_monitor_decodes_unassigned_team_without_losing_owner(name, error):
+    trainer = named_reader(name.encode() if name else b"", error=error,
+                           slot=6, team=0xFFFFFFFF)
+    status = trainer.query_selected_owner_team(include_player_name=True)
+    assert (status.player_slot, status.owner_handle, status.native_team) == (6, 0x111, -1)
+    assert status.player_name == name and status.player_name_error == error
+    assert status.assigned_team is None and not status.assignment_verified
+    assert trainer._player_team_snapshots == {}
+
+
+@pytest.mark.parametrize("language,want", [
+    ("zh", "玩家 7（战役玩家）：未分配普通队伍（原始值 -1）"),
+    ("en", "Player 7(战役玩家): No ordinary team assigned (raw value -1)"),
+])
+def test_unassigned_team_display_does_not_invent_team_zero(language, want):
+    status = module.PlayerTeamStatus(4321, 6, 0x111, -1, player_name="战役玩家")
+    assert module.format_player_team_status(status, language) == want
+
+
+@pytest.mark.parametrize("team", [-2, -1, 64, 0xFFFFFFFE, 0xFFFFFFFFFFFFFFFF])
+def test_named_monitor_rejects_other_invalid_wire_team_values(team):
+    with pytest.raises(RuntimeError, match="队伍"):
+        named_reader(team=team).query_selected_owner_team(include_player_name=True)
+
+
+def test_unassigned_team_query_still_rejects_changed_selection():
+    trainer = named_reader(team=0xFFFFFFFF, slot=6)
+    trainer._direct_selected_context.side_effect = [(candidate(), 0x6000), RuntimeError("未选中单位")]
+    with pytest.raises(RuntimeError, match="未选中单位"):
+        trainer.query_selected_owner_team(include_player_name=True)
+
+
+def test_unassigned_monitor_does_not_reuse_or_overwrite_restore_record():
+    trainer = named_reader(team=0xFFFFFFFF, slot=6)
+    snapshot = module.PlayerTeamSnapshot(4321, 6, 0x111, 3, 1, (), True)
+    trainer._player_team_snapshots[(4321, 6)] = snapshot
+    status = trainer.query_selected_owner_team(include_player_name=True)
+    assert status.assigned_team is None and not status.assignment_verified
+    assert not status.virtual_team
+    assert trainer._player_team_snapshots[(4321, 6)] is snapshot
+
+
+def test_unassigned_team_rejects_a_malformed_nonempty_peer_snapshot():
+    from test_fullclone_player_relations import relationship
+    trainer = named_reader(team=0xFFFFFFFF, slot=6)
+    trainer._run_native_helper_ops.return_value = [
+        result(extras=(relationship(0, 0, 0, 0, 0), 0, 0)),
+        result(kind=317, result=0xFFFFFFFF, arg0=0x111, arg1=6 | (1 << 8)),
+    ]
+    with pytest.raises(RuntimeError, match="队伍"):
+        trainer.query_selected_owner_team(include_player_name=True)
+
+
 NAME_HARNESS = r'''
 #ifdef WAR3_PLAYER_NAME_MAX_BYTES
 static uint8_t name_player[0x90], name_storage[0x40];
@@ -181,6 +235,41 @@ __declspec(dllexport) DWORD name_dispatch(const wchar_t *directory,uint32_t *out
 #endif
     return protocol_dispatch(directory,WAR3_NATIVE_VERSION,317,1,out);
 }
+static uint32_t status_writes;
+static void status_set_team(uint64_t player,int32_t team) { ++status_writes; }
+static void status_set_alliance(uint64_t a,uint64_t b,int32_t kind,uint32_t value) { ++status_writes; }
+__declspec(dllexport) DWORD name_status(int32_t team,uint32_t kind,uint32_t fault,uint64_t *out) {
+    NativeCommand cmd={0}; uint64_t *extras=NULL; uint32_t count=0;
+    unsigned char text[512]; uint32_t length=0; DWORD error;
+    name_copy("Alpha",0,text,&length); /* reuse the real bound-identity setup */
+    if(fault==3) name_prepare("Alpha",2);
+    ZeroMemory(protocol_teams,sizeof(protocol_teams)); protocol_teams[7]=team;
+    status_writes=0;
+    protocol_native("SetPlayerTeam",(uint64_t)(uintptr_t)status_set_team);
+    protocol_native("SetPlayerAlliance",(uint64_t)(uintptr_t)status_set_alliance);
+    cmd.unit_handle=7;cmd.op_count=2;cmd.ops[0].kind=136;
+    cmd.ops[0].handler=(uint64_t)(uintptr_t)protocol_object;cmd.ops[0].arg0=protocol_full;
+    cmd.ops[0].arg1=(uint64_t)(uintptr_t)protocol_owner;cmd.ops[1].kind=kind;
+    if(fault==1)cmd.ops[1].rawcode=1;
+    if(fault==2)cmd.ops[0].arg0^=1;
+    if(kind==317)error=war3_ext_query_selected_owner_status(&cmd,&cmd.ops[1],1,&extras,&count);
+    else if(kind==316)error=war3_ext_query_selected_owner_team(&cmd,&cmd.ops[1],1,&extras,&count);
+    else error=war3_ext_team(&cmd,&cmd.ops[1],1,NULL,0,&extras,&count);
+    out[0]=cmd.ops[1].result;out[1]=cmd.ops[1].arg0;out[2]=cmd.ops[1].arg1;
+    out[3]=count;out[4]=status_writes;out[5]=out[6]=out[7]=0;
+    if(!error&&kind==317){
+        uint32_t peers=(uint32_t)((cmd.ops[1].arg1>>8)&0xffu);
+        out[5]=extras[peers];out[6]=extras[peers+1];
+        if(out[6])out[7]=extras[peers+2];
+    }
+    if(extras)HeapFree(GetProcessHeap(),0,extras);
+    return error;
+}
+__declspec(dllexport) DWORD name_unassigned_dispatch(const wchar_t *directory,uint32_t *out) {
+    name_prepare("Alpha",0);
+    ZeroMemory(protocol_teams,sizeof(protocol_teams));protocol_teams[7]=-1;
+    return protocol_dispatch(directory,WAR3_NATIVE_VERSION,317,1,out);
+}
 '''
 
 
@@ -204,6 +293,11 @@ def name_native():
         native.name_copy.restype = ctypes.c_uint
         native.name_dispatch.argtypes = [ctypes.c_wchar_p, ctypes.POINTER(ctypes.c_uint)]
         native.name_dispatch.restype = ctypes.c_uint
+        native.name_status.argtypes = [ctypes.c_int32, ctypes.c_uint, ctypes.c_uint,
+                                       ctypes.POINTER(ctypes.c_uint64)]
+        native.name_status.restype = ctypes.c_uint
+        native.name_unassigned_dispatch.argtypes = native.name_dispatch.argtypes
+        native.name_unassigned_dispatch.restype = ctypes.c_uint
         yield native
         import _ctypes
         _ctypes.FreeLibrary(native._handle)
@@ -236,6 +330,32 @@ def test_c_reader_fails_closed_on_unavailable_and_changed_storage(name_native, f
 def test_new_query_reaches_real_c_dispatcher(name_native, tmp_path):
     out = (ctypes.c_uint * 3)()
     assert name_native.name_dispatch(str(tmp_path) + "\\", out) == 0
+    assert tuple(out) == (2, 0, 0)
+
+
+@pytest.mark.parametrize("fault,name_error,length", [(0, 0, 5), (3, 1168, 0)])
+def test_c_named_status_accepts_unassigned_team_without_setters(name_native, fault, name_error, length):
+    out = (ctypes.c_uint64 * 8)()
+    assert name_native.name_status(-1, 317, fault, out) == 0
+    assert tuple(out[:5]) == (0xFFFFFFFF, 2, 7, 2 + bool(length), 0)
+    assert (out[5], out[6]) == (name_error, length)
+    if length:
+        assert out[7].to_bytes(8, "little") == b"Alpha\0\0\0"
+
+
+@pytest.mark.parametrize("team,kind,fault,error", [
+    (-1, 316, 0, 13), (-1, 307, 0, 13), (-1, 308, 0, 13),
+    (-2, 317, 0, 13), (64, 317, 0, 13), (-1, 317, 1, 13), (-1, 317, 2, 6),
+])
+def test_c_unassigned_compatibility_does_not_relax_other_validations(name_native, team, kind, fault, error):
+    out = (ctypes.c_uint64 * 8)()
+    assert name_native.name_status(team, kind, fault, out) == error
+    assert out[4] == 0
+
+
+def test_unassigned_team_reaches_actual_c_dispatcher(name_native, tmp_path):
+    out = (ctypes.c_uint * 3)()
+    assert name_native.name_unassigned_dispatch(str(tmp_path) + "\\", out) == 0
     assert tuple(out) == (2, 0, 0)
 
 
@@ -325,6 +445,10 @@ def test_existing_gui_monitor_refreshes_name_and_clears_stale_results(monkeypatc
         by_text["读取队伍"].invoke()
         root.update()
         assert "名称暂无法读取" in value() and "队伍 4" in value()
+        status[0] = module.PlayerTeamStatus(4321, 6, 0x111, -1, player_name="战役玩家")
+        by_text["读取队伍"].invoke()
+        root.update()
+        assert "战役玩家" in value() and "未分配普通队伍" in value() and "队伍 0" not in value()
         status[0] = module.PlayerTeamStatus(4320, 7, 0x111, 3, player_name="旧进程名字")
         by_text["读取队伍"].invoke()
         root.update()
