@@ -51,6 +51,25 @@ def test_neutral_name_keeps_special_slot_identity(slot, name):
     assert f"原生队伍编号 {slot}" in text and f"队伍 {slot + 1}" not in text
 
 
+@pytest.mark.parametrize("slot", [24, 27])
+@pytest.mark.parametrize("language", ["zh", "en"])
+def test_neutral_missing_name_hides_only_unavailable_label(slot, language):
+    status = module.PlayerTeamStatus(4321, slot, 0x111, slot, player_name_error=1168)
+    text = module.format_player_team_status(status, language)
+    assert "名称暂无法读取" not in text and "Name temporarily unavailable" not in text
+    assert f"玩家 {slot + 1}" in text if language == "zh" else f"Player {slot + 1}" in text
+    assert f"原生队伍编号 {slot}" in text if language == "zh" else f"Native team ID {slot}" in text
+    assert "槽位" in text if language == "zh" else "slot" in text
+    assert "（）" not in text and "()" not in text
+
+
+@pytest.mark.parametrize("slot", [0, 23, 25, 26])
+def test_other_player_slots_keep_missing_name_label(slot):
+    status = module.PlayerTeamStatus(4321, slot, 0x111, 3, player_name_error=1168)
+    assert "名称暂无法读取" in module.format_player_team_status(status)
+    assert "Name temporarily unavailable" in module.format_player_team_status(status, "en")
+
+
 @pytest.mark.parametrize("data,error", [(b"", 1168), (b"", 127), (b"", 487)])
 def test_name_failure_preserves_current_team_and_marks_name_unavailable(data, error):
     status = named_reader(data, error=error).query_selected_owner_team(include_player_name=True)

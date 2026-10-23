@@ -22,7 +22,7 @@ def source_for(module, protocol):
 
 
 def prepare(module, monkeypatch, tmp_path, protocol):
-    exe = tmp_path / "War3ReforgedTrainer-v1.0.19-FullClone-R19.exe"
+    exe = tmp_path / "War3ReforgedTrainer-v1.0.19-FullClone-R19.1.exe"
     exe.touch()
     (tmp_path / "war3_reforged_trainer.py").write_text(source_for(module, protocol), encoding="utf-8")
     monkeypatch.setattr(module, "ROOT", tmp_path)
@@ -31,10 +31,10 @@ def prepare(module, monkeypatch, tmp_path, protocol):
 
 def test_verifier_targets_separate_r19_name_and_operation():
     module = verifier()
-    assert module.EXE.name == "War3ReforgedTrainer-v1.0.19-FullClone-R19.exe"
+    assert module.EXE.name == "War3ReforgedTrainer-v1.0.19-FullClone-R19.1.exe"
     assert module.EXPECTED_OPERATIONS["NATIVE_HELPER_OP_EXT_QUERY_SELECTED_OWNER_STATUS"] == 317
     spec = (Path(__file__).parent / "魔兽争霸3重制版修改器.spec").read_text(encoding="utf-8")
-    assert "name='War3ReforgedTrainer-v1.0.19-FullClone-R19'" in spec
+    assert "name='War3ReforgedTrainer-v1.0.19-FullClone-R19.1'" in spec
 
 
 def test_verifier_rejects_protocol_75_before_opening_package(monkeypatch, tmp_path):

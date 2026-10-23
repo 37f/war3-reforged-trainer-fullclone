@@ -949,7 +949,8 @@ def format_player_team_status(value: PlayerTeamStatus, language: str = "zh") -> 
     player = translate_ui_text(player, language)
     if value.player_name is not None:
         player += f"({value.player_name})" if language == "en" else f"（{value.player_name}）"
-    elif value.player_name_error:
+    # R19.1: the two named neutral slots need no unavailable-name placeholder.
+    elif value.player_name_error and not neutral:
         player += translate_ui_text("（名称暂无法读取）", language)
     if value.assignment_verified and value.virtual_team:
         team = {12: "中立敌对队伍", 13: "中立被动队伍"}.get(
