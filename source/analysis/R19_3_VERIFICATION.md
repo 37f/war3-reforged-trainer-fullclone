@@ -9,8 +9,18 @@
 - 任务 2：修正夹具编译问题后观察到 21 个预期失败，核心与边界完成后 82 passed。
 - 任务 3：9 个预期失败，完成后 140 passed，含实际编译的 C 调度器、只读查询与独立进程中的 Tk 工作流。
 - 包身份测试：4 个预期失败，更新独立名称和协议检查后 4 passed。
-- 首轮完整回归：1941 passed、1 failed、12 skipped、113 subtests passed。唯一失败为英文文案覆盖测试，定位到三处新增翻译缺项；正在补齐后复跑。不得将此轮写为全绿。
-- SEH helper 已编译；冻结 EXE 的内嵌源码/模块/DLL 一致性及离线启动已验证，最终文案修改后会重新构建并校验。
+- 首轮完整回归：1941 passed、1 failed、12 skipped、113 subtests passed，269.36 秒。唯一失败为英文文案覆盖测试，定位到三处新增翻译缺项；此轮不是全绿。
+- 补齐翻译后的完整回归：1942 passed、12 skipped、113 subtests passed，228.93 秒。
+- 独立审查：Critical 0、Important 1、Minor 0；审查者另行运行相关测试 89 passed。Important 为新分支缺少原有中立联盟兼容修复，已用实际结构修复路径补齐：新增用例修复前 4 failed/1 passed，修复后整个 unassigned 文件 54 passed。
+- 最终完整回归（含中立兼容修复）：1947 passed、12 skipped、113 subtests passed，235.67 秒，退出码 0。跳过项不计作真实引擎覆盖。
+- 最终 SEH helper 已编译，独立 EXE 已重建。包校验 `ok=true`，内嵌源码/模块/DLL 一致、协议 77、冻结离线启动自检通过；这些检查均不连接游戏。
+
+## 最终构建身份
+
+- EXE：`War3ReforgedTrainer-v1.0.19-FullClone-R19.3-Test.exe`，15,497,029 字节。
+- EXE SHA-256：`BF2B9FEF5E1F9D8C3147F17A1E18CDBCABEEEF578ABC9C205000BBC4E8343179`。
+- helper SHA-256：`8E1284E64D906228E50AE943CDF2C0B80F6B7CDF9AC58C379CA616F9CBD30346`。
+- 源码包包含本记录、完整用法、变更说明、审查记录、测试和新 helper；源码 ZIP 的最终哈希及 CRC/逐项 Git 内容核对结果位于交付目录的校验文件。文档收尾不改变已验证 EXE 的运行逻辑。
 
 ## 验证边界
 
@@ -22,6 +32,6 @@ C 夹具验证的是受控 native 回调，包括设队伍调用次数为零、�
 
 ## 可追溯性
 
-实施计划与设计位于仓库 `docs/superpowers/`。实施过程中为 307 增加 `arg1=1` 的“必须仍为原生 -1”约束，防止旧快照存在时因地图改队误入普通换队；这是协议 77 内的最小保护，0 保留既有行为。完整执行日志、红绿测试、构建和校验记录将随独立交付目录提供。
+实施计划与设计位于仓库 `docs/superpowers/`。实施过程中为 307 增加 `arg1=1` 的“必须仍为原生 -1”约束，防止旧快照存在时因地图改队误入普通换队；这是协议 77 内的最小保护，0 保留既有行为。完整执行日志、红绿测试、构建和校验记录随独立交付目录 `verification-evidence/execution` 提供。完整裁决见该目录的 `progress.md`，独立审查及其边界见 `R19_3_CODE_REVIEW.md`。
 
 R19.2 EXE 保留，SHA-256：`7776320F1FF27E8A05171AF6E29DCF50ADEF2B97A93864277AF383A373B54BF1`。旧 helper 亦另行备份。本次不合并 main、不推送、不发布 GitHub。
