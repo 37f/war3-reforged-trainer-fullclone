@@ -23,6 +23,7 @@ static int war3_team_unpack_unassigned_peer(uint64_t packed, War3TeamPeerSnapsho
 }
 
 static DWORD war3_validate_unit_identity(const NativeCommand *, const NativeOp *);
+static int war3_repair_alliance_mask(uint64_t, uint64_t, int32_t, uint32_t);
 
 /* R19.3: only diplomacy changes here; there is deliberately no team setter. */
 static DWORD war3_ext_unassigned_team(
@@ -123,6 +124,13 @@ static DWORD war3_ext_unassigned_team(
             touched = n + 1u; /* setters can fail halfway through a pair */
             war3_team_write_mask(set, owner, p->player, forward);
             war3_team_write_mask(set, p->player, owner, reverse);
+            /* Same guarded neutral compatibility as the existing team path. */
+            if ((p->player_index == 24u || p->player_index == 27u) &&
+                (war3_team_read_mask(get, owner, p->player) != forward ||
+                 war3_team_read_mask(get, p->player, owner) != reverse)) {
+                war3_repair_alliance_mask((uint64_t)(uintptr_t)get, owner, (int32_t)p->player_index, forward);
+                war3_repair_alliance_mask((uint64_t)(uintptr_t)get, p->player, (int32_t)owner_id, reverse);
+            }
             if (war3_team_read_mask(get, owner, p->player) != forward ||
                 war3_team_read_mask(get, p->player, owner) != reverse) { error = ERROR_WRITE_FAULT; break; }
             if (forward) ++allied;
@@ -147,7 +155,19 @@ static DWORD war3_ext_unassigned_team(
                 war3_team_write_mask(set, owner, p->player, p->current_owner_to_peer_mask);
                 war3_team_write_mask(set, p->player, owner, p->current_peer_to_owner_mask);
             } __except (EXCEPTION_EXECUTE_HANDLER) { rollback_error = GetExceptionCode(); }
+            __try {
+                if ((p->player_index == 24u || p->player_index == 27u) &&
+                    (war3_team_read_mask(get, owner, p->player) != p->current_owner_to_peer_mask ||
+                     war3_team_read_mask(get, p->player, owner) != p->current_peer_to_owner_mask)) {
+                    war3_repair_alliance_mask((uint64_t)(uintptr_t)get, owner,
+                        (int32_t)p->player_index, p->current_owner_to_peer_mask);
+                    war3_repair_alliance_mask((uint64_t)(uintptr_t)get, p->player,
+                        (int32_t)owner_id, p->current_peer_to_owner_mask);
+                }
+            } __except (EXCEPTION_EXECUTE_HANDLER) { rollback_error = GetExceptionCode(); }
         }
+        /* Final readback, not a transient setter failure, decides recovery. */
+        rollback_error = ERROR_SUCCESS;
         for (uint32_t n = 0; n < touched; ++n) {
             __try {
                 if (war3_team_read_mask(get, owner, peers[n].player) != peers[n].current_owner_to_peer_mask ||

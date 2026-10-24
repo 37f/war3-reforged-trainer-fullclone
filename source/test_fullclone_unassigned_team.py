@@ -186,6 +186,71 @@ __declspec(dllexport) DWORD ua_query(uint64_t *out) {
 }
 '''
 
+# Exercise the existing structural repair itself, not a mocked repair callback.
+REPAIR_HARNESS = r'''
+static uint8_t ua_rows[28][13*24],ua_bits[28][8][0xd8];
+static uint32_t ua_block_neutral,ua_bad_lookup,ua_lookup_calls,ua_late_throw;
+static uint64_t ua_resolve_player(uint64_t p) {
+    int32_t id=protocol_player_id(p);return id<0?0:(uint64_t)(uintptr_t)ua_rows[id];
+}
+static uint64_t ua_container(uint64_t p){return p;}
+static uint64_t ua_lookup(uint32_t id,uint32_t serial) {
+    ++ua_lookup_calls;
+    if(ua_bad_lookup || id>=224 || serial!=0x1234)return 0;
+    return (uint64_t)(uintptr_t)ua_bits[id/8][id%8];
+}
+static uint32_t ua_backed_get(uint64_t a,uint64_t b,int32_t k) {
+    int32_t x=protocol_player_id(a),y=protocol_player_id(b);
+    if(x<0||y<0||k<0||k>=8)return 0;
+    return (*(uint32_t *)(ua_bits[x][k]+0xd0)>>y)&1u;
+}
+static void ua_backed_set(uint64_t a,uint64_t b,int32_t k,uint32_t v) {
+    int32_t x=protocol_player_id(a),y=protocol_player_id(b);
+    if(ua_late_throw && x==7 && y==27 && k==0){ua_late_throw=0;RaiseException(EXCEPTION_ACCESS_VIOLATION,0,0,NULL);}
+    if(ua_block_neutral && (x==24||x==27||y==24||y==27))return;
+    uint32_t *bits=(uint32_t *)(ua_bits[x][k]+0xd0);
+    if(v)*bits|=1u<<y;else *bits&=~(1u<<y);
+}
+static void ua_jump(uint8_t *p,uint64_t fn){p[0]=0x48;p[1]=0xb8;memcpy(p+2,&fn,8);p[10]=0xff;p[11]=0xe0;}
+static void ua_relcall(uint8_t *p,uint8_t *to){int32_t d=(int32_t)(to-(p+5));p[0]=0xe8;memcpy(p+1,&d,4);}
+__declspec(dllexport) DWORD ua_neutral_repair(uint32_t mode,uint64_t *out) {
+    NativeCommand cmd;uint64_t *extras=NULL,*ignored=NULL;uint32_t count=0,ignored_count=0;
+    DWORD error;ua_setup();ua_block_neutral=mode==1?0:1;
+    ua_bad_lookup=mode==3;ua_lookup_calls=ua_late_throw=0;
+    ZeroMemory(ua_rows,sizeof(ua_rows));ZeroMemory(ua_bits,sizeof(ua_bits));
+    for(uint32_t a=0;a<28;++a)for(uint32_t k=0;k<8;++k){
+        uint32_t id=a*8+k,serial=0x1234;
+        memcpy(ua_rows[a]+(k+5)*24+16,&id,4);memcpy(ua_rows[a]+(k+5)*24+20,&serial,4);
+        for(uint32_t b=0;b<28;++b)*(uint32_t *)(ua_bits[a][k]+0xd0)|=ua_original[a][b][k]<<b;
+    }
+    uint8_t *page=(uint8_t *)VirtualAlloc(NULL,4096,MEM_COMMIT|MEM_RESERVE,PAGE_EXECUTE_READWRITE);
+    if(!page)return ERROR_OUTOFMEMORY;
+    memset(page,0xcc,4096);ua_jump(page,(uint64_t)(uintptr_t)ua_backed_get);
+    ua_jump(page+0x100,(uint64_t)(uintptr_t)ua_resolve_player);
+    ua_jump(page+0x120,(uint64_t)(uintptr_t)ua_container);
+    ua_jump(page+0x160,(uint64_t)(uintptr_t)ua_lookup);
+    ua_relcall(page+0x14,page+0x100);ua_relcall(page+0x23,page+0x100);
+    ua_relcall(page+0x2e,page+0x120);ua_relcall(page+0x5a,page+0x140);
+    ua_relcall(page+0x14a,page+0x160);if(mode==4)page[0x14]=0x90;
+    FlushInstructionCache(GetCurrentProcess(),page,4096);
+    protocol_native("GetPlayerAlliance",(uint64_t)(uintptr_t)page);
+    protocol_native("SetPlayerAlliance",(uint64_t)(uintptr_t)ua_backed_set);
+    ua_command(&cmd,0);if(mode==2)ua_late_throw=1;
+    error=war3_ext_team(&cmd,&cmd.ops[1],1,NULL,0,&extras,&count);
+    if(!error){
+        ua_block_neutral=1;ua_restore(&cmd,0);
+        error=war3_ext_team(&cmd,&cmd.ops[1],1,extras,count,&ignored,&ignored_count);
+    }
+    out[0]=error;out[1]=ua_team_calls;out[2]=(uint32_t)protocol_teams[7];
+    out[3]=cmd.ops[1].reserved;out[4]=ua_lookup_calls;out[5]=0;
+    for(uint32_t a=0;a<28;++a)for(uint32_t b=0;b<28;++b)for(int k=0;k<8;++k)
+        if(ua_backed_get(100+a,100+b,k)!=ua_original[a][b][k])++out[5];
+    if(extras)HeapFree(GetProcessHeap(),0,extras);
+    if(ignored)HeapFree(GetProcessHeap(),0,ignored);
+    VirtualFree(page,0,MEM_RELEASE);return 0;
+}
+'''
+
 
 @pytest.fixture(scope="module")
 def unassigned_native():
@@ -205,7 +270,7 @@ static LPVOID ua_allocate(HANDLE heap,DWORD flags,SIZE_T size) {
 #undef HeapAlloc
 ''')
         source.write_text(harness.replace("HELPER_SOURCE", helper.as_posix())
-                          + CODEC_HARNESS + TRANSACTION_HARNESS, encoding="utf8")
+                          + CODEC_HARNESS + TRANSACTION_HARNESS + REPAIR_HARNESS, encoding="utf8")
         library = Path(folder) / "unassigned.dll"
         build = subprocess.run([compiler, "-shared", "-O2", "-Wno-microsoft-goto", str(source),
                                 "-o", str(library), "-luser32", "-lkernel32"],
@@ -222,6 +287,8 @@ static LPVOID ua_allocate(HANDLE heap,DWORD flags,SIZE_T size) {
         native.ua_dispatch.restype = ctypes.c_uint32
         native.ua_query.argtypes = [ctypes.POINTER(ctypes.c_uint64)]
         native.ua_query.restype = ctypes.c_uint32
+        native.ua_neutral_repair.argtypes = [ctypes.c_uint32, ctypes.POINTER(ctypes.c_uint64)]
+        native.ua_neutral_repair.restype = ctypes.c_uint32
         yield native
         import _ctypes
         _ctypes.FreeLibrary(native._handle)
@@ -476,3 +543,22 @@ def test_gui_unassigned_team_action_messages_are_not_team_zero(monkeypatch):
     monkeypatch.setattr(module.threading.Thread, "start", lambda self: self.run())
     monkeypatch.setattr(messagebox, "showerror", lambda *a, **kw: pytest.fail(str(a)))
     module.run_gui()
+
+
+@pytest.mark.parametrize("mode", [0, 1, 2, 3, 4])
+def test_real_structural_neutral_repair_apply_restore_rollback_and_guard(unassigned_native, mode):
+    import faulthandler
+    out = (ctypes.c_uint64 * 6)()
+    enabled = faulthandler.is_enabled()
+    try:
+        faulthandler.disable()
+        assert unassigned_native.ua_neutral_repair(mode, out) == 0
+    finally:
+        if enabled: faulthandler.enable()
+    assert tuple(out[1:4]) == (0, 0xFFFFFFFF, 0)
+    assert out[5] == 0  # every alliance type, including untouched control bits
+    assert (out[0] == 0) is (mode in (0, 1))
+    if mode != 4:
+        assert out[4] > 0  # actual validated lookup, not an unconditional raw write
+    else:
+        assert out[4] == 0  # malformed getter call-sites must fail closed
