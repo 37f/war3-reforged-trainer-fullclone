@@ -434,7 +434,7 @@ def test_transport_reports_diplomacy_failure_and_rollback_not_clone_phase():
     trainer = object.__new__(module.War3Trainer)
     packet = bytearray(trainer._native_helper_command_size())
     trainer.NATIVE_HELPER_HEADER_STRUCT.pack_into(packet, 0, trainer.NATIVE_HELPER_MAGIC,
-        77, 3, 2, 7, 29, 0)
+        trainer.NATIVE_HELPER_VERSION, 3, 2, 7, 29, 0)
     trainer.NATIVE_HELPER_OP_STRUCT.pack_into(packet, 80,
         307, 1, 107, 7, 0, (0x554E4153 << 32) | 4, 29, 29)
     with pytest.raises(RuntimeError) as caught:

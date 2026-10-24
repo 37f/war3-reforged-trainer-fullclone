@@ -9,6 +9,7 @@ This replaces the old 32-bit game.dll trainer path with verified Reforged routes
 from __future__ import annotations
 
 import argparse
+import re
 from bisect import bisect_right
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
@@ -34,6 +35,7 @@ from war3_ability_fields import (
 )
 from war3_id_catalog import CATALOG_COUNTS, search_id_entries
 from war3_custom_catalog_ui import CampaignCatalogUI
+from war3_current_map_catalog import CurrentMapCatalogClient
 from war3_item_fields import ITEM_FIELD_BY_KEY, ITEM_FIELD_CATALOG, ItemFieldSpec
 from war3_ui_i18n import detect_ui_language, translate_ui_text
 from war3_native_profile import PROFILE_ID as NATIVE_PROFILE_ID, NATIVE_INDEX
@@ -2915,7 +2917,7 @@ class War3Trainer:
         )
     )
     NATIVE_HELPER_MAGIC = 0x33524757
-    NATIVE_HELPER_VERSION = 77
+    NATIVE_HELPER_VERSION = 78
     NATIVE_HELPER_CLONE_FLAG_HERO = 0x01
     NATIVE_HELPER_CLONE_FLAG_INVENTORY = 0x02
     NATIVE_HELPER_CLONE_FLAG_PRESERVE_OWNER = 0x04
@@ -3049,6 +3051,8 @@ class War3Trainer:
     NATIVE_HELPER_OP_EXT_LOCAL_VICTORY = 315
     NATIVE_HELPER_OP_EXT_QUERY_SELECTED_OWNER_TEAM = 316
     NATIVE_HELPER_OP_EXT_QUERY_SELECTED_OWNER_STATUS = 317
+    NATIVE_HELPER_OP_EXT_QUERY_CATALOG_HEADER = 318
+    NATIVE_HELPER_OP_EXT_QUERY_CATALOG_PAGE = 319
     PERSISTENT_NATIVE_SNAPSHOT_QWORDS = 154
     NATIVE_BASIC_FIELD_ARGUMENTS = {
         "hp_current": ("target_hp", "hp"),
@@ -4574,6 +4578,29 @@ class War3Trainer:
     def _native_helper_command_path(self) -> Path:
         return Path(tempfile.gettempdir()) / f"war3_reforged_native_{self.pid}.bin"
 
+    def current_map_catalog_client(self) -> CurrentMapCatalogClient:
+        """R21: query definitions through the serialized helper, without selection."""
+        def identity():
+            stop=getattr(self,"_persistent_bootstrap_stop",None)
+            return (id(self),int(self.pid),int(self.hwnd),id(stop),bool(stop and stop.is_set()))
+        def query(operation,kind=0,start=0,token=0):
+            if operation not in (318,319):
+                raise ValueError("未知的当前地图目录操作")
+            if identity()[-1]: raise RuntimeError("游戏连接已关闭，请重新连接")
+            try:
+                result=self._run_native_helper_ops(0,((operation,kind,0,start,token),),timeout_ms=5000)
+            except RuntimeError as exc:
+                match=re.search(r'\blast_error=(\d+)\b',str(exc))
+                messages={21:"当前未进入地图或地图仍在加载",1237:"地图会话已变化，请重新检测",
+                          1306:"当前游戏版本不支持目录读取"}
+                if match and int(match[1]) in messages:
+                    raise RuntimeError(messages[int(match[1])]) from exc
+                raise
+            if len(result)!=1 or result[0].kind!=operation:
+                raise RuntimeError("当前地图目录返回操作不一致")
+            return tuple(result[0].extra_results)
+        return CurrentMapCatalogClient(query,identity)
+
     @staticmethod
     def _write_native_helper_command(path: Path, payload: bytes) -> None:
         last_error: PermissionError | None = None
@@ -5141,6 +5168,8 @@ class War3Trainer:
             self.NATIVE_HELPER_OP_EXT_LOCAL_VICTORY,
             self.NATIVE_HELPER_OP_EXT_QUERY_SELECTED_OWNER_TEAM,
             self.NATIVE_HELPER_OP_EXT_QUERY_SELECTED_OWNER_STATUS,
+            self.NATIVE_HELPER_OP_EXT_QUERY_CATALOG_HEADER,
+            self.NATIVE_HELPER_OP_EXT_QUERY_CATALOG_PAGE,
         }
         if any(kind not in allowed_kinds for kind, _rawcode, _handler, _arg0, _arg1 in op_list):
             raise RuntimeError("native helper 仅允许结构化验证后的白名单操作")

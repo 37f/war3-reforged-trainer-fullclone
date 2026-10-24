@@ -5,7 +5,7 @@
 #include <string.h>
 
 #define WAR3_NATIVE_MAGIC 0x33524757u
-#define WAR3_NATIVE_VERSION 77u
+#define WAR3_NATIVE_VERSION 78u
 #define WAR3_NATIVE_STATUS_PENDING 1u
 #define WAR3_NATIVE_STATUS_OK 2u
 #define WAR3_NATIVE_STATUS_FAILED 3u
@@ -136,6 +136,8 @@
 #define WAR3_NATIVE_OP_EXT_LOCAL_VICTORY 315u
 #define WAR3_NATIVE_OP_EXT_QUERY_SELECTED_OWNER_TEAM 316u
 #define WAR3_NATIVE_OP_EXT_QUERY_SELECTED_OWNER_STATUS 317u
+#define WAR3_NATIVE_OP_EXT_QUERY_CATALOG_HEADER 318u
+#define WAR3_NATIVE_OP_EXT_QUERY_CATALOG_PAGE 319u
 
 #define WAR3_PLAYER_TEAM_MAX_PEERS 28u
 #define WAR3_PLAYER_TEAM_ALLIANCE_TYPES 6u
@@ -1867,6 +1869,7 @@ static int war3_readable_span(uint64_t address, size_t length) {
    tail call converts a validated unit object to a JASS handle with flag 1,
    just as the selection snapshot does. Never execute scanned byte hits. */
 #include "war3_native_player_name.h"
+#include "war3_native_catalog.h" /* R21: independent read-only directory query. */
 
 static const uint8_t war3_first_group_code[51]={
     0x48,0x83,0xec,0x28,0xe8,0x07,0x7a,0xdc,0xff,0x48,0x85,0xc0,0x74,0x1e,
@@ -4863,6 +4866,8 @@ static void run_command(void) {
             op->kind != WAR3_NATIVE_OP_QUERY_WORLD_POINT &&
             op->kind != WAR3_NATIVE_OP_BOOTSTRAP_NATIVE_TABLE &&
             op->kind != WAR3_NATIVE_OP_QUERY_NATIVE_TABLE &&
+            op->kind != WAR3_NATIVE_OP_EXT_QUERY_CATALOG_HEADER &&
+            op->kind != WAR3_NATIVE_OP_EXT_QUERY_CATALOG_PAGE &&
             op->kind != WAR3_NATIVE_OP_BOUND_ABILITY_LIST &&
             op->kind != WAR3_NATIVE_OP_BOUND_UNIT_FIELDS &&
             op->kind != WAR3_NATIVE_OP_SET_UNIT_REGEN &&
@@ -4942,6 +4947,11 @@ static void run_command(void) {
                 last_error = war3_ext_query_selected_owner_status(&cmd, op, i,
                     &extra_results, &extra_result_count);
                 if (last_error) { op->last_error = last_error; goto finish; }
+                break;
+            case WAR3_NATIVE_OP_EXT_QUERY_CATALOG_HEADER:
+            case WAR3_NATIVE_OP_EXT_QUERY_CATALOG_PAGE:
+                last_error = war3_catalog_query(&cmd,op,&extra_results,&extra_result_count);
+                if(last_error) {op->last_error=last_error;goto finish;}
                 break;
             case WAR3_NATIVE_OP_MANAGE_BOUND_ABILITY: {
                 last_error=i?war3_manage_bound_ability(&cmd,op):ERROR_INVALID_PARAMETER;
@@ -7820,6 +7830,7 @@ __declspec(dllexport) LRESULT CALLBACK War3HookProc(int code, WPARAM w_param, LP
     if (code >= 0) {
         if (InterlockedCompareExchange(&g_processing, 1, 0) == 0) {
             __try {
+                war3_catalog_observe();
                 run_command();
             } __finally {
                 InterlockedExchange(&g_processing, 0);

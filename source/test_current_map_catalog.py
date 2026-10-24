@@ -95,3 +95,28 @@ def test_client_rejects_identity_change_and_count_mismatch():
     with pytest.raises(RuntimeError,match='连接'): client.read()
     client=CurrentMapCatalogClient(lambda op,**kw:(MAGIC,1,123,2,0,0) if op==318 else page(),lambda:1)
     with pytest.raises(ValueError,match='数量'): client.read()
+
+
+def test_trainer_bridge_uses_read_only_unbound_operations():
+    from unittest.mock import Mock
+    import war3_reforged_trainer as module
+    trainer=object.__new__(module.War3Trainer);trainer.pid=5;trainer.hwnd=6
+    trainer._run_native_helper_ops=Mock(return_value=[module.NativeHelperOpResult(318,0,extra_results=(MAGIC,1,12,0,0,0))])
+    client=trainer.current_map_catalog_client()
+    assert client.read().counts==(0,0,0)
+    assert all(call.args[0]==0 and call.args[1]==((318,0,0,0,0),) for call in trainer._run_native_helper_ops.call_args_list)
+    assert trainer.NATIVE_HELPER_VERSION==78
+
+
+def test_trainer_bridge_explains_menu_and_rejects_closed_connection():
+    from unittest.mock import Mock
+    import threading
+    import war3_reforged_trainer as module
+    trainer=object.__new__(module.War3Trainer);trainer.pid=5;trainer.hwnd=6
+    trainer._persistent_bootstrap_stop=threading.Event()
+    trainer._run_native_helper_ops=Mock(side_effect=RuntimeError('native helper 执行失败：status=3 last_error=21'))
+    client=trainer.current_map_catalog_client()
+    with pytest.raises(RuntimeError,match='未进入地图'): client.read()
+    trainer._persistent_bootstrap_stop.set();trainer._run_native_helper_ops.reset_mock()
+    with pytest.raises(RuntimeError,match='关闭'): client.read()
+    trainer._run_native_helper_ops.assert_not_called()
