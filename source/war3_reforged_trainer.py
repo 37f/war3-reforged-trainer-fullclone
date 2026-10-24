@@ -4587,6 +4587,17 @@ class War3Trainer:
             if operation not in (318,319):
                 raise ValueError("未知的当前地图目录操作")
             if identity()[-1]: raise RuntimeError("游戏连接已关闭，请重新连接")
+            # R21 query workers are short-lived. Let the existing long-lived
+            # bootstrap thread own the hook; Windows removes it on owner exit.
+            injector=getattr(self,"_persistent_bootstrap_thread",None)
+            if injector is not None:
+                deadline=time.monotonic()+5
+                while not getattr(self,"_native_helper_persistent_hook",None):
+                    if identity()[-1] or not injector.is_alive():
+                        raise RuntimeError("游戏连接已关闭，请重新连接")
+                    if time.monotonic()>deadline:
+                        raise RuntimeError("常驻 helper 尚未就绪，请连接游戏后重试")
+                    time.sleep(.01)
             try:
                 result=self._run_native_helper_ops(0,((operation,kind,0,start,token),),timeout_ms=5000)
             except RuntimeError as exc:
@@ -15531,11 +15542,12 @@ def run_gui() -> None:
         for kind in ("item", "ability", "unit")
     }
     id_catalog_trees: dict[str, ttk.Treeview] = {}
-    # R20: file-only catalogs share a campaign/chapter selection across the ID pages.
+    # R21: file and current-map catalogs share results across the ID pages.
     custom_catalog = CampaignCatalogUI(
         root,
         lambda: [refresh_id_catalog_tree(kind) for kind in id_catalog_trees],
         lambda: ui_language["code"],
+        runtime_client=lambda: state["trainer"].current_map_catalog_client() if state.get("trainer") is not None else None,
     )
     elephant_tech_rawcode = tk.StringVar(value="")
     elephant_tech_level = tk.StringVar(value="1")
@@ -18030,7 +18042,7 @@ def run_gui() -> None:
 
         ttk.Label(
             tab,
-            text="双击表格行可复制 ID。通用目录来源：W3x2LNI zhCN-1.32.8 与 war3-objectdata 英文社区快照。自定义对象请切换到战役与所选章节；仅代表所选文件定义。",
+            text="双击表格行可复制 ID。通用目录来源：W3x2LNI zhCN-1.32.8 与 war3-objectdata 英文社区快照。自定义对象可选择战役与所选章节或当前地图；结果以对应来源为准。",
             anchor="w",
             justify="left",
             wraplength=1080,

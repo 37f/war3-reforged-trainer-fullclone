@@ -120,3 +120,20 @@ def test_trainer_bridge_explains_menu_and_rejects_closed_connection():
     trainer._persistent_bootstrap_stop.set();trainer._run_native_helper_ops.reset_mock()
     with pytest.raises(RuntimeError,match='关闭'): client.read()
     trainer._run_native_helper_ops.assert_not_called()
+
+
+def test_catalog_cold_connection_waits_for_persistent_injector_thread():
+    from types import SimpleNamespace
+    import threading
+    import war3_reforged_trainer as module
+    trainer=object.__new__(module.War3Trainer);trainer.pid=5;trainer.hwnd=6
+    trainer._persistent_bootstrap_stop=threading.Event()
+    trainer._persistent_bootstrap_thread=SimpleNamespace(is_alive=lambda:True)
+    trainer._native_helper_persistent_hook=None
+    def query(*args,**kw):
+        assert trainer._native_helper_persistent_hook==1,'short-lived query worker must not own the hook'
+        return [module.NativeHelperOpResult(318,0,extra_results=(MAGIC,1,12,0,0,0))]
+    trainer._run_native_helper_ops=query
+    timer=threading.Timer(.03,lambda:setattr(trainer,'_native_helper_persistent_hook',1));timer.start()
+    try: assert trainer.current_map_catalog_client().read().counts==(0,0,0)
+    finally:timer.join()

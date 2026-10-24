@@ -1,10 +1,12 @@
-"""R20 shared offline UI; workers never access Tk or the game process."""
+"""Shared file/current-map catalogs; workers never access Tk widgets."""
 from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
 import queue
 import threading
+import time
+from datetime import datetime
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 
@@ -42,7 +44,7 @@ class CatalogSelection:
 
 
 class CampaignCatalogUI:
-    def __init__(self, root, on_change, language):
+    def __init__(self, root, on_change, language, runtime_client=None):
         self.root,self.on_change,self.language=root,on_change,language
         self.selection=CatalogSelection()
         self.modes={kind:tk.StringVar(root,'general') for kind in ('item','unit','ability')}
@@ -51,6 +53,11 @@ class CampaignCatalogUI:
         self.status=tk.StringVar(root,'')
         self._labels=[]; self._combos=[]; self._file_buttons=[]; self._detect_buttons=[]
         self._queue=queue.Queue(); self._busy=False; self._operation=''; self._error=''
+        # R21 keeps runtime generations separate from the user's file selection.
+        self._runtime_provider=runtime_client; self.runtime_snapshot=None
+        self._runtime_generation=0; self._runtime_cancel=threading.Event()
+        self._runtime_error=''; self._runtime_checked_at=0.; self._last_runtime_poll=0.
+        self._panels={}; self._runtime_buttons=[]
         root.after(80,self._poll)
         self.update_display()
 
@@ -63,9 +70,10 @@ class CampaignCatalogUI:
 
     def add_controls(self, tab, kind):
         panel=ttk.Frame(tab); panel.grid(row=0,column=0,sticky='ew',pady=(0,8))
-        for column,(value,zh,en) in enumerate((('general','通用目录','General catalog'),('custom','战役与所选章节','Campaign and selected chapter'))):
+        self._panels[kind]=panel
+        for column,(value,zh,en) in enumerate((('general','通用目录','General catalog'),('custom','战役与所选章节','Campaign and selected chapter'),('runtime','当前地图','Current map'))):
             self._label(ttk.Radiobutton(panel,variable=self.modes[kind],value=value,
-                command=self.on_change),zh,en).grid(row=0,column=column,sticky='w',padx=(0,10))
+                command=lambda k=kind:self._source_changed(k)),zh,en).grid(row=0,column=column,sticky='w',padx=(0,10))
         button=self._label(ttk.Button(panel,command=self.choose_file),'选择战役','Choose campaign')
         button.grid(row=1,column=0,sticky='w',pady=(5,0)); self._file_buttons.append(button)
         ttk.Label(panel,textvariable=self.path_label).grid(row=1,column=1,columnspan=3,sticky='w',padx=(6,0))
@@ -77,7 +85,9 @@ class CampaignCatalogUI:
         button=self._label(ttk.Button(panel,command=self.detect),'检测自定义对象','Detect custom objects')
         button.grid(row=2,column=2,pady=(5,0)); self._detect_buttons.append(button)
         self._label(ttk.Button(panel,command=self.show_details),'读取详情','Read details').grid(row=2,column=3,padx=(6,0),pady=(5,0))
-        ttk.Label(panel,textvariable=self.status,wraplength=1050).grid(row=3,column=0,columnspan=4,sticky='w',pady=(5,0))
+        runtime=self._label(ttk.Button(panel,command=self.detect_runtime),'读取当前地图 ID','Read current map IDs')
+        runtime.grid(row=3,column=0,columnspan=2,sticky='w',pady=(5,0));self._runtime_buttons.append(runtime)
+        ttk.Label(panel,textvariable=self.status,wraplength=1050).grid(row=4,column=0,columnspan=4,sticky='w',pady=(5,0))
         panel.columnconfigure(1,weight=1)
         self.update_display()
 
@@ -117,7 +127,19 @@ class CampaignCatalogUI:
             while True:
                 token,operation,payload,error=self._queue.get_nowait()
                 self._busy=False
-                if token==self.selection.generation:
+                if operation.startswith('runtime'):
+                    if token==self._runtime_generation:
+                        if error:
+                            self.invalidate_runtime(error)
+                        elif operation=='runtime-check':
+                            if payload: self._runtime_checked_at=time.monotonic()
+                            else: self.invalidate_runtime(self.text('地图会话或游戏连接已变化，请重新检测','Map session or connection changed; read again'))
+                        else:
+                            client=self._get_runtime_client()
+                            if client is not None and client.identity()==payload.identity:
+                                self.runtime_snapshot=payload;self._runtime_checked_at=time.monotonic()
+                            else: self.invalidate_runtime(self.text('游戏连接已变化','Game connection changed'))
+                elif token==self.selection.generation:
                     self._error=error
                     if not error:
                         if operation=='list': self.selection.accept_info(token,payload)
@@ -125,7 +147,58 @@ class CampaignCatalogUI:
                 self.update_display(); self.on_change()
         except queue.Empty:
             pass
+        if self.runtime_snapshot is not None:
+            # A delayed Tk tick is not evidence of a changed map. Keep the
+            # labelled snapshot, disable copy while stale, then revalidate.
+            if (not self._busy and time.monotonic()-self._last_runtime_poll>=1 and
+                  any(self.modes[k].get()=='runtime' and p.winfo_ismapped() for k,p in self._panels.items())):
+                self.check_runtime()
         self.root.after(80,self._poll)
+
+    def _get_runtime_client(self):
+        provider=self._runtime_provider
+        return provider if provider is None or hasattr(provider,'read') else provider()
+
+    def set_runtime_client(self,provider):
+        self._runtime_provider=provider;self.invalidate_runtime('')
+
+    def _source_changed(self,kind):
+        mode=self.modes[kind].get()
+        if mode=='runtime' or any(v.get()=='runtime' for v in self.modes.values()):
+            # A current-map read is shared across all three pages.
+            for variable in self.modes.values(): variable.set(mode)
+        self.selection.result=None
+        self.invalidate_runtime('')
+
+    def invalidate_runtime(self,reason):
+        self._runtime_cancel.set();self._runtime_generation+=1
+        self.runtime_snapshot=None;self._runtime_checked_at=0.;self._runtime_error=reason
+        self.update_display();self.on_change()
+
+    def detect_runtime(self):
+        if self._busy: return
+        self.invalidate_runtime('')
+        client=self._get_runtime_client()
+        if client is None:
+            self._runtime_error=self.text('请先连接游戏','Please connect to the game first')
+            self.update_display();return
+        self._runtime_cancel=threading.Event()
+        stop=self._runtime_cancel
+        self._launch_runtime('runtime-read',lambda:client.read(stop.is_set))
+
+    def check_runtime(self):
+        if self._busy or self.runtime_snapshot is None: return
+        snapshot=self.runtime_snapshot;client=self._get_runtime_client()
+        self._last_runtime_poll=time.monotonic()
+        self._launch_runtime('runtime-check',lambda:client is not None and client.check(snapshot))
+
+    def _launch_runtime(self,operation,fn):
+        token=self._runtime_generation;self._busy=True;self._operation=operation;self.update_display()
+        def work():
+            try: payload,error=fn(),''
+            except Exception as exc: payload,error=None,str(exc)
+            self._queue.put((token,operation,payload,error))
+        threading.Thread(target=work,name='war3-current-map-catalog',daemon=True).start()
 
     def update_display(self):
         state=self.selection
@@ -134,6 +207,25 @@ class CampaignCatalogUI:
         for combo in self._combos: combo.configure(values=values,state='readonly' if values else 'disabled')
         for button in self._file_buttons: button.configure(state='disabled' if self._busy else 'normal')
         for button in self._detect_buttons: button.configure(state='normal' if values and state.chapter_index>=0 and not self._busy else 'disabled')
+        runtime=any(v.get()=='runtime' for v in self.modes.values())
+        for button in self._runtime_buttons:
+            button.configure(state='disabled' if self._busy else 'normal')
+            if runtime: button.grid()
+            else: button.grid_remove()
+        if runtime:
+            for control in self._file_buttons+self._detect_buttons+self._combos: control.configure(state='disabled')
+            if self._busy and self._operation=='runtime-read':
+                text=self.text('正在只读检测当前地图…','Reading current map (read only)…')
+            elif self._runtime_error: text=self._runtime_error
+            elif self.runtime_snapshot is not None:
+                snapshot=self.runtime_snapshot;result=snapshot.result
+                text=self.text('部分读取' if result.partial else '完整读取','Partial read' if result.partial else 'Read complete')
+                text+=self.text('：物品 {0}，技能 {1}，单位 {2}；检测时快照 {3}。',' — Items {0}, abilities {1}, units {2}; snapshot at {3}.').format(
+                    *(len(result.entries.get(k,())) for k in ('item','ability','unit')),datetime.fromtimestamp(snapshot.timestamp).strftime('%H:%M:%S'))
+                if time.monotonic()-self._runtime_checked_at>2:
+                    text+=self.text(' 等待会话复核，暂不可复制。',' Waiting for session validation; copy is disabled.')
+            else: text=self.text('尚未检测当前地图，请连接游戏并读取。','Connect to the game and read current map IDs.')
+            self.status.set(text);return
         if self._busy:
             text=self.text('正在只读列出章节…' if self._operation=='list' else '正在只读检测所选章节…',
                 'Listing chapters (read only)…' if self._operation=='list' else 'Detecting selected chapter (read only)…')
@@ -156,6 +248,10 @@ class CampaignCatalogUI:
         self.update_display()
 
     def details(self):
+        if any(v.get()=='runtime' for v in self.modes.values()):
+            if self.runtime_snapshot is None: return self.status.get()
+            value=self.runtime_snapshot
+            return '\n'.join((self.status.get(),f'Session: {value.token:016x}',f'Read: {value.elapsed_ms:.2f} ms',*value.result.statuses,*value.result.issues))
         state=self.selection
         lines=[str(state.info.path)] if state.info else []
         if state.info and state.chapter_index>=0:
@@ -172,16 +268,23 @@ class CampaignCatalogUI:
         text.insert('1.0',self.details()); text.configure(state='disabled')
 
     def is_custom(self,kind):
-        return self.modes[kind].get()=='custom'
+        return self.modes[kind].get() in ('custom','runtime')
+
+    def _result(self,kind):
+        return (self.runtime_snapshot.result if self.runtime_snapshot is not None else None) if self.modes[kind].get()=='runtime' else self.selection.result
 
     def rows(self,kind,query):
-        result=self.selection.result
+        result=self._result(kind)
         if result is None: return []
         query=query.strip().casefold()
         return [row for row in result.entries.get(kind,()) if query in ' '.join((row.rawcode,row.name,row.base_id,row.object_type,row.source,row.note)).casefold()]
 
     def can_copy(self,rawcode,kind):
-        result=self.selection.result
+        if self.modes[kind].get()=='runtime':
+            client=self._get_runtime_client()
+            if (self.runtime_snapshot is None or client is None or
+                client.identity()!=self.runtime_snapshot.identity or time.monotonic()-self._runtime_checked_at>2): return False
+        result=self._result(kind)
         return result is not None and any(row.rawcode==rawcode and row.copyable for row in result.entries.get(kind,()))
 
     def render_custom(self,tree,kind,query):
@@ -194,6 +297,6 @@ class CampaignCatalogUI:
         tree.delete(*tree.get_children())
         for row in self.rows(kind,query):
             object_type=row.object_type if self.language()=='zh' else {'新增':'New','原版改动':'Modified vanilla'}.get(row.object_type,row.object_type)
-            source=row.source if self.language()=='zh' else row.source.replace('战役公共','Campaign').replace('所选章节','Selected chapter')
+            source=row.source if self.language()=='zh' else row.source.replace('战役公共','Campaign').replace('所选章节','Selected chapter').replace('当前地图','Current map')
             tree.insert('','end',iid=row.rawcode,values=(row.rawcode,row.name,row.base_id,object_type,source,row.note))
         return True
