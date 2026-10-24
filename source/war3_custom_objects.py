@@ -108,9 +108,9 @@ def parse_object_data(data: bytes, kind: str) -> tuple[ObjectDefinition, ...]:
                         value = struct.unpack('<f', reader.raw(4))[0]
                     else:
                         raise ValueError(f'未知字段类型：{field_type}')
-                    end = reader.raw(4)
-                    if end not in (b'\0'*4, base, new):
-                        raise ValueError('对象字段结束标记无效')
+                    # The format stores an opaque uint32 here. Old editors can
+                    # leave another rawcode (e.g. nskg), so equality is not validity.
+                    reader.raw(4)
                     key = field, level, pointer
                     if key in fields and fields[key] != value:
                         raise ValueError('同一对象含多个不同值的字段，无法唯一解析')
@@ -127,21 +127,38 @@ def parse_wts(data: bytes) -> dict[int, str]:
         text = data.decode('utf-8-sig')
     except UnicodeDecodeError as exc:
         raise ValueError('字符串表不是可确定的 UTF-8 编码') from exc
-    pattern = re.compile(r'^\s*STRING\s+(\d+)\s*\{\s*\r?\n(.*?)^\s*\}[ \t]*(?:\r?\n|$)', re.M | re.S)
-    result, pos = {}, 0
-    for match in pattern.finditer(text):
-        gap = re.sub(r'//[^\n]*', '', text[pos:match.start()]).strip()
-        if gap:
+    # Line parser permits World Editor comments outside string bodies without
+    # stripping literal // text from names, and avoids unbounded regex backtracking.
+    lines, result, pos = text.splitlines(keepends=True), {}, 0
+    def skip_comments(index):
+        while index < len(lines) and (not lines[index].strip() or lines[index].lstrip().startswith('//')):
+            index += 1
+        return index
+    while (pos := skip_comments(pos)) < len(lines):
+        match = re.fullmatch(r'\s*STRING\s+(\d+)\s*(\{)?\s*(?://[^\r\n]*)?', lines[pos].rstrip('\r\n'))
+        if not match:
             raise ValueError('字符串表存在未识别记录')
-        key, value = int(match[1]), match[2].rstrip('\r\n')
+        key = int(match[1]); pos += 1
+        if not match[2]:
+            pos = skip_comments(pos)
+            if pos >= len(lines) or lines[pos].strip() != '{':
+                raise ValueError('字符串表缺少正文开始标记')
+            pos += 1
+        body, size = [], 0
+        while pos < len(lines) and lines[pos].strip() != '}':
+            size += len(lines[pos].encode('utf8'))
+            if size > MAX_STRING_BYTES:
+                raise ValueError('字符串表超过长度上限')
+            body.append(lines[pos]); pos += 1
+        if pos >= len(lines):
+            raise ValueError('字符串表缺少正文结束标记')
+        pos += 1
+        value=''.join(body).removesuffix('\n').removesuffix('\r')
         if key in result:
             raise ValueError(f'字符串表重复编号：{key}')
-        if len(result) >= MAX_OBJECTS or len(value.encode('utf8')) > MAX_STRING_BYTES:
+        if not 0 <= key <= 0xffffffff or len(result) >= MAX_OBJECTS:
             raise ValueError('字符串表超过数量或长度上限')
         result[key] = value
-        pos = match.end()
-    if re.sub(r'//[^\n]*', '', text[pos:]).strip():
-        raise ValueError('字符串表存在未识别记录')
     return result
 
 
@@ -153,7 +170,7 @@ def resolve_string(value: str, strings: dict[int, str]) -> tuple[str, str]:
             return value, '名称字符串未解析'
         value = strings[key]
     note = '名称含非 UTF-8 字节' if re.search(r'\\x[0-9a-f]{2}', value) else ''
-    return re.sub(r'\|c[0-9A-Fa-f]{8}|\|r', '', value), note
+    return re.sub(r'\|c[0-9A-Fa-f]{8}|\|r', '', value, flags=re.I), note
 
 
 def merge_objects(campaign, chapter, campaign_strings, chapter_strings, kind: str) -> tuple[CustomObjectEntry, ...]:
@@ -165,11 +182,14 @@ def merge_objects(campaign, chapter, campaign_strings, chapter_strings, kind: st
             if rawcode not in merged:
                 merged[rawcode] = [definition, {}, [], False]
             previous, fields, sources, conflict = merged[rawcode]
-            conflict |= previous.base != definition.base or previous.custom != definition.custom
+            # A chapter original-table row may modify an object created by the campaign.
+            existing_custom_override = previous.custom and not definition.custom and definition.base == rawcode
+            if not existing_custom_override:
+                conflict |= previous.base != definition.base or previous.custom != definition.custom
             for key, value in definition.fields.items():
                 fields[key] = (value, strings)
             sources.append(layer)
-            merged[rawcode] = [definition, fields, sources, conflict]
+            merged[rawcode] = [previous if existing_custom_override else definition, fields, sources, conflict]
     if len(merged) > MAX_OBJECTS:
         raise ValueError('合并对象数量超过上限')
     generic = {entry.rawcode: entry.name_zh or entry.name_en for entry in ID_CATALOG[kind]}

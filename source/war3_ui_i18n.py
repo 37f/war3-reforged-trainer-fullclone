@@ -35,6 +35,8 @@ def detect_ui_language(locale_name: str | None = None) -> str:
 
 
 _EN_TRANSLATIONS = {
+    "该对象 ID 无法安全复制，请查看备注": "This object ID cannot be safely copied; see Notes",
+    "双击表格行可复制 ID。通用目录来源：W3x2LNI zhCN-1.32.8 与 war3-objectdata 英文社区快照。自定义对象请切换到战役与所选章节；仅代表所选文件定义。": "Double-click to copy an ID. General catalog: W3x2LNI zhCN-1.32.8 and the war3-objectdata English snapshot. Switch to Campaign and selected chapter for custom definitions; these describe the selected files only.",
     "native helper 附加参数数量无效": "Invalid native helper extra argument count",
     "共享控制状态必须在 0 到 4 之间": "Shared-control state must be between 0 and 4",
     "原队伍快照不属于当前游戏进程": "The original-team snapshot belongs to another game process",

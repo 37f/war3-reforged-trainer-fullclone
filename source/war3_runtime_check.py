@@ -30,6 +30,17 @@ def run(output_path):
         library = ctypes.WinDLL(str(helper))
         getattr(library, "War3HookProc")
         report["helper_sha256"] = hashlib.sha256(helper.read_bytes()).hexdigest()
+        # R20: also verify offline archive dependency from the frozen bundle.
+        from war3_campaign_catalog import _storm_library
+        from war3_custom_objects import parse_object_data
+        archive_library = _storm_library()
+        archive_path = Path(archive_library._name).resolve()
+        if report["frozen"] and not archive_path.is_relative_to(base.resolve()):
+            raise RuntimeError("Archive library was loaded from outside the executable bundle")
+        report["stormlib_sha256"] = hashlib.sha256(archive_path.read_bytes()).hexdigest()
+        report["catalog_parser_ok"] = parse_object_data(bytes.fromhex("020000000000000000000000"), "unit") == ()
+        if not report["catalog_parser_ok"]:
+            raise RuntimeError("Offline object parser check failed")
         report["ok"] = True
     except Exception:
         report["error"] = traceback.format_exc()

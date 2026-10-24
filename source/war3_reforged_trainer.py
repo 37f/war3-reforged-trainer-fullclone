@@ -33,6 +33,7 @@ from war3_ability_fields import (
     ability_fields_for_effect_class,
 )
 from war3_id_catalog import CATALOG_COUNTS, search_id_entries
+from war3_custom_catalog_ui import CampaignCatalogUI
 from war3_item_fields import ITEM_FIELD_BY_KEY, ITEM_FIELD_CATALOG, ItemFieldSpec
 from war3_ui_i18n import detect_ui_language, translate_ui_text
 from war3_native_profile import PROFILE_ID as NATIVE_PROFILE_ID, NATIVE_INDEX
@@ -15501,6 +15502,12 @@ def run_gui() -> None:
         for kind in ("item", "ability", "unit")
     }
     id_catalog_trees: dict[str, ttk.Treeview] = {}
+    # R20: file-only catalogs share a campaign/chapter selection across the ID pages.
+    custom_catalog = CampaignCatalogUI(
+        root,
+        lambda: [refresh_id_catalog_tree(kind) for kind in id_catalog_trees],
+        lambda: ui_language["code"],
+    )
     elephant_tech_rawcode = tk.StringVar(value="")
     elephant_tech_level = tk.StringVar(value="1")
     elephant_xp_rate = tk.StringVar(value="1.0")
@@ -17850,6 +17857,22 @@ def run_gui() -> None:
             return
         selected = tuple(tree.selection())
         tree.delete(*tree.get_children())
+        if custom_catalog.render_custom(tree, kind, id_catalog_queries[kind].get()):
+            for iid in selected:
+                if tree.exists(iid):
+                    tree.selection_add(iid)
+            id_catalog_statuses[kind].set(f"记录数：{len(tree.get_children())}")
+            return
+        # Restore original columns when leaving the custom-file catalog.
+        tree.configure(columns=("rawcode", "name_zh", "name_en", "category"))
+        for column, heading, width, stretch in (
+            ("rawcode", "ID / Rawcode", 130, False),
+            ("name_zh", "中文名称", 300, True),
+            ("name_en", "English Name", 360, True),
+            ("category", "类别", 160, False),
+        ):
+            tree.heading(column, text=ui_text(heading))
+            tree.column(column, width=width, minwidth=width, stretch=stretch, anchor="w")
         entries = search_id_entries(kind, id_catalog_queries[kind].get())
         for entry in entries:
             category = (
@@ -17883,6 +17906,9 @@ def run_gui() -> None:
             )
             return
         rawcode = str(selected[0])
+        if custom_catalog.is_custom(kind) and not custom_catalog.can_copy(rawcode):
+            messagebox.showerror(ui_text("错误"), ui_text("该对象 ID 无法安全复制，请查看备注"), parent=root)
+            return
         root.clipboard_clear()
         root.clipboard_append(rawcode)
         set_status(f"已复制 ID：{rawcode}")
@@ -17899,8 +17925,9 @@ def run_gui() -> None:
     def build_id_catalog_tab(kind: str, title: str) -> None:
         tab = ttk.Frame(notebook, padding=10)
         notebook.add(tab, text=title)
+        custom_catalog.add_controls(tab, kind)
         toolbar = ttk.Frame(tab)
-        toolbar.grid(row=0, column=0, sticky="ew", pady=(0, 8))
+        toolbar.grid(row=1, column=0, sticky="ew", pady=(0, 8))
         ttk.Label(toolbar, text="搜索 ID、中文名或英文名").grid(
             row=0,
             column=0,
@@ -17935,7 +17962,7 @@ def run_gui() -> None:
         toolbar.columnconfigure(1, weight=1)
 
         table_frame = ttk.Frame(tab)
-        table_frame.grid(row=1, column=0, sticky="nsew")
+        table_frame.grid(row=2, column=0, sticky="nsew")
         tree = ttk.Treeview(
             table_frame,
             columns=("rawcode", "name_zh", "name_en", "category"),
@@ -17974,12 +18001,12 @@ def run_gui() -> None:
 
         ttk.Label(
             tab,
-            text="双击表格行可复制 ID。数据来源：W3x2LNI zhCN-1.32.8 与 war3-objectdata 英文社区快照；自定义地图对象不在通用目录内。",
+            text="双击表格行可复制 ID。通用目录来源：W3x2LNI zhCN-1.32.8 与 war3-objectdata 英文社区快照。自定义对象请切换到战役与所选章节；仅代表所选文件定义。",
             anchor="w",
             justify="left",
             wraplength=1080,
-        ).grid(row=2, column=0, sticky="ew", pady=(8, 0))
-        tab.rowconfigure(1, weight=1)
+        ).grid(row=3, column=0, sticky="ew", pady=(8, 0))
+        tab.rowconfigure(2, weight=1)
         tab.columnconfigure(0, weight=1)
         refresh_id_catalog_tree(kind)
 
@@ -18080,6 +18107,7 @@ def run_gui() -> None:
         ):
             variable.refresh()
         refresh_language_dependent_rows()
+        custom_catalog.refresh_language()
 
     def on_language_changed(_event: object | None = None) -> None:
         ui_language["code"] = "zh" if language_choice.get() == "中文" else "en"

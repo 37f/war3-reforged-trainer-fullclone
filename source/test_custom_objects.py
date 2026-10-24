@@ -47,6 +47,13 @@ def test_original_changes_not_miscounted_as_new():
     assert (row.rawcode,row.object_type,row.name) == ('hfoo','原版改动','步兵甲')
 
 
+def test_chapter_original_table_can_modify_a_campaign_custom_object():
+    campaign = parse_object_data(obj_file(records=[('hfoo','X001',[('unam','公共名字')])]), 'unit')
+    chapter = parse_object_data(obj_file(original=[('X001','X001',[('unam','章节名字')])]), 'unit')
+    row = merge_objects(campaign, chapter, {}, {}, 'unit')[0]
+    assert (row.name,row.base_id,row.object_type,row.copyable) == ('章节名字','hfoo','新增',True)
+
+
 def test_inherited_name_and_color_codes():
     defs = parse_object_data(obj_file(records=[('hfoo','X001',[('unam','|cffff0000队长|r')]),('X001','X002',[])]), 'unit')
     rows = {x.rawcode:x for x in merge_objects(defs, (), {}, {}, 'unit')}
@@ -80,6 +87,17 @@ def test_wts_multiline_and_duplicate_detection():
         parse_wts(b'STRING 1\n{\na\n}\nSTRING 1\n{\nb\n}\n')
 
 
+def test_world_editor_wts_comments_between_header_and_brace():
+    assert parse_wts(b'STRING 15\r\n// Unit name\r\n{\r\nKeagan\r\n}\r\n') == {15:'Keagan'}
+
+
+def test_old_editor_opaque_trailer_is_not_a_new_object_id():
+    data=obj_file(records=[('hfoo','X001',[('unam','Name')])])
+    data=data[:-4]+b'nskg'
+    row=merge_objects(parse_object_data(data,'unit'),(),{}, {},'unit')[0]
+    assert (row.rawcode,row.name)==('X001','Name')
+
+
 @pytest.mark.parametrize('data', [b'',struct.pack('<iii',4,0,0),struct.pack('<ii',2,-1),obj_file()[:-1],obj_file()+b'garbage'])
 def test_malformed_or_unsupported_records_rejected(data):
     with pytest.raises(ValueError):
@@ -91,10 +109,10 @@ def test_duplicate_object_ids_rejected():
         parse_object_data(obj_file(records=[('hfoo','X001',[]),('hfoo','X001',[])]),'unit')
 
 
-def test_bad_field_type_and_end_marker_rejected():
+def test_bad_field_type_and_truncated_trailer_rejected():
     data = obj_file(records=[('hfoo','X001',[('unam','x')])])
     with pytest.raises(ValueError):
-        parse_object_data(data[:-4]+b'BAD!','unit')
+        parse_object_data(data[:-1],'unit')
     data = data.replace(b'unam\x03\0\0\0',b'unam\x09\0\0\0')
     with pytest.raises(ValueError):
         parse_object_data(data,'unit')

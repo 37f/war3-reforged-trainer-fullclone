@@ -72,3 +72,10 @@
 
 - Native app worktree tool returned `Not a git repository` because chat cwd is above this nested repo. A sibling Git linked worktree was created with Git at `work/v19-migration/fullclone-r20-custom-catalog`; all implementation commands use that path explicitly.
 - The user approved implementation; execute inline without another plan-approval round. The design is the binding scope.
+- Task 1 complete: bounded object versions 1/2/3, WTS and field-scoped overlays; 40 focused tests currently pass including downstream UI/runtime tests.
+- Task 2 complete: real nested MPQ fixtures and verified official x64 DLL; source hashes are checked before/after reads. Additional real tests use three campaigns in the user-provided folder.
+- Task 3 complete: shared offline controls and generation-token stale-result rejection, actual Tk widgets tested; general ID catalog retained.
+- Ruling: original-table chapter rows may modify campaign-created IDs, so preserve the campaign's true template rather than classify this as a conflicting redefinition. A dedicated regression test fails without this rule.
+- Ruling: actual old campaigns and the upstream `Modification.u1` reader show the four-byte field trailer is opaque, not necessarily zero/base/new ID. Consume and bounds-check it without imposing false equality; reject truncation, invalid types and unparsed tails. Falsely requiring equality excluded a valid chapter's unit definitions.
+- Ruling: World Editor inserts `//` comments between WTS headers and braces. Use a bounded line parser, preserving literal comments inside string bodies. Actual campaigns exposed and regression tests pin this behavior.
+- Verification environment: first full-suite attempt had 71 setup errors because clang was absent from PATH (852 passed, 1067 skipped). With existing SEH clang paths restored, the affected player-name test file passes 71 tests; final full suite must run with this toolchain before shipping.

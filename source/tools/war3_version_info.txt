@@ -18,7 +18,7 @@ VSVersionInfo(
           StringStruct('FileDescription', '魔兽争霸3重制版修改器 native helper版'),
           StringStruct('FileVersion', '1.0.19'),
           StringStruct('InternalName', 'War3ReforgedTrainer'),
-          StringStruct('OriginalFilename', 'War3ReforgedTrainer-v1.0.19-Native.exe'),
+          StringStruct('OriginalFilename', 'War3ReforgedTrainer-v1.0.19-FullClone-R20-Test.exe'),
           StringStruct('ProductName', '魔兽争霸3重制版修改器'),
           StringStruct('ProductVersion', '1.0.19'),
         ],
