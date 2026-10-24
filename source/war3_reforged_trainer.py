@@ -4671,6 +4671,10 @@ class War3Trainer:
                     details = f" item_creations_acknowledged={operation[5]} last_created_handle={operation[3]}"
                 elif operation[0] == self.NATIVE_HELPER_OP_BOUND_OWNER_KILL:
                     details = f" owner_kill_callbacks={operation[5]} owner_kill_skipped={operation[3]} owner_kill_cleanup_error={operation[7]}"
+                elif (operation[0] in (self.NATIVE_HELPER_OP_EXT_SET_SELECTED_OWNER_TEAM,
+                                      self.NATIVE_HELPER_OP_EXT_RESTORE_SELECTED_OWNER_TEAM)
+                      and operation[5] >> 32 == 0x554E4153):
+                    details = f" team_phase={operation[5] & 0xFFFFFFFF} team_rollback_error={operation[7]}"
             if actual_count == op_count == 3:
                 base, size = self.NATIVE_HELPER_HEADER_STRUCT.size, self.NATIVE_HELPER_OP_STRUCT.size
                 operation = self.NATIVE_HELPER_OP_STRUCT.unpack_from(data, base + size)
@@ -4685,7 +4689,7 @@ class War3Trainer:
                 phase_value = self.NATIVE_HELPER_OP_STRUCT.unpack_from(
                     data, self.NATIVE_HELPER_HEADER_STRUCT.size + self.NATIVE_HELPER_OP_STRUCT.size
                 )[5]
-                if phase_value:
+                if phase_value and " team_phase=" not in details:
                     phase = f" clone_phase=0x{phase_value:x}"
             raise RuntimeError(f"native helper 执行失败：status={status} last_error={last_error}{phase}{details}")
         if actual_count != op_count:
@@ -6523,7 +6527,7 @@ class War3Trainer:
     def _decode_team_metadata(value: int) -> tuple[int, int, int, int, bool]:
         packed = int(value)
         return (
-            packed & 0xFF,
+            -1 if packed & 0xFF == 0xFF and packed & (1 << 32) else packed & 0xFF,
             (packed >> 8) & 0xFF,
             (packed >> 16) & 0xFF,
             (packed >> 24) & 0xFF,
@@ -6620,6 +6624,19 @@ class War3Trainer:
                 "队伍必须是队伍 1 到队伍 12、中立敌对队伍或中立被动队伍"
             )
         candidate, unit_handle = self._direct_selected_context()
+        # R19.3: pin the player from this candidate's immutable native snapshot.
+        native = getattr(candidate, "native_snapshot", None)
+        expected_owner = int(native.owner) if native is not None else 0
+        expected_slot = int(native.owner_id) if native is not None else 0
+        prior_unassigned = False
+        _control_snapshots, team_snapshots = self._relation_snapshot_maps()
+        if native is not None:
+            if not expected_owner or not 0 <= expected_slot < 28:
+                raise RuntimeError("选中单位所属玩家快照无效")
+            previous = team_snapshots.get((int(self.pid), expected_slot))
+            if previous is not None and previous.owner_handle != expected_owner:
+                raise RuntimeError("选中单位所属玩家已变化，保留原始快照，未执行换队")
+            prior_unassigned = bool(previous and previous.original_team == -1)
         response = self._run_native_helper_ops(
             unit_handle,
             (
@@ -6627,9 +6644,9 @@ class War3Trainer:
                 (
                     self.NATIVE_HELPER_OP_EXT_SET_SELECTED_OWNER_TEAM,
                     target_team,
-                    0,
-                    0,
-                    0,
+                    expected_owner,
+                    expected_slot,
+                    int(prior_unassigned),
                 ),
             ),
         )
@@ -6640,11 +6657,14 @@ class War3Trainer:
         )
         owner_handle = int(operation.arg0)
         actual_team = int(operation.result)
-        if not owner_handle or not 0 <= player_slot < 28:
+        if (not owner_handle or not 0 <= player_slot < 28
+                or (expected_owner and (owner_handle != expected_owner or player_slot != expected_slot))):
             raise RuntimeError("游戏未能取得选中单位所属玩家")
         if actual_team != target_team:
             raise RuntimeError("游戏未能把选中玩家加入指定队伍")
-        if len(relationships) != peer_count:
+        if (len(relationships) != peer_count or _team_relationships_by_player(relationships) is None
+                or original_team < -1 or original_team >= 64
+                or (original_team == -1 and (not virtual_team or player_slot >= 24))):
             raise RuntimeError("游戏返回的原队伍联盟快照数量异常")
         _control_snapshots, team_snapshots = self._relation_snapshot_maps()
         key = (int(self.pid), player_slot)
@@ -6698,21 +6718,25 @@ class War3Trainer:
             raise TypeError("原队伍快照无效")
         if snapshot.process_id != int(self.pid):
             raise RuntimeError("原队伍快照不属于当前游戏进程")
-        if not 0 <= snapshot.player_slot < 28 or not 0 <= snapshot.original_team < 64:
+        unassigned = snapshot.original_team == -1 and snapshot.virtual_team and snapshot.player_slot < 24
+        if not 0 <= snapshot.player_slot < 28 or not (unassigned or 0 <= snapshot.original_team < 64):
             raise ValueError("原队伍快照无效")
         if not 0 <= snapshot.assigned_team < 14 or len(snapshot.relationships) > 28:
             raise ValueError("原队伍快照无效")
         candidate, unit_handle = self._direct_selected_context()
+        native = getattr(candidate, "native_snapshot", None)
+        if native is not None and (int(native.owner) != snapshot.owner_handle or int(native.owner_id) != snapshot.player_slot):
+            raise RuntimeError("选中单位所属玩家已经变化，未恢复原队伍")
         response = self._run_native_helper_ops(
             unit_handle,
             (
                 self._bound_identity_operation(candidate),
                 (
                     self.NATIVE_HELPER_OP_EXT_RESTORE_SELECTED_OWNER_TEAM,
-                    snapshot.original_team,
+                    0xFFFFFFFF if unassigned else snapshot.original_team,
                     snapshot.assigned_team,
                     snapshot.player_slot,
-                    int(snapshot.virtual_team),
+                    snapshot.owner_handle if unassigned else int(snapshot.virtual_team),
                 ),
             ),
             extra_values=snapshot.relationships,
@@ -6723,6 +6747,8 @@ class War3Trainer:
         )
         owner_handle = int(operation.arg0)
         actual_team = int(operation.result)
+        if unassigned and actual_team == 0xFFFFFFFF:
+            actual_team = -1
         if owner_handle != snapshot.owner_handle or player_slot != snapshot.player_slot:
             raise RuntimeError("选中单位所属玩家已经变化，未恢复原队伍")
         if previous_team != snapshot.assigned_team or actual_team != snapshot.original_team:

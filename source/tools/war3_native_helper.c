@@ -1592,8 +1592,12 @@ static DWORD war3_ext_team(
     int restoring = op->kind == WAR3_NATIVE_OP_EXT_RESTORE_SELECTED_OWNER_TEAM;
     int virtual_team;
     DWORD error = ERROR_SUCCESS;
+    /* R19.3 uses a separate diplomacy-only restore contract for native -1. */
+    if (restoring && op->rawcode == UINT32_MAX)
+        return war3_ext_unassigned_team(cmd, op, index, input_extra, input_count, output_extra, output_count);
     if (index != 1u || cmd->op_count != 2u || cmd->ops[0].kind != WAR3_NATIVE_OP_VALIDATE_UNIT_IDENTITY ||
-        (!restoring && (op->rawcode >= WAR3_PLAYER_TEAM_TARGET_COUNT || op->handler || op->arg0 || op->arg1)) ||
+        (!restoring && (op->rawcode >= WAR3_PLAYER_TEAM_TARGET_COUNT || op->arg1 > 1u ||
+            op->arg0 >= 28u || (!op->handler && op->arg0))) ||
         (restoring && (op->rawcode >= 64u || op->handler >= WAR3_PLAYER_TEAM_TARGET_COUNT ||
             op->arg0 >= 28u || op->arg1 > 1u || !input_count)) || input_count > WAR3_PLAYER_TEAM_MAX_PEERS)
         return ERROR_INVALID_DATA;
@@ -1615,7 +1619,12 @@ static DWORD war3_ext_team(
         owner_id = get_id(owner);
         if (owner_id < 0 || owner_id >= 28 || (restoring && owner_id != (int32_t)op->arg0))
             return ERROR_RETRY;
+        if (!restoring && op->handler && (owner != op->handler || owner_id != (int32_t)op->arg0))
+            return ERROR_RETRY;
         original = (uint32_t)get_team(owner);
+        if (!restoring && op->arg1 && original != UINT32_MAX) return ERROR_RETRY;
+        if (!restoring && original == UINT32_MAX)
+            return war3_ext_unassigned_team(cmd, op, index, input_extra, input_count, output_extra, output_count);
         if (original >= 64u) return ERROR_INVALID_DATA;
         assigned = restoring ? (uint32_t)op->handler : op->rawcode;
         virtual_team = owner_id == 24 || owner_id == 27 ||
