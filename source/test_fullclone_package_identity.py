@@ -59,3 +59,10 @@ def test_verifier_rejects_stale_frozen_source_with_protocol_77(monkeypatch, tmp_
     monkeypatch.setattr(module, "CArchiveReader", StaleArchive)
     with pytest.raises(RuntimeError, match="packaged trainer source does not match"):
         module.main()
+
+
+def test_r21_verifier_configuration_rejects_old_protocol_before_archive(monkeypatch,tmp_path):
+    module=verifier();prepare(module,monkeypatch,tmp_path,77)
+    monkeypatch.setattr(module,'EXPECTED_PROTOCOL',78,raising=False)
+    monkeypatch.setattr(module,'CArchiveReader',lambda *args:pytest.fail('old protocol reached archive reader'))
+    with pytest.raises(RuntimeError,match='native protocol is not 78'): module.main()

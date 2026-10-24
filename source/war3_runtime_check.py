@@ -41,6 +41,10 @@ def run(output_path):
         report["catalog_parser_ok"] = parse_object_data(bytes.fromhex("020000000000000000000000"), "unit") == ()
         if not report["catalog_parser_ok"]:
             raise RuntimeError("Offline object parser check failed")
+        from war3_current_map_catalog import parse_catalog_header, MAGIC
+        report['current_map_parser_ok']=parse_catalog_header((MAGIC,1,123,64,14,33))==(123,(64,14,33))
+        if not report['current_map_parser_ok']:
+            raise RuntimeError('Current-map protocol parser check failed')
         report["ok"] = True
     except Exception:
         report["error"] = traceback.format_exc()

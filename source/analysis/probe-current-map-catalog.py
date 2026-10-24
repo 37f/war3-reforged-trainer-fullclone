@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from war3_reforged_trainer import War3Trainer
@@ -19,13 +20,18 @@ parser.add_argument('--pid',type=int,required=True)
 parser.add_argument('--output',type=Path,required=True)
 parser.add_argument('--watch-seconds',type=int,default=0)
 parser.add_argument('--dll',type=Path)
+parser.add_argument('--background-bootstrap',action='store_true')
+parser.add_argument('--worker-queries',action='store_true')
 args=parser.parse_args()
 if args.dll:
     CatalogProbeTrainer._native_helper_dll_path=lambda self:args.dll.resolve()
 trainer=None
 try:
-    trainer=CatalogProbeTrainer(args.pid)
+    trainer=(War3Trainer if args.background_bootstrap else CatalogProbeTrainer)(args.pid)
     client=trainer.current_map_catalog_client()
+    def perform(fn):
+        if not args.worker_queries:return fn()
+        with ThreadPoolExecutor(max_workers=1) as pool:return pool.submit(fn).result(timeout=80)
     snapshots=[]
     if args.watch_seconds:
         events=[];last=None;deadline=time.monotonic()+args.watch_seconds
@@ -43,9 +49,9 @@ try:
             time.sleep(1)
         raise SystemExit(0)
     for _ in range(3):
-        snapshot=client.read()
+        snapshot=perform(client.read)
         snapshots.append(asdict(snapshot))
-        print('counts',snapshot.counts,'ms',round(snapshot.elapsed_ms,2),'checked',client.check(snapshot),'issues',len(snapshot.result.issues),flush=True)
+        print('counts',snapshot.counts,'ms',round(snapshot.elapsed_ms,2),'checked',perform(lambda:client.check(snapshot)),'issues',len(snapshot.result.issues),flush=True)
         time.sleep(0.2)
     args.output.parent.mkdir(parents=True,exist_ok=True)
     args.output.write_text(json.dumps({'pid':args.pid,'protocol':trainer.NATIVE_HELPER_VERSION,'snapshots':snapshots},ensure_ascii=False,indent=2),encoding='utf8')
