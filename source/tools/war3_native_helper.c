@@ -5,7 +5,7 @@
 #include <string.h>
 
 #define WAR3_NATIVE_MAGIC 0x33524757u
-#define WAR3_NATIVE_VERSION 76u
+#define WAR3_NATIVE_VERSION 77u
 #define WAR3_NATIVE_STATUS_PENDING 1u
 #define WAR3_NATIVE_STATUS_OK 2u
 #define WAR3_NATIVE_STATUS_FAILED 3u
@@ -969,6 +969,8 @@ static int war3_team_unpack(uint64_t packed, War3TeamPeerSnapshot *snapshot) {
     snapshot->assigned_peer_to_owner_mask = (uint32_t)((packed >> 29u) & 0x3fu);
     return snapshot->player_index < WAR3_PLAYER_TEAM_MAX_PEERS;
 }
+
+#include "war3_native_unassigned_team.h"
 
 static int war3_memory_span(uint64_t address, SIZE_T size, int writeable) {
     MEMORY_BASIC_INFORMATION region;

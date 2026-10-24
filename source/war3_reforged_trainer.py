@@ -971,8 +971,8 @@ def format_player_team_status(value: PlayerTeamStatus, language: str = "zh") -> 
     return player + translate_ui_text(text, language)
 
 
-PLAYER_TEAM_SNAPSHOT_BASE_MASK = (1 << 23) - 1
-PLAYER_TEAM_SNAPSHOT_ASSIGNED_MASK = ((1 << 36) - 1) ^ (
+PLAYER_TEAM_SNAPSHOT_BASE_MASK = ((1 << 23) - 1) | (1 << 36)
+PLAYER_TEAM_SNAPSHOT_ASSIGNED_MASK = ((1 << 37) - 1) ^ (
     PLAYER_TEAM_SNAPSHOT_BASE_MASK
 )
 
@@ -983,7 +983,8 @@ def _team_relationships_by_player(
     by_player: dict[int, int] = {}
     for value in relationships:
         packed = int(value)
-        if packed < 0 or packed >> 36 or not packed & (1 << 35):
+        if (packed < 0 or packed >> 37 or not packed & (1 << 35)
+                or (packed & (1 << 36) and (packed >> 12) & 0x3F)):
             return None
         peer_index = (packed >> 18) & 0x1F
         if peer_index >= 28 or peer_index in by_player:
@@ -2905,7 +2906,7 @@ class War3Trainer:
         )
     )
     NATIVE_HELPER_MAGIC = 0x33524757
-    NATIVE_HELPER_VERSION = 76
+    NATIVE_HELPER_VERSION = 77
     NATIVE_HELPER_CLONE_FLAG_HERO = 0x01
     NATIVE_HELPER_CLONE_FLAG_INVENTORY = 0x02
     NATIVE_HELPER_CLONE_FLAG_PRESERVE_OWNER = 0x04

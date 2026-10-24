@@ -55,17 +55,18 @@ def make_transport_trainer(tmp_path):
     return trainer
 
 
-def test_protocol_76_is_packed_and_protocol_75_is_rejected():
+@pytest.mark.parametrize("old_version", [75, 76])
+def test_protocol_77_is_packed_and_old_protocols_are_rejected(old_version):
     trainer = object.__new__(module.War3Trainer)
     operation = (module.War3Trainer.NATIVE_HELPER_OP_EXT_LOCAL_VICTORY, 0, 0, 0, 0)
 
     payload = trainer._pack_native_helper_command(0, (operation,))
 
     header = trainer.NATIVE_HELPER_HEADER_STRUCT.unpack_from(payload)
-    assert trainer.NATIVE_HELPER_VERSION == 76
-    assert header[1] == 76
+    assert trainer.NATIVE_HELPER_VERSION == 77
+    assert header[1] == 77
     protocol_69 = bytearray(payload)
-    protocol_69[4:8] = (75).to_bytes(4, "little")
+    protocol_69[4:8] = old_version.to_bytes(4, "little")
     with pytest.raises(RuntimeError, match="协议不匹配"):
         trainer._parse_native_helper_results(bytes(protocol_69), 1)
 
@@ -129,7 +130,7 @@ def test_c_protocol_and_extension_declarations_match_python():
         re.findall(r"^#define WAR3_NATIVE_OP_(EXT_[A-Z0-9_]+) (\d+)u$", helper_source, re.MULTILINE)
     )
 
-    assert version and int(version.group(1)) == module.War3Trainer.NATIVE_HELPER_VERSION == 76
+    assert version and int(version.group(1)) == module.War3Trainer.NATIVE_HELPER_VERSION == 77
     assert {name: int(value) for name, value in declarations.items()} == EXTENSION_OPERATIONS
 
 
@@ -419,6 +420,10 @@ def test_real_c_dispatcher_rejects_protocol_69(c_dispatcher):
     assert dispatch(c_dispatcher, 69, 300) == (1, 0, 0)
 
 
+def test_real_c_dispatcher_rejects_old_protocol_76(c_dispatcher):
+    assert dispatch(c_dispatcher, 76, 300) == (1, 0, 0)
+
+
 def test_special_extension_operations_are_no_longer_placeholder_cases():
     source = (Path(__file__).parent / "tools" / "war3_native_helper.c").read_text(encoding="utf-8")
     switch = source[source.index("case WAR3_NATIVE_OP_EXT_CAST_INFERNAL:"):
@@ -433,19 +438,19 @@ def test_special_extension_operations_are_no_longer_placeholder_cases():
 
 @pytest.mark.parametrize("kind", range(300, 304))
 def test_real_c_dispatcher_accepts_valid_implemented_transactions(c_dispatcher, kind):
-    assert dispatch(c_dispatcher, 76, kind, valid=True) == (2, 0, 0)
+    assert dispatch(c_dispatcher, 77, kind, valid=True) == (2, 0, 0)
 
 
 @pytest.mark.parametrize("kind", (304, 307, 308, 309, 310, 316, 317))
 def test_real_c_dispatcher_accepts_valid_relation_and_color_transactions(c_dispatcher, kind):
-    assert dispatch(c_dispatcher, 76, kind, valid=True) == (2, 0, 0)
+    assert dispatch(c_dispatcher, 77, kind, valid=True) == (2, 0, 0)
 
 
 @pytest.mark.parametrize("kind", (301, 302, 303, 304, 307, 308, 309, 310, 316, 317))
 def test_real_c_dispatcher_rejects_invalid_implemented_transactions_without_placeholder_error(
     c_dispatcher, kind
 ):
-    status, last_error, operation_error = dispatch(c_dispatcher, 76, kind)
+    status, last_error, operation_error = dispatch(c_dispatcher, 77, kind)
     assert status == 3
     assert last_error == operation_error != 0
     assert operation_error != module.ERROR_NOT_SUPPORTED
@@ -453,6 +458,6 @@ def test_real_c_dispatcher_rejects_invalid_implemented_transactions_without_plac
 
 def test_real_c_dispatcher_keeps_reserved_extension_range_unsupported(c_dispatcher):
     for kind in range(318, 321):
-        status, last_error, operation_error = dispatch(c_dispatcher, 76, kind)
+        status, last_error, operation_error = dispatch(c_dispatcher, 77, kind)
         assert status == 3
         assert last_error == operation_error != 0
