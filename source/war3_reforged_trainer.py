@@ -952,9 +952,6 @@ def format_player_team_status(value: PlayerTeamStatus, language: str = "zh") -> 
     # R19.1: the two named neutral slots need no unavailable-name placeholder.
     elif value.player_name_error and not neutral:
         player += translate_ui_text("（名称暂无法读取）", language)
-    # R19.2: preserve the campaign's sentinel; -1 is not lobby team zero.
-    if value.native_team == -1:
-        return player + translate_ui_text("：未分配普通队伍（原始值 -1）", language)
     if value.assignment_verified and value.virtual_team:
         team = {12: "中立敌对队伍", 13: "中立被动队伍"}.get(
             value.assigned_team, f"队伍 {value.assigned_team + 1}"
@@ -962,6 +959,12 @@ def format_player_team_status(value: PlayerTeamStatus, language: str = "zh") -> 
         return player + translate_ui_text(
             f"：{team}（外交模板）；原生队伍编号 {value.native_team}", language
         )
+    # R19.3: a verified diplomacy template may coexist with native -1.
+    if value.native_team == -1:
+        text = "：未分配普通队伍（原始值 -1）"
+        if value.assigned_team is not None and not value.assignment_verified:
+            text += "；关系已变化"
+        return player + translate_ui_text(text, language)
     if neutral or value.native_team >= 12:
         text = f"：原生队伍编号 {value.native_team}"
     else:
@@ -1041,6 +1044,11 @@ def _player_team_snapshot_matches_current_state(
     current_team: int,
     relationships: tuple[int, ...],
 ) -> bool:
+    if snapshot.original_team == -1:
+        if not snapshot.virtual_team or int(current_team) != -1 or not relationships:
+            return False
+    elif int(current_team) == -1:
+        return False
     if not snapshot.virtual_team and snapshot.assigned_team != int(current_team):
         return False
     return _team_relationships_match_assignment(
@@ -6562,7 +6570,6 @@ class War3Trainer:
         if (operation.kind != query_kind or int(self.pid) != process_id
                 or not owner or not 0 <= player_slot < 28
                 or not (unassigned_team or 0 <= native_team < 64) or metadata >> 16
-                or (unassigned_team and peer_count != 0)
                 or peer_count > 28 or len(relationships) != peer_count
                 or _team_relationships_by_player(relationships) is None):
             raise RuntimeError("选中玩家队伍读取结果无效")
@@ -6589,9 +6596,10 @@ class War3Trainer:
                 except UnicodeError:
                     name_error, player_name = 1113, None
         snapshot = getattr(self, "_player_team_snapshots", {}).get((int(self.pid), player_slot))
-        # No alliance snapshot is available for an unassigned team. Do not
-        # display a cached assignment as verified or alter its restore record.
-        if unassigned_team:
+        # R19.3 permits only this mode's first -1 record; never reuse a legacy
+        # normal-team restore record just because its masks happen to match.
+        if unassigned_team and snapshot is not None and not (
+                snapshot.original_team == -1 and snapshot.virtual_team):
             snapshot = None
         if snapshot is not None and snapshot.owner_handle != owner:
             snapshot = None
@@ -17562,6 +17570,10 @@ def run_gui() -> None:
             )
             note = "（中立虚拟队伍外交模板）" if virtual else ""
             root.after(0, request_selected_player_team_read)
+            if original == -1:
+                label = {12: "中立敌对队伍", 13: "中立被动队伍"}.get(actual, f"队伍 {actual + 1}")
+                return (f"已为选中玩家（handle=0x{owner:x}）应用{label}外交模板；"
+                        f"原生队伍保持 -1；关系玩家 {peers} 名")
             return (f"已把选中玩家（handle=0x{owner:x}）加入队伍 {actual + 1}{note}；"
                     f"首次记录的原队伍编号为 {original + 1}，关系玩家 {peers} 名")
         _unit, owner_handle, _mask = t.query_selected_owner_shared_control()
@@ -17571,6 +17583,9 @@ def run_gui() -> None:
             raise RuntimeError("没有该玩家唯一可用的原队伍记录")
         owner, previous, actual, peers = t.restore_selected_owner_team(snapshots[0])
         root.after(0, request_selected_player_team_read)
+        if actual == -1:
+            return (f"已为选中玩家（handle=0x{owner:x}）恢复原始联盟关系；"
+                    f"原生队伍保持 -1；恢复关系玩家 {peers} 名")
         return (f"已将选中玩家（handle=0x{owner:x}）从队伍 {previous + 1}"
                 f"恢复到原队伍 {actual + 1}；恢复关系玩家 {peers} 名")
 

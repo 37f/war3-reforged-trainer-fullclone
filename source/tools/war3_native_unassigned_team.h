@@ -167,4 +167,59 @@ static DWORD war3_ext_unassigned_team(
     *output = allocated; *output_count = restoring ? 0u : count;
     return ERROR_SUCCESS;
 }
+
+/* Pure readback for status 317; keeps name payload and restore records separate. */
+static DWORD war3_query_unassigned_team_peers(
+    NativeCommand *cmd, NativeOp *op, uint32_t index, uint64_t **output, uint32_t *output_count
+) {
+    JassGetOwningPlayerFn get_owner = (JassGetOwningPlayerFn)(uintptr_t)war3_persistent_native_handler("GetOwningPlayer");
+    JassGetPlayerTeamFn get_team = (JassGetPlayerTeamFn)(uintptr_t)war3_persistent_native_handler("GetPlayerTeam");
+    JassGetPlayerIdFn get_id = (JassGetPlayerIdFn)(uintptr_t)war3_persistent_native_handler("GetPlayerId");
+    JassPlayerFn player = (JassPlayerFn)(uintptr_t)war3_persistent_native_handler("Player");
+    JassGetPlayerSlotStateFn get_slot = (JassGetPlayerSlotStateFn)(uintptr_t)war3_persistent_native_handler("GetPlayerSlotState");
+    JassConvertPlayerSlotStateFn slot = (JassConvertPlayerSlotStateFn)(uintptr_t)war3_persistent_native_handler("ConvertPlayerSlotState");
+    JassGetPlayerAllianceFn get = (JassGetPlayerAllianceFn)(uintptr_t)war3_persistent_native_handler("GetPlayerAlliance");
+    War3TeamPeerSnapshot peers[28];
+    uint32_t count = 0;
+    uint64_t owner, playing;
+    int32_t owner_id;
+    DWORD error;
+    if (index != 1u || cmd->op_count != 2u || cmd->ops[0].kind != 136u ||
+        op->kind != 317u || op->rawcode || op->handler || op->arg0 || op->arg1 || cmd->reserved)
+        return ERROR_INVALID_DATA;
+    if (!get_owner || !get_team || !get_id || !player || !get_slot || !slot || !get)
+        return ERROR_PROC_NOT_FOUND;
+    ZeroMemory(peers, sizeof(peers));
+    __try {
+        error = war3_validate_unit_identity(cmd, &cmd->ops[0]);
+        if (error) return error;
+        owner = get_owner(cmd->unit_handle); owner_id = get_id(owner);
+        if (!owner || owner_id < 0 || owner_id >= 24 || get_team(owner) != -1) return ERROR_RETRY;
+        playing = slot(1);
+        if (!playing) return ERROR_INVALID_DATA;
+        for (uint32_t n = 0; n < 28u; ++n) {
+            uint64_t p;
+            War3TeamPeerSnapshot *entry;
+            int special = n == 24u || n == 27u;
+            if (n == (uint32_t)owner_id || (n >= 24u && !special)) continue;
+            p = player((int32_t)n);
+            if (!p || (!special && get_slot(p) != playing)) continue;
+            entry = &peers[count]; entry->player = p; entry->player_index = n; entry->team = get_team(p);
+            if (entry->team < -1 || entry->team >= 64 || get_id(p) != (int32_t)n) return ERROR_INVALID_DATA;
+            entry->owner_to_peer_mask = war3_team_read_mask(get, owner, p);
+            entry->peer_to_owner_mask = war3_team_read_mask(get, p, owner);
+            ++count;
+        }
+        error = war3_validate_unit_identity(cmd, &cmd->ops[0]);
+        if (error) return error;
+        if (get_owner(cmd->unit_handle) != owner || get_id(owner) != owner_id || get_team(owner) != -1)
+            return ERROR_RETRY;
+    } __except (EXCEPTION_EXECUTE_HANDLER) { return GetExceptionCode(); }
+    *output = count ? (uint64_t *)HeapAlloc(GetProcessHeap(), 0, count * sizeof(uint64_t)) : NULL;
+    if (count && !*output) return ERROR_OUTOFMEMORY;
+    for (uint32_t n = 0; n < count; ++n) (*output)[n] = war3_team_pack_unassigned_peer(&peers[n]);
+    *output_count = count; op->result = UINT32_MAX; op->arg0 = owner;
+    op->arg1 = (uint32_t)owner_id | ((uint64_t)count << 8u);
+    return ERROR_SUCCESS;
+}
 #endif

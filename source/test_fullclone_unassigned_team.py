@@ -4,6 +4,8 @@ from pathlib import Path
 import shutil
 import subprocess
 import tempfile
+import os
+import sys
 from types import SimpleNamespace
 from unittest.mock import Mock
 
@@ -173,6 +175,15 @@ __declspec(dllexport) DWORD ua_dispatch(const wchar_t *directory,uint32_t stale,
     out[3]=(uint32_t)protocol_teams[7];out[4]=memcmp(ua_original,protocol_alliances,sizeof(ua_original))!=0;
     return 0;
 }
+__declspec(dllexport) DWORD ua_query(uint64_t *out) {
+    NativeCommand cmd;uint64_t *extras=NULL;uint32_t count=0;
+    ua_setup();ua_command(&cmd,0);cmd.ops[1].kind=317;
+    cmd.ops[1].rawcode=0;cmd.ops[1].handler=cmd.ops[1].arg0=0;
+    DWORD error=war3_ext_query_selected_owner_team(&cmd,&cmd.ops[1],1,&extras,&count);
+    out[0]=cmd.ops[1].result;out[1]=count;out[2]=ua_calls+ua_team_calls;out[3]=0;
+    for(uint32_t n=0;n<count;++n)if(((extras[n]>>18)&31)==8)out[3]=extras[n];
+    if(extras)HeapFree(GetProcessHeap(),0,extras);return error;
+}
 '''
 
 
@@ -209,6 +220,8 @@ static LPVOID ua_allocate(HANDLE heap,DWORD flags,SIZE_T size) {
         native.ua_run.restype = ctypes.c_uint32
         native.ua_dispatch.argtypes = [ctypes.c_wchar_p, ctypes.c_uint32, ctypes.POINTER(ctypes.c_uint64)]
         native.ua_dispatch.restype = ctypes.c_uint32
+        native.ua_query.argtypes = [ctypes.POINTER(ctypes.c_uint64)]
+        native.ua_query.restype = ctypes.c_uint32
         yield native
         import _ctypes
         _ctypes.FreeLibrary(native._handle)
@@ -362,3 +375,104 @@ def test_transport_reports_diplomacy_failure_and_rollback_not_clone_phase():
     message = str(caught.value)
     assert "team_phase=4" in message and "team_rollback_error=29" in message
     assert "clone_phase" not in message
+
+
+def test_unassigned_query_reads_peer_masks_without_any_setter(unassigned_native):
+    out = (ctypes.c_uint64 * 4)()
+    assert unassigned_native.ua_query(out) == 0
+    assert tuple(out[:3]) == (0xFFFFFFFF, 25, 0)
+    assert out[3] & (1 << 36) and ((out[3] >> 12) & 63) == 0
+
+
+@pytest.mark.parametrize("changed", [False, True])
+@pytest.mark.parametrize("language", ["zh", "en"])
+def test_unassigned_named_monitor_verifies_live_diplomacy_without_changing_record(changed, language):
+    from test_fullclone_player_name_monitor import named_reader
+    saved = relationship(1, 1, 2, 3, 4)
+    current = relationship(1, 0 if changed else 3, 4, 0, 0)
+    trainer = named_reader(team=0xFFFFFFFF, slot=7, extras=(current, 1168, 0))
+    response = trainer._run_native_helper_ops.return_value
+    response[1] = result(kind=317, result=0xFFFFFFFF, arg0=0x111, arg1=7 | (1 << 8))
+    snapshot = module.PlayerTeamSnapshot(4321, 7, 0x111, -1, 1, (saved,), True)
+    trainer._player_team_snapshots[(4321, 7)] = snapshot
+    status = trainer.query_selected_owner_team(include_player_name=True)
+    assert status.assignment_verified is not changed
+    assert trainer._player_team_snapshots[(4321, 7)] is snapshot
+    text = module.format_player_team_status(status, language)
+    if changed:
+        assert ("关系已变化" if language == "zh" else "Alliances have changed") in text
+        assert "外交模板" not in text and "diplomacy template" not in text
+    else:
+        assert ("队伍 2（外交模板）；原生队伍编号 -1" if language == "zh"
+                else "Team 2") in text
+        assert "-1" in text
+
+
+def test_unassigned_virtual_snapshot_does_not_verify_a_changed_native_team():
+    saved = relationship(1, 0, 0, 3, 4)
+    snapshot = module.PlayerTeamSnapshot(4321, 7, 0x111, -1, 1, (saved,), True)
+    assert not module._player_team_snapshot_matches_current_state(
+        snapshot, 0, (relationship(1, 3, 4, 0, 0),))
+    assert not module._player_team_snapshot_matches_current_state(
+        module.PlayerTeamSnapshot(4321, 7, 0x111, -1, 1, (), True), -1, ())
+
+
+def test_gui_unassigned_team_action_messages_are_not_team_zero(monkeypatch):
+    if not os.environ.get("WAR3_R19_3_GUI_CHILD"):
+        check = subprocess.run([sys.executable, "-m", "pytest", "-q",
+            f"{__file__}::{test_gui_unassigned_team_action_messages_are_not_team_zero.__name__}"],
+            env=dict(os.environ, WAR3_R19_3_GUI_CHILD="1"), capture_output=True,
+            text=True, encoding="utf8", timeout=60)
+        assert check.returncode == 0, check.stdout + check.stderr
+        return
+    import tkinter as tk
+    from tkinter import messagebox
+    real_tk = tk.Tk
+    selected = [1]
+    def hidden_root():
+        root = real_tk(); root.withdraw(); return root
+    def init(self):
+        self.pid = 4321; self._player_team_snapshots = {}
+    def set_team(self, target):
+        selected[0] = target
+        self._player_team_snapshots[(4321, 7)] = module.PlayerTeamSnapshot(4321, 7, 107, -1, target, (), True)
+        return 107, -1, target, 1, 1, (), True
+    def restore(self, snapshot):
+        self._player_team_snapshots.clear()
+        return 107, selected[0], -1, 1
+    def walk(w):
+        yield w
+        for child in w.winfo_children(): yield from walk(child)
+    def exercise(root, *args):
+        widgets = list(walk(root))
+        by_text = {str(w.cget("text")): w for w in widgets if "text" in w.keys()}
+        by_text["连接/刷新进程"].invoke(); root.update()
+        box = next(w for w in widgets if "values" in w.keys() and "恢复原队伍" in str(w.cget("values")))
+        button = by_text["把选中玩家加入队伍 (Ctrl+F1)"]
+        def texts():
+            return "\n".join(str(root.getvar(w.cget("textvariable"))) for w in widgets
+                if "textvariable" in w.keys() and str(w.cget("textvariable")))
+        for target in ("队伍 2", "队伍 3", "中立被动队伍"):
+            box.set(target); button.invoke(); root.update()
+            text = texts()
+            assert "原生队伍保持 -1" in text and "外交模板" in text and "队伍 0" not in text
+            assert target in text
+        box.set("恢复原队伍"); button.invoke(); root.update()
+        text = texts()
+        assert "恢复原始联盟关系" in text and "原生队伍保持 -1" in text and "队伍 0" not in text
+        root.destroy()
+    monkeypatch.setattr(module, "detect_ui_language", lambda: "zh")
+    monkeypatch.setattr(tk, "Tk", hidden_root)
+    monkeypatch.setattr(tk.Misc, "mainloop", exercise)
+    monkeypatch.setattr(module.War3Trainer, "__init__", init)
+    monkeypatch.setattr(module.War3Trainer, "refresh_window", lambda self, **kw: None)
+    monkeypatch.setattr(module.War3Trainer, "list_resource_caches", lambda self: [])
+    monkeypatch.setattr(module.War3Trainer, "prewarm_selected_unit_cache", lambda self: candidate())
+    monkeypatch.setattr(module.War3Trainer, "set_selected_owner_team", set_team)
+    monkeypatch.setattr(module.War3Trainer, "restore_selected_owner_team", restore)
+    monkeypatch.setattr(module.War3Trainer, "query_selected_owner_shared_control", lambda self: (0, 107, 0))
+    monkeypatch.setattr(module.War3Trainer, "query_selected_owner_team", lambda self, **kw:
+        module.PlayerTeamStatus(4321, 7, 107, -1))
+    monkeypatch.setattr(module.threading.Thread, "start", lambda self: self.run())
+    monkeypatch.setattr(messagebox, "showerror", lambda *a, **kw: pytest.fail(str(a)))
+    module.run_gui()

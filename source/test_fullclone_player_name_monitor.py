@@ -181,7 +181,7 @@ def test_unassigned_team_rejects_a_malformed_nonempty_peer_snapshot():
     from test_fullclone_player_relations import relationship
     trainer = named_reader(team=0xFFFFFFFF, slot=6)
     trainer._run_native_helper_ops.return_value = [
-        result(extras=(relationship(0, 0, 0, 0, 0), 0, 0)),
+        result(extras=(relationship(0, 0, 0, 0, 0) | (1 << 37), 0, 0)),
         result(kind=317, result=0xFFFFFFFF, arg0=0x111, arg1=6 | (1 << 8)),
     ]
     with pytest.raises(RuntimeError, match="队伍"):
@@ -337,7 +337,7 @@ def test_new_query_reaches_real_c_dispatcher(name_native, tmp_path):
 def test_c_named_status_accepts_unassigned_team_without_setters(name_native, fault, name_error, length):
     out = (ctypes.c_uint64 * 8)()
     assert name_native.name_status(-1, 317, fault, out) == 0
-    assert tuple(out[:5]) == (0xFFFFFFFF, 2, 7, 2 + bool(length), 0)
+    assert tuple(out[:5]) == (0xFFFFFFFF, 2, 7 | (25 << 8), 25 + 2 + bool(length), 0)
     assert (out[5], out[6]) == (name_error, length)
     if length:
         assert out[7].to_bytes(8, "little") == b"Alpha\0\0\0"
