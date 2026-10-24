@@ -1,4 +1,4 @@
-"""Verify the v1.0.19 FullClone R19.2 frozen package without opening Warcraft III."""
+"""Verify the v1.0.19 FullClone R19.3-Test package without opening Warcraft III."""
 from __future__ import annotations
 
 import hashlib
@@ -17,7 +17,7 @@ from PyInstaller.archive.readers import CArchiveReader
 
 
 ROOT = Path(__file__).resolve().parents[1]
-EXE = ROOT / "dist" / "War3ReforgedTrainer-v1.0.19-FullClone-R19.2.exe"
+EXE = ROOT / "dist" / "War3ReforgedTrainer-v1.0.19-FullClone-R19.3-Test.exe"
 EXPECTED_OPERATIONS = {
     "NATIVE_HELPER_OP_EXT_VALIDATE_PLAYER_TARGET": 300,
     "NATIVE_HELPER_OP_EXT_SET_UNIT_OWNER_PLAYER": 301,
@@ -74,8 +74,8 @@ def main() -> int:
     source_bytes = (ROOT / "war3_reforged_trainer.py").read_bytes()
     source_text = source_bytes.decode("utf-8")
     require('APP_VERSION = "1.0.19"' in source_text, "application version mismatch")
-    require(re.search(r"NATIVE_HELPER_VERSION\s*=\s*76\b", source_text) is not None,
-            "native protocol is not 76")
+    require(re.search(r"NATIVE_HELPER_VERSION\s*=\s*77\b", source_text) is not None,
+            "native protocol is not 77")
     for name, value in EXPECTED_OPERATIONS.items():
         require(re.search(rf"{name}\s*=\s*{value}\b", source_text) is not None,
                 f"operation mismatch: {name}")
@@ -153,7 +153,7 @@ def main() -> int:
     report = {
         "ok": True,
         "app_version": "1.0.19",
-        "native_protocol": 76,
+        "native_protocol": 77,
         "extension_operations": EXPECTED_OPERATIONS,
         "legacy_helpers": helper_entries,
         "required_helper": helper_name,
