@@ -129,7 +129,9 @@ def parse_wts(data: bytes) -> dict[int, str]:
         raise ValueError('字符串表不是可确定的 UTF-8 编码') from exc
     # Line parser permits World Editor comments outside string bodies without
     # stripping literal // text from names, and avoids unbounded regex backtracking.
-    lines, result, pos = text.splitlines(keepends=True), {}, 0
+    # Only CR/LF are WTS line endings. Control bytes such as U+001E can
+    # occur inside editor comments and must not create artificial lines.
+    lines, result, pos = text.split('\n'), {}, 0
     def skip_comments(index):
         while index < len(lines) and (not lines[index].strip() or lines[index].lstrip().startswith('//')):
             index += 1
@@ -153,7 +155,7 @@ def parse_wts(data: bytes) -> dict[int, str]:
         if pos >= len(lines):
             raise ValueError('字符串表缺少正文结束标记')
         pos += 1
-        value=''.join(body).removesuffix('\n').removesuffix('\r')
+        value='\n'.join(body).removesuffix('\r')
         if key in result:
             raise ValueError(f'字符串表重复编号：{key}')
         if not 0 <= key <= 0xffffffff or len(result) >= MAX_OBJECTS:
@@ -217,15 +219,18 @@ def merge_objects(campaign, chapter, campaign_strings, chapter_strings, kind: st
 
     def name_for_base(rawcode):
         name = generic.get(display_rawcode(rawcode))
-        return (name, '名称回退到通用目录') if name else ('名称缺失', '通用目录无对应名称')
+        return (name, '名称回退到通用目录') if name else ('名称缺失', '名称缺失：通用目录无对应名称')
 
     result = []
     for rawcode, (definition, _, sources, conflict) in sorted(merged.items()):
         name, note = name_for(rawcode, set())
         display = display_rawcode(rawcode)
-        copyable = not conflict and not display.startswith('<0x')
+        ascii_id = all(33 <= c <= 126 for c in rawcode)
+        ambiguous_input = display.lower().startswith('0x')
+        copyable = not conflict and ascii_id and not ambiguous_input
         if not copyable and not conflict:
-            note = (note + '；' if note else '') + 'ID 不是四个可显示 ASCII 字符，禁止复制为指令 ID'
+            reason = 'ID 与现有输入框的十六进制语法冲突，禁止直接复制' if ambiguous_input else 'ID 不是四个可显示 ASCII 字符，禁止复制为指令 ID'
+            note = (note + '；' if note else '') + reason
         result.append(CustomObjectEntry(display, name, display_rawcode(definition.base),
             '新增' if definition.custom else '原版改动', ' + '.join(sources), note, copyable))
     return tuple(result)

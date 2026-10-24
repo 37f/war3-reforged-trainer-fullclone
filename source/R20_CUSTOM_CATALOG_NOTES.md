@@ -34,3 +34,5 @@
 合成嵌套 MPQ、真实战役只读解析、Tk 控件交互和冻结包验证分别记录。游戏内创建这些对象、释放技能和实机与编辑器逐项名称对照，需要额外运行验证，不能由档案解析结果代替。
 
 R19.3-Test 和所有旧版保留，本版 EXE 单独命名 R20-Test。此功能尚未上传 GitHub。
+
+从源码打包本版请使用 `python -m PyInstaller --noconfirm War3ReforgedTrainer-FullClone-R20.spec`。旧版 spec 保留用于历史核对，不是 R20 的打包入口。

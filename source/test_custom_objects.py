@@ -89,6 +89,15 @@ def test_wts_multiline_and_duplicate_detection():
 
 def test_world_editor_wts_comments_between_header_and_brace():
     assert parse_wts(b'STRING 15\r\n// Unit name\r\n{\r\nKeagan\r\n}\r\n') == {15:'Keagan'}
+    assert parse_wts(b'STRING 15\r\n// Name (\x1e\x1eeditor metadata)\r\n{\r\nName\r\n}\r\n') == {15:'Name'}
+
+
+@pytest.mark.parametrize('rawcode', ['0x12','0XAB'])
+def test_rawcodes_ambiguous_in_existing_input_syntax_are_not_copyable(rawcode):
+    defs=parse_object_data(obj_file(records=[('hfoo',rawcode,[('unam','Name')])]),'unit')
+    row=merge_objects(defs,(),{}, {},'unit')[0]
+    assert row.rawcode==rawcode and not row.copyable
+    assert '输入' in row.note
 
 
 def test_old_editor_opaque_trailer_is_not_a_new_object_id():

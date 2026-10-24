@@ -97,3 +97,14 @@ def test_non_campaign_and_invalid_chapter_rejected(campaign,tmp_path):
     from war3_campaign_catalog import Chapter
     with pytest.raises(ValueError):
         detect_campaign(info,Chapter('not listed','../outside.w3x'))
+
+
+def test_missing_base_name_marks_result_partial(tmp_path):
+    inner=tmp_path/'inner.w3x'
+    make_mpq(inner,{'war3map.w3u':obj_file(original=[('Zzzz','Zzzz',[])])})
+    outer=tmp_path/'outer.w3n'
+    make_mpq(outer,{'war3campaign.w3f':w3f(),'Maps\\One.w3x':inner.read_bytes()})
+    info=list_campaign(outer)
+    result=detect_campaign(info,info.chapters[0])
+    assert result.entries['unit'][0].name=='名称缺失'
+    assert result.partial and any('Zzzz' in x for x in result.issues)

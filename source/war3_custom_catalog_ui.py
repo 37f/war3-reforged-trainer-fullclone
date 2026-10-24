@@ -180,9 +180,9 @@ class CampaignCatalogUI:
         query=query.strip().casefold()
         return [row for row in result.entries.get(kind,()) if query in ' '.join((row.rawcode,row.name,row.base_id,row.object_type,row.source,row.note)).casefold()]
 
-    def can_copy(self,rawcode):
+    def can_copy(self,rawcode,kind):
         result=self.selection.result
-        return result is not None and any(row.rawcode==rawcode and row.copyable for rows in result.entries.values() for row in rows)
+        return result is not None and any(row.rawcode==rawcode and row.copyable for row in result.entries.get(kind,()))
 
     def render_custom(self,tree,kind,query):
         if not self.is_custom(kind): return False

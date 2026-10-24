@@ -17906,7 +17906,7 @@ def run_gui() -> None:
             )
             return
         rawcode = str(selected[0])
-        if custom_catalog.is_custom(kind) and not custom_catalog.can_copy(rawcode):
+        if custom_catalog.is_custom(kind) and not custom_catalog.can_copy(rawcode, kind):
             messagebox.showerror(ui_text("错误"), ui_text("该对象 ID 无法安全复制，请查看备注"), parent=root)
             return
         root.clipboard_clear()

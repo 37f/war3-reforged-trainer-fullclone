@@ -1,9 +1,28 @@
 import tkinter as tk
 from tkinter import ttk
+import pytest
 
 from war3_campaign_catalog import CampaignInfo, Chapter, CatalogResult
 from war3_custom_objects import CustomObjectEntry
 from war3_custom_catalog_ui import CatalogSelection, CampaignCatalogUI
+
+
+@pytest.fixture(scope='module')
+def shared_tk_root():
+    # A desktop app has one interpreter. Reuse one here rather than repeatedly
+    # bootstrap Tcl while the Windows test runner also loads native libraries.
+    root=tk.Tk(); root.withdraw()
+    yield root
+    root.destroy()
+
+
+@pytest.fixture
+def gui_root(shared_tk_root):
+    yield shared_tk_root
+    for job in shared_tk_root.tk.call('after','info'):
+        shared_tk_root.after_cancel(job)
+    for child in shared_tk_root.winfo_children():
+        child.destroy()
 
 
 def test_new_selection_rejects_stale_result_and_clears_old_chapter(tmp_path):
@@ -21,8 +40,17 @@ def test_new_selection_rejects_stale_result_and_clears_old_chapter(tmp_path):
     assert not state.accept_info(old,info)
 
 
-def test_real_widgets_search_mode_columns_and_copy_guard(tmp_path):
-    root=tk.Tk(); root.withdraw()
+def test_copy_permission_is_scoped_to_object_category():
+    ui=object.__new__(CampaignCatalogUI)
+    ui.selection=CatalogSelection(result=CatalogResult({
+        'unit':(CustomObjectEntry('X001','冲突','hfoo','新增','两层','冲突',False),),
+        'item':(CustomObjectEntry('X001','正常','ckng','新增','战役公共'),)},(),()))
+    assert not ui.can_copy('X001','unit')
+    assert ui.can_copy('X001','item')
+
+
+def test_real_widgets_search_mode_columns_and_copy_guard(tmp_path,gui_root):
+    root=gui_root
     try:
         changed=[]
         ui=CampaignCatalogUI(root,lambda:changed.append(1),lambda:'zh')
@@ -35,17 +63,17 @@ def test_real_widgets_search_mode_columns_and_copy_guard(tmp_path):
         assert ui.render_custom(tree,'unit','队长')
         assert tree.get_children()==('X001',)
         assert tree.item('X001','values')[1]=='战役队长'
-        assert ui.can_copy('X001') and not ui.can_copy(invalid.rawcode)
+        assert ui.can_copy('X001','unit') and not ui.can_copy(invalid.rawcode,'unit')
         assert ui.rows('unit','hfoo')==[row,invalid]
         ui.modes['unit'].set('general')
         assert not ui.render_custom(tree,'unit','')
         ui.refresh_language()
     finally:
-        root.destroy()
+        pass
 
 
-def test_shared_selection_and_partial_diagnostics(tmp_path):
-    root=tk.Tk(); root.withdraw()
+def test_shared_selection_and_partial_diagnostics(tmp_path,gui_root):
+    root=gui_root
     try:
         language=['zh']
         ui=CampaignCatalogUI(root,lambda:None,lambda:language[0])
@@ -61,4 +89,4 @@ def test_shared_selection_and_partial_diagnostics(tmp_path):
         language[0]='en'; ui.refresh_language()
         assert 'Partial' in ui.status.get()
     finally:
-        root.destroy()
+        pass
