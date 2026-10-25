@@ -108,8 +108,8 @@ def build_completion_plan(report,quest_key,cancelled=lambda:False)->CompletionPl
     A registered event root must be unique. Direct map calls and explicit
     trigger/queue dispatches are followed; event response values, dynamic calls,
     action-local branches, loops and unknown wrappers keep execution disabled.
-    Root trigger conditions are listed separately: TriggerExecute runs its
-    actions directly and does not synthesize the original event.
+    Root trigger conditions keep execution disabled: TriggerExecute runs
+    actions directly and cannot synthesize their original prerequisite event.
     """
     snapshot=report.snapshot
     matches=[quest for quest in report.quests if quest.key==quest_key]
@@ -274,6 +274,8 @@ def build_completion_plan(report,quest_key,cancelled=lambda:False)->CompletionPl
                     problems.append('原动作还会完成其他任务或无法绑定的任务，不能作为单个任务入口')
             visiting.remove(name);visited.add(name)
         actions=trigger_actions(root)
+        if triggers[root]['conditions']:
+            problems.append('原入口条件尚未校验，不能跳过条件直接执行动作：'+root)
         if any(init not in initialized or (init,call.line,call.column) not in straight_calls
             for init,call in triggers[root]['events']):
             problems.append('原事件注册不是已确认的无条件初始化：'+root)

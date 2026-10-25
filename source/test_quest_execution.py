@@ -317,3 +317,16 @@ def test_recursive_original_flow_is_rejected_even_when_it_contains_a_setter():
     assert not plan.eligible
     assert any('递归' in reason for reason in plan.reasons)
 
+
+def test_original_trigger_conditions_are_not_silently_bypassed():
+    from war3_quest_execution import build_completion_plan
+    script=_script().replace('call TriggerAddAction(gg_trg_Finish, function FinishAction)',
+        'call TriggerAddCondition(gg_trg_Finish,Condition(function NeedsCount))\n call TriggerAddAction(gg_trg_Finish, function FinishAction)')+'''
+function NeedsCount takes nothing returns boolean
+ return udg_Kills >= 10
+endfunction
+'''
+    report=_report(script);plan=build_completion_plan(report,_quest(report).key)
+    assert not plan.eligible and plan.root_conditions
+    assert any('入口条件' in reason for reason in plan.reasons)
+
