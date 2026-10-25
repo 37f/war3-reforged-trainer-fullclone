@@ -35,6 +35,25 @@ def detect_ui_language(locale_name: str | None = None) -> str:
 
 
 _EN_TRANSLATIONS = {
+    "任务与条件": "Quests and conditions",
+    "地图会话或来源已变化": "Map session or source changed",
+    "会话验证已过期，正在重新检索": "Session validation expired; scanning again",
+    "变量无可解析静态赋值，运行时值未读取：": "No resolvable static assignment; live value not read: ",
+    "缺少条件函数体或已验证规则：": "Missing condition function body or verified rule: ",
+    "事件仅在触发器启用时派发；启停调用已列出，未推算运行时启用状态": "Events dispatch only while enabled; toggle calls are listed, current enable state is not inferred",
+    "未确认事件或初始化调用入口；不能断言本次执行": "Event/initialization entry is unconfirmed; execution in this session is not established",
+    "未识别标准任务定义；地图可能使用自建任务系统，不能据此认定没有任务": "No standard quest definitions identified; a custom system may be in use, so this does not prove there are no quests",
+    "脚本初始化入口 ": "Script initialization entry ",
+    "变量初始定义": "Initial variable definition",
+    "变量赋值（静态定义）": "Variable assignment (static definition)",
+    "展开赋值前提：": "Expanded assignment guard: ",
+    "赋值前提：": "Assignment guard: ",
+    "执行前等待": "Wait before call",
+    "条件表达式": "Condition expression",
+    "条件函数": "Condition function",
+    "条件注册": "Condition registration",
+    "动作注册": "Action registration",
+    "触发器启用/禁用（静态）": "Trigger enable/disable (static)",
     "双击表格行可复制 ID。通用目录来源：W3x2LNI zhCN-1.32.8 与 war3-objectdata 英文社区快照。自定义对象可选择战役与所选章节或当前地图；结果以对应来源为准。": "Double-click to copy an ID. General catalog: W3x2LNI zhCN-1.32.8 and the war3-objectdata English snapshot. For custom objects, choose Campaign and selected chapter or Current map; results describe the selected source.",
     # R21 current-map read-only directory status.
     "未知的当前地图目录操作": "Unknown current-map catalog operation",

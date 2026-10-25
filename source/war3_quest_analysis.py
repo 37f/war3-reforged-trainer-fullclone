@@ -39,6 +39,7 @@ class ConditionPath:
     evidence:tuple[Evidence,...]
     variables:tuple[Evidence,...]=()
     issues:tuple[str,...]=()
+    explanation:tuple[str,str]=()
 
 
 @dataclass(frozen=True)
@@ -153,6 +154,25 @@ def _walk_expr(e):
 
 
 def _unique(values):return tuple(dict.fromkeys(values))
+
+
+def _description(e,en=False):
+    """Explain only syntax and a few known atoms; never guess map variable meanings."""
+    if e.kind=='bool':return ('No additional boolean test' if en else '没有额外布尔判断') if e.value else ('False branch' if en else '恒假分支')
+    if e.kind=='binary':
+        if e.value in ('and','or'):
+            op=(' AND ' if e.value=='and' else ' OR ') if en else ('，并且' if e.value=='and' else '，或者')
+            return '('+_description(e.args[0],en)+op+_description(e.args[1],en)+')'
+        words={'==':('等于','equals'),'!=':('不等于','differs from'),'>=':('不少于','is at least'),
+            '<=':('不多于','is at most'),'>':('大于','is greater than'),'<':('小于','is less than')}
+        if e.value in words:return expression(e.args[0])+' '+words[e.value][int(en)]+' '+expression(e.args[1])
+    if e.kind=='unary' and e.value=='not':return ('NOT ' if en else '不满足：')+_description(e.args[0],en)
+    if e.kind=='call':
+        if e.value=='IsUnitDeadBJ' and e.args:return expression(e.args[0])+(' is dead' if en else ' 已死亡')
+        if e.value=='IsQuestItemCompleted' and e.args:return ('Quest item ' if en else '任务条目 ')+expression(e.args[0])+(' is complete' if en else ' 已完成')
+        if e.value=='IsUnitEnemy' and len(e.args)>1:return expression(e.args[0])+(' is an enemy of ' if en else ' 敌对于 ')+expression(e.args[1])
+        if e.value=='AllowVictoryDefeat':return ('Standard-library result permission (not read live): ' if en else '标准库允许结算（许可状态未实时读取）：')+expression(e)
+    return ('Script test: ' if en else '脚本判断：')+expression(e)
 
 
 @dataclass(frozen=True)
@@ -502,7 +522,8 @@ class _Analyzer:
             assigned={lhs.split('[',1)[0] for lhs,_,_,_ in self.assignments}
             unknown={str(n.value) for n in _walk_expr(guard) if n.kind=='variable' and not str(n.value).isupper() and n.value not in assigned}
             missing+=tuple('变量无可解析静态赋值，运行时值未读取：'+name for name in sorted(unknown))
-            paths.append(ConditionPath(expression(guard),events,chain,_unique(proof+cp+variables),variables,_unique(issues+missing)))
+            paths.append(ConditionPath(expression(guard),events,chain,_unique(proof+cp+variables),variables,_unique(issues+missing),
+                (_description(guard),_description(guard,True))))
             targets.append(_sub(target,env))
         return Rule(kind,expression(target),tuple(paths),self.evidence(point.function,point.call.line,kind)),targets
 

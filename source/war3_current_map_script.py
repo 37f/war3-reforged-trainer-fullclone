@@ -406,17 +406,20 @@ def create_current_map_script_client(pid,catalog,memory_factory)->CurrentMapScri
     memory_factory is the existing trainer's read-only ProcessMemory context;
     none of its selection, resource or mutation methods are modified.
     """
+    from war3_current_map_catalog import parse_catalog_header
     def metadata():
         last=None
         for _ in range(3):
             # Catalog bridge rejects close/reconnect after acquiring its lock.
             header=tuple(catalog.query(318))
+            token,_=parse_catalog_header(header)
             try:
                 with memory_factory() as memory:
                     base=game_image_base(memory.handle)
-                    before=read_profiled_map_metadata(memory.read,base,header[2])
-                    after=read_profiled_map_metadata(memory.read,base,header[2])
-                if before==after and tuple(catalog.query(318))==header:return before
+                    before=read_profiled_map_metadata(memory.read,base,token)
+                    after=read_profiled_map_metadata(memory.read,base,token)
+                final=tuple(catalog.query(318));parse_catalog_header(final)
+                if before==after and final==header:return before
                 last=SourceUnavailable('来源验证时数据发生变化，请重新检索')
             except SourceUnavailable as exc:last=exc
         raise last

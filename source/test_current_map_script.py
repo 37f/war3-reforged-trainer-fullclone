@@ -211,3 +211,14 @@ def test_runtime_factory_preserves_closed_connection_rejection(monkeypatch):
     def forbidden():raise AssertionError('closed query must not open process memory')
     client=m.create_current_map_script_client(1,ClosedCatalog(),forbidden)
     with pytest.raises(RuntimeError,match='关闭'):client.read()
+
+
+@pytest.mark.parametrize('header',[(0,1,123,1,1,1),(0x31544352,99,123,1,1,1),
+    (0x31544352,1,0,1,1,1),(0x31544352,1,123)])
+def test_factory_rejects_bad_active_map_protocol_before_opening_memory(header):
+    from war3_current_map_script import create_current_map_script_client
+    class Catalog:
+        def identity(self):return 'game'
+        def query(self,*args):return header
+    def forbidden():raise AssertionError('malformed active-map proof must not open memory')
+    with pytest.raises(ValueError):create_current_map_script_client(1,Catalog(),forbidden).read()

@@ -36,6 +36,7 @@ from war3_ability_fields import (
 from war3_id_catalog import CATALOG_COUNTS, search_id_entries
 from war3_custom_catalog_ui import CampaignCatalogUI
 from war3_current_map_catalog import CurrentMapCatalogClient
+from war3_quest_ui import QuestAnalysisUI
 from war3_item_fields import ITEM_FIELD_BY_KEY, ITEM_FIELD_CATALOG, ItemFieldSpec
 from war3_ui_i18n import detect_ui_language, translate_ui_text
 from war3_native_profile import PROFILE_ID as NATIVE_PROFILE_ID, NATIVE_INDEX
@@ -4626,6 +4627,13 @@ class War3Trainer:
                 raise RuntimeError("当前地图目录返回操作不一致")
             return tuple(result[0].extra_results)
         return CurrentMapCatalogClient(query,identity)
+
+    def current_map_script_client(self):
+        # R22 reuses the existing serialized active-map query; passive source
+        # metadata reads use a separate short-lived read-only memory handle.
+        from war3_current_map_script import create_current_map_script_client
+        return create_current_map_script_client(
+            self.pid,self.current_map_catalog_client(),lambda:ProcessMemory(self.pid))
 
     @staticmethod
     def _write_native_helper_command(path: Path, payload: bytes) -> None:
@@ -15564,6 +15572,10 @@ def run_gui() -> None:
         lambda: ui_language["code"],
         runtime_client=lambda: state["trainer"].current_map_catalog_client() if state.get("trainer") is not None else None,
     )
+    quest_analysis = QuestAnalysisUI(
+        root,lambda: ui_language["code"],
+        lambda: state["trainer"].current_map_script_client() if state.get("trainer") is not None else None,
+    )
     elephant_tech_rawcode = tk.StringVar(value="")
     elephant_tech_level = tk.StringVar(value="1")
     elephant_xp_rate = tk.StringVar(value="1.0")
@@ -15653,6 +15665,7 @@ def run_gui() -> None:
         if state.get("closing"):
             return
         state["closing"] = True
+        quest_analysis.close()
         hotkey_manager.stop()
         set_status("正在等待后台操作安全结束...")
 
@@ -18164,6 +18177,7 @@ def run_gui() -> None:
             variable.refresh()
         refresh_language_dependent_rows()
         custom_catalog.refresh_language()
+        quest_analysis.refresh_language()
 
     def on_language_changed(_event: object | None = None) -> None:
         ui_language["code"] = "zh" if language_choice.get() == "中文" else "en"
@@ -19111,6 +19125,10 @@ def run_gui() -> None:
     build_id_catalog_tab("item", "物品 ID")
     build_id_catalog_tab("ability", "技能 ID")
     build_id_catalog_tab("unit", "单位 ID")
+    # R22 lives on its own page; existing controls/read paths are untouched.
+    quests_tab = ttk.Frame(notebook,padding=10)
+    notebook.add(quests_tab,text="任务与条件")
+    quest_analysis.add_controls(quests_tab)
 
     ttk.Label(outer, textvariable=status, anchor="w", wraplength=1000).pack(fill="x", pady=(0, 2))
 
