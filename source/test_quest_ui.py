@@ -188,3 +188,27 @@ def test_trainer_script_bridge_uses_existing_catalog_and_read_only_memory_factor
     monkeypatch.setattr(script_module,'create_current_map_script_client',factory)
     assert trainer.current_map_script_client() is sentinel
     assert calls[0][:2]==(456,catalog) and callable(calls[0][2])
+
+
+def test_review_existing_report_expires_while_map_check_worker_is_blocked():
+    clock=[100.];client=Client();entered=threading.Event();release=threading.Event()
+    c=QuestAnalysisController(lambda:client,clock=lambda:clock[0])
+    try:
+        pump(c,lambda:c.report is not None)
+        original=client.check
+        def blocked(s):entered.set();release.wait(2);return original(s)
+        client.check=blocked;client.token=2;clock[0]=101.1
+        c.tick(True);assert entered.wait(1)
+        clock[0]=120.;c.tick(True)
+        assert c.report is None and c.state not in ('ready','partial')
+        release.set();pump(c,lambda:not c.busy)
+    finally:release.set();c.close()
+
+
+def test_review_existing_report_expires_on_delayed_visible_tick():
+    clock=[100.];client=Client();c=QuestAnalysisController(lambda:client,clock=lambda:clock[0])
+    try:
+        pump(c,lambda:c.report is not None)
+        clock[0]=120.;c.tick(True)
+        assert c.report is None and c.state not in ('ready','partial')
+    finally:c.close()

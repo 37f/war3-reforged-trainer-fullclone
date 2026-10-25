@@ -53,6 +53,11 @@ class QuestAnalysisController:
         if visible and self._identity is not None and self._identity_now()!=self._identity:
             self.invalidate('游戏连接已变化')
         self._drain()
+        # Expiry also applies to an already published report while a helper
+        # check is pending; queue delivery is not the only way time advances.
+        if visible and self.report is not None and self.clock()-self.checked_at>VALIDATION_SECONDS:
+            self.report=None;self.checked_at=0.;self.state='changed'
+            self.error='会话验证已过期，正在重新检索';self._next_poll=self.clock()
         if not visible or self.busy or not self._auto or self.clock()<self._next_poll:return
         try:client=self._client()
         except Exception as exc:
@@ -109,6 +114,10 @@ class QuestAnalysisController:
                 if value.snapshot.identity!=identity:
                     self.invalidate('游戏连接已变化');continue
                 self.report=value;self.detected_at=datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            elif self.report is None:
+                # A fresh check cannot resurrect the report that expired while
+                # it ran. Complete the worker, then request a new source read.
+                self.state='changed';self._next_poll=self.clock();continue
             self.checked_at=checked;self.state='partial' if self.report and self.report.partial else 'ready'
             self.error='';self._next_poll=self.clock()+1
 

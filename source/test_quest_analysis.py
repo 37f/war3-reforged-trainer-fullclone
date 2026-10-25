@@ -552,4 +552,214 @@ endfunction
     assert any('unseenCounter' in i for p in r.outcomes[0].paths for i in p.issues)
 
 
+@pytest.mark.parametrize('mode',['checkConditions','true','false'])
+def test_review_dynamic_trigger_execute_bj_preserves_condition_bypass(mode):
+    r=analyze('''globals
+quest q=null
+trigger t=null
+boolean checkConditions=false
+endglobals
+function Gate takes nothing returns boolean
+ return false
+endfunction
+function Finish takes nothing returns nothing
+ call QuestSetCompleted(q,true)
+endfunction
+function main takes nothing returns nothing
+ set q=CreateQuest()
+ set t=CreateTrigger()
+ call TriggerAddCondition(t,Condition(function Gate))
+ call TriggerAddAction(t,function Finish)
+ call TriggerExecuteBJ(t,MODE)
+endfunction
+'''.replace('MODE',mode))
+    if mode=='true':assert not r.quests[0].completed
+    else:
+        rule=r.quests[0].completed[0]
+        assert rule.paths
+        if mode=='checkConditions':assert 'not checkConditions' in paths(rule)
+
+
+def test_review_unreachable_action_registration_is_not_certain_timer_path():
+    r=analyze('''globals
+quest q=null
+trigger t=null
+endglobals
+function Finish takes nothing returns nothing
+ call QuestSetCompleted(q,true)
+endfunction
+function NeverCalled takes nothing returns nothing
+ call TriggerAddAction(t,function Finish)
+endfunction
+function main takes nothing returns nothing
+ set q=CreateQuest()
+ set t=CreateTrigger()
+ call TriggerRegisterTimerEvent(t,1.0,false)
+endfunction
+''')
+    assert r.partial
+    assert all(p.issues for p in r.quests[0].completed[0].paths)
+
+
+def test_review_conditional_condition_registration_does_not_erase_candidate_outcome():
+    r=analyze('''globals
+quest q=null
+trigger t=null
+boolean mode=false
+endglobals
+function Gate takes nothing returns boolean
+ return false
+endfunction
+function Finish takes nothing returns nothing
+ call QuestSetCompleted(q,true)
+endfunction
+function Register takes nothing returns nothing
+ call TriggerAddCondition(t,Condition(function Gate))
+endfunction
+function main takes nothing returns nothing
+ set q=CreateQuest()
+ set t=CreateTrigger()
+ if mode then
+  call Register()
+ endif
+ call TriggerAddAction(t,function Finish)
+ call ConditionalTriggerExecute(t)
+endfunction
+''')
+    assert r.quests[0].completed and r.partial
+    assert any('注册' in i for p in r.quests[0].completed[0].paths for i in p.issues)
+
+
+def test_review_trigger_reallocation_does_not_join_old_timer_to_new_action():
+    r=analyze('''globals
+quest q=null
+trigger t=null
+endglobals
+function Finish takes nothing returns nothing
+ call QuestSetCompleted(q,true)
+endfunction
+function main takes nothing returns nothing
+ set q=CreateQuest()
+ set t=CreateTrigger()
+ call TriggerRegisterTimerEvent(t,1.0,false)
+ set t=CreateTrigger()
+ call TriggerAddAction(t,function Finish)
+endfunction
+''')
+    assert r.partial
+    assert all(not p.events and p.issues for p in r.quests[0].completed[0].paths)
+
+
+def test_review_cross_function_ambiguous_trigger_alias_has_no_certain_event_join():
+    r=analyze('''globals
+quest q=null
+trigger t=null
+endglobals
+function Finish takes nothing returns nothing
+ call QuestSetCompleted(q,true)
+endfunction
+function RegisterTimer takes nothing returns nothing
+ call TriggerRegisterTimerEvent(t,1.0,false)
+endfunction
+function RegisterAction takes nothing returns nothing
+ call TriggerAddAction(t,function Finish)
+endfunction
+function main takes nothing returns nothing
+ set q=CreateQuest()
+ if flag then
+  set t=CreateTrigger()
+ else
+  set t=CreateTrigger()
+ endif
+ call RegisterTimer()
+ call RegisterAction()
+endfunction
+''')
+    assert r.partial and all(p.issues for p in r.quests[0].completed[0].paths)
+
+
+@pytest.mark.parametrize('left,operator,expected',[('false','and',False),('true','or',False),('flag','and',True),('flag','or',True)])
+def test_review_boolean_short_circuit_guards_rhs_side_effect_calls(left,operator,expected):
+    r=analyze('''globals
+quest q=null
+endglobals
+function Complete takes nothing returns boolean
+ call QuestSetCompleted(q,true)
+ return true
+endfunction
+function main takes nothing returns nothing
+ set q=CreateQuest()
+ if LEFT OP Complete() then
+  call DoNothing()
+ endif
+endfunction
+'''.replace('LEFT',left).replace(' OP ',' '+operator+' '))
+    q=r.quests[0]
+    assert bool(q.completed) is expected
+    if expected:
+        assert ('not flag' if operator=='or' else 'flag') in paths(q.completed[0])
+
+
+def test_review_native_creation_does_not_update_bj_last_quest_or_item():
+    r=analyze('''globals
+quest a=null
+quest b=null
+questitem first=null
+questitem second=null
+endglobals
+function main takes nothing returns nothing
+ set a=CreateQuestBJ(0,"A",""," ")
+ set first=CreateQuestItemBJ(a,"First")
+ set b=CreateQuest()
+ set second=QuestCreateItem(a)
+ call QuestSetCompleted(GetLastCreatedQuestBJ(),true)
+ call QuestItemSetCompleted(GetLastCreatedQuestItemBJ(),true)
+endfunction
+''')
+    a=next(q for q in r.quests if q.title=='A');b=next(q for q in r.quests if q.key!=a.key)
+    assert a.completed and not b.completed
+    assert a.items[0].completed and not a.items[1].completed
+
+
+def test_review_repeated_trigger_constructor_wrapper_does_not_share_instance():
+    r=analyze('''globals
+quest q=null
+trigger t=null
+endglobals
+function Make takes nothing returns trigger
+ return CreateTrigger()
+endfunction
+function Finish takes nothing returns nothing
+ call QuestSetCompleted(q,true)
+endfunction
+function main takes nothing returns nothing
+ set q=CreateQuest()
+ set t=Make()
+ call TriggerRegisterTimerEvent(t,1.0,false)
+ set t=Make()
+ call TriggerAddAction(t,function Finish)
+endfunction
+''')
+    assert r.partial and all(p.issues for p in r.quests[0].completed[0].paths)
+
+
+def test_review_bj_last_state_is_not_assumed_unchanged_across_map_calls():
+    r=analyze('''globals
+quest a=null
+quest b=null
+endglobals
+function MakeB takes nothing returns nothing
+ set b=CreateQuestBJ(0,"B",""," ")
+endfunction
+function main takes nothing returns nothing
+ set a=CreateQuestBJ(0,"A",""," ")
+ call MakeB()
+ call QuestSetCompleted(GetLastCreatedQuestBJ(),true)
+endfunction
+''')
+    a=next(q for q in r.quests if q.title=='A')
+    assert not a.completed
+    assert any(q.completed for q in r.quests if q.title=='B') or (r.unassociated and r.partial)
+
+
 

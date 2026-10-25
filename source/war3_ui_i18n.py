@@ -36,6 +36,16 @@ def detect_ui_language(locale_name: str | None = None) -> str:
 
 _EN_TRANSLATIONS = {
     "任务与条件": "Quests and conditions",
+    "触发器身份无法唯一确认，不合并不同注册点：": "Trigger identity is ambiguous; registration sites are not merged: ",
+    "触发器身份无法唯一确认：": "Trigger identity is ambiguous: ",
+    "注册函数没有已确认的调用入口：": "Registration function has no confirmed entry: ",
+    "注册受历史条件控制，不能当作当前变量值；详见注册调用来源": "Registration depends on historical guards, not current variable values; see registration provenance",
+    "注册由触发动作执行，历史可达性和执行次数未确认": "Registration is performed by a trigger action; historical reachability and invocation count are unconfirmed",
+    "注册调用递归或深度超限，历史状态未确认": "Recursive or over-depth registration call; historical state is unconfirmed",
+    "注册调用路径超过上限，历史状态不完整": "Registration call path limit exceeded; historical state is incomplete",
+    "触发器没有已确认事件或调用入口": "Trigger has no confirmed event or call entry",
+    "注册调用来源": "Registration call provenance",
+    "历史动作注册": "Historical action registration",
     "地图会话或来源已变化": "Map session or source changed",
     "会话验证已过期，正在重新检索": "Session validation expired; scanning again",
     "变量无可解析静态赋值，运行时值未读取：": "No resolvable static assignment; live value not read: ",

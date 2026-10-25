@@ -242,22 +242,35 @@ class _Analyzer:
     def rewrite(self,e,state,fn):
         if e.kind=='bool':return _TRUE if e.value else _FALSE
         if e.kind=='variable' and e.value in state.env:return state.env[e.value]
-        args=tuple(self.rewrite(a,state,fn) for a in e.args)
+        if e.kind=='binary' and e.value in ('and','or'):
+            # JASS short-circuits: RHS calls do not share the LHS evaluation guard.
+            left=self.rewrite(e.args[0],state,fn)
+            right_state=state.branch(_logic('and',state.guard,left if e.value=='and' else _neg(left)))
+            args=(left,self.rewrite(e.args[1],right_state,fn))
+        else:args=tuple(self.rewrite(a,state,fn) for a in e.args)
         e=Expr(e.kind,e.value,args,e.line,e.column)
         if e.kind!='call':return e
         self.point(fn,e,state)
-        if not self.external(e.value):return e
+        if not self.external(e.value):
+            # Map calls can change BJ globals. Do not retain a stale local
+            # last-created assumption across a function with unknown effects.
+            state.lastq=Expr('variable','bj_lastCreatedQuest',(),e.line)
+            state.lasti=Expr('variable','bj_lastCreatedQuestItem',(),e.line)
+            return e
         if e.value in ('CreateQuest','CreateQuestBJ'):
             handle=self.handle('Q',fn,e)
             if handle.value not in self.created and len(self.created)>=MAX_TASKS:
                 self.issue('任务定义数量超过上限，后续任务未展开');return Expr('variable','超限任务',(),e.line)
             self.created.setdefault(handle.value,(fn,e))
-            state.lastq=handle
-            self.aliases.setdefault('bj_lastCreatedQuest',[]).append(handle)
+            # Native constructors return a handle; only BJ wrappers update BJ globals.
+            if e.value=='CreateQuestBJ':
+                state.lastq=handle
+                self.aliases.setdefault('bj_lastCreatedQuest',[]).append(handle)
             return handle
         if e.value in ('QuestCreateItem','CreateQuestItemBJ'):
             handle=self.handle('I',fn,e);self.items.setdefault(handle.value,(fn,e))
-            state.lasti=handle;self.aliases.setdefault('bj_lastCreatedQuestItem',[]).append(handle)
+            if e.value=='CreateQuestItemBJ':
+                state.lasti=handle;self.aliases.setdefault('bj_lastCreatedQuestItem',[]).append(handle)
             return handle
         if e.value=='CreateTrigger':return self.handle('T',fn,e)
         if e.value=='GetLastCreatedQuestBJ':return state.lastq
@@ -284,6 +297,8 @@ class _Analyzer:
                             else:
                                 name=expression(lhs);self.aliases.setdefault(name,[]).append(rhs)
                                 self.assignments.append((name,rhs,state.guard,self.evidence(fn.name,stmt.line,'变量赋值（静态定义）')))
+                                if lhs.kind=='variable' and self.globals.get(lhs.value) and self.globals[lhs.value].type_name=='trigger':
+                                    state.env[lhs.value]=rhs
                         elif stmt.kind=='call':
                             self.rewrite(stmt.exprs[0],state,fn.name)
                             if stmt.exprs[0].value in ('TriggerSleepAction','PolledWait'):
@@ -349,14 +364,28 @@ class _Analyzer:
         return next(iter(values)) if len(values)==1 and not unknown else None
 
     def trigger(self,e):
-        return self.one(e,'T') or expression(e)
+        # Text equality is not trigger identity when a variable has multiple handles.
+        key=self.one(e,'T')
+        if key is None:return None
+        origin=key.split(':',2)[1];pending=[origin];seen=set()
+        while pending:
+            fn=pending.pop()
+            if fn in ('main','config'):continue
+            if fn in seen or len(seen)>=MAX_DEPTH:return None
+            seen.add(fn);links=self.incoming.get(fn,())
+            sites={(p.function,p.call.line,p.call.column) for p,_,_ in links}
+            if len(sites)!=1 or any(action for _,_,action in links):return None
+            pending.extend(p.function for p,_,_ in links)
+        return key
 
     def build_graph(self):
+        # Resolve registration callers against a complete direct-call index.
+        for p in self.points:
+            if p.call.value in self.program.functions:
+                self.incoming.setdefault(p.call.value,[]).append((p,None,False))
         for p in self.points:
             c=p.call;n=c.value;a=c.args
-            if n in self.program.functions:
-                self.incoming.setdefault(n,[]).append((p,None,False))
-                continue
+            if n in self.program.functions:continue
             if n=='ExecuteFunc':
                 if a and a[0].kind=='string' and a[0].value in self.program.functions:
                     self.incoming.setdefault(a[0].value,[]).append((p,None,False))
@@ -368,8 +397,14 @@ class _Analyzer:
                     self.triggers[key]={'events':[p],'conditions':[],'actions':[],'gates':[],'execute':[]}
                     self.incoming.setdefault(callback.value,[]).append((p,key,True))
                 elif callback.kind!='null':self.issue('计时回调函数无法确定：'+expression(callback))
-            if not a:continue
-            t=self.triggers.setdefault(self.trigger(a[0]),{'events':[],'conditions':[],'actions':[],'gates':[],'execute':[]})
+            relevant=n.startswith('TriggerRegister') or n in ('TriggerAddCondition','TriggerAddAction',
+                'DisableTrigger','EnableTrigger','TriggerExecute','ConditionalTriggerExecute','TriggerExecuteBJ')
+            if not a or not relevant:continue
+            key=self.trigger(a[0])
+            if key is None:
+                self.issue('触发器身份无法唯一确认，不合并不同注册点：'+expression(c))
+                key=f'unknown-trigger:{p.function}:{c.line}:{c.column}:{n}'
+            t=self.triggers.setdefault(key,{'events':[],'conditions':[],'actions':[],'gates':[],'execute':[]})
             if n.startswith('TriggerRegister'):t['events'].append(p)
             elif n=='TriggerAddCondition' and len(a)>1:
                 cond=a[1]
@@ -379,8 +414,8 @@ class _Analyzer:
                 t['actions'].append((p,a[1]))
             elif n in ('DisableTrigger','EnableTrigger'):t['gates'].append(p)
             elif n in ('TriggerExecute','ConditionalTriggerExecute','TriggerExecuteBJ'):
-                check=n=='ConditionalTriggerExecute' or n=='TriggerExecuteBJ'
-                if n=='TriggerExecuteBJ' and len(a)>1 and a[1]==_FALSE:check=False
+                check=_TRUE if n=='ConditionalTriggerExecute' else _FALSE
+                if n=='TriggerExecuteBJ':check=a[1] if len(a)>1 else Expr('variable','unknownCheckConditions')
                 t['execute'].append((p,check))
         for key,t in self.triggers.items():
             for registration,action in t['actions']:
@@ -416,7 +451,9 @@ class _Analyzer:
                 if node.line>0:evidence.append(self.evidence(fn.name,node.line,'条件表达式'))
             return result,_unique(issues+list(missing)),_unique(evidence+list(proof))
         if e.kind=='call' and e.value=='TriggerEvaluate' and e.args:
-            result,missing,proof,callers=self.trigger_condition(self.trigger(e.args[0]),seen)
+            key=self.trigger(e.args[0])
+            if key is None:return e,_unique(issues+['触发器身份无法唯一确认：'+expression(e.args[0])]),tuple(evidence)
+            result,missing,proof,callers=self.trigger_condition(key,seen)
             return result,_unique(issues+list(missing)),_unique(evidence+list(proof))
         if e.kind=='call' and self.external(e.value) and e.value not in self.program.natives:
             # These atoms are retained, never evaluated. Unknown wrappers get a visible gap.
@@ -437,9 +474,53 @@ class _Analyzer:
             if cond.kind!='function_ref':issues.append('触发条件函数无法确认：'+expression(cond));continue
             call=Expr('call',cond.value,(),cond.line)
             expanded,missing,evidence=self.expand(call,seen)
+            registered,registration_proof,registration_issues=self.registration_state(point)
+            # A condition that was not registered does not filter the trigger.
+            expanded=_logic('or',_neg(registered),_logic('and',registered,expanded))
             guard=_logic('and',guard,expanded);issues.extend(missing);proof.extend(evidence)
+            issues.extend(registration_issues);proof.extend(registration_proof)
             proof.append(self.evidence(point.function,point.call.line,'条件注册'));callers.append(str(cond.value))
         return guard,_unique(issues),_unique(proof),_unique(callers)
+
+    def registration_state(self,point):
+        """Historical registration provenance; no runtime-state constant folding.
+
+        Direct initialization callers can be traced. Event-driven, recursive or
+        uncalled registration remains a candidate with an explicit unknown gate.
+        This helper never recursively enters trigger-condition expansion.
+        """
+        def roots(p,stack):
+            self.check();proof=(self.evidence(p.function,p.call.line,'注册调用来源'),)
+            if p.function in stack or len(stack)>=MAX_DEPTH:
+                return [(p.guard,proof,('注册调用递归或深度超限，历史状态未确认',))]
+            if p.function in ('main','config'):return [(p.guard,proof,p.issues)]
+            links=self.incoming.get(p.function,());out=[]
+            if not links:return [(p.guard,proof,('注册函数没有已确认的调用入口：'+p.function,))]
+            fn=self.program.functions[p.function]
+            for caller,key,is_action in links:
+                if is_action:
+                    out.append((p.guard,proof+(self.evidence(caller.function,caller.call.line,'历史动作注册'),),
+                        ('注册由触发动作执行，历史可达性和执行次数未确认',)))
+                else:
+                    env={name:value for (_,name),value in zip(fn.params,caller.call.args)}
+                    for guard,evidence,issues in roots(caller,stack+(p.function,)):
+                        out.append((_logic('and',guard,_sub(p.guard,env)),evidence+proof,issues+p.issues))
+                if len(out)>MAX_PATHS:
+                    self.issue('注册调用路径超过上限，历史状态不完整')
+                    return [(g,e,i+('注册调用路径超过上限',)) for g,e,i in out[:MAX_PATHS]]
+            return out
+        combined=_FALSE;proof=[];issues=[]
+        for guard,evidence,missing in roots(point,()):
+            if guard==_FALSE:continue
+            proof.extend(evidence);issues.extend(missing)
+            if missing:
+                value=Expr('call','UnconfirmedRegistration',(Expr('string',f'{point.function}:{point.call.line}'),),point.call.line)
+            elif guard!=_TRUE:
+                value=Expr('call','RegistrationOccurred',(guard,),point.call.line)
+                issues.append('注册受历史条件控制，不能当作当前变量值；详见注册调用来源')
+            else:value=_TRUE
+            combined=_logic('or',combined,value)
+        return combined,_unique(proof),_unique(issues)
 
     def trace(self,point,guard=None,env=None,stack=()):
         """Backward call paths. Disabled triggers are evidence, never assumed unreachable."""
@@ -461,11 +542,8 @@ class _Analyzer:
                 gates=tuple(self.evidence(p.function,p.call.line,'触发器启用/禁用（静态）') for p in t['gates'])
                 register_proof=(self.evidence(caller.function,caller.call.line,'动作注册'),)
                 cond,missing,cp,cn=self.trigger_condition(key)
-                registration_guard=caller.guard
-                registration_issues=()
-                if registration_guard!=_TRUE:
-                    registration_guard=Expr('call','RegistrationOccurred',(registration_guard,),caller.call.line)
-                    registration_issues=('动作注册受历史条件控制，不能当作当前变量值；详见注册调用证据',)
+                registration_guard,rp,registration_issues=self.registration_state(caller)
+                register_proof+=rp
                 for event in t['events']:
                     roots=self.trace(event,stack=stack+(name,))
                     for pg,pe,ev,chain,pp,pi in roots:
@@ -475,10 +553,13 @@ class _Analyzer:
                 for execute,check in t['execute']:
                     roots=self.trace(execute,stack=stack+(name,))
                     for pg,pe,ev,chain,pp,pi in roots:
-                        combined=_logic('and',local_guard,_logic('and',pg,_logic('and',cond if check else _TRUE,registration_guard)))
-                        out.append((combined,env,ev,chain+(cn if check else ())+(name,),pp+register_proof+(cp if check else ())+gates+proof,pi+(missing if check else ())+point.issues+registration_issues))
+                        execution_gate=_logic('or',_neg(check),_logic('and',check,cond))
+                        needs_condition=check!=_FALSE
+                        combined=_logic('and',local_guard,_logic('and',pg,_logic('and',execution_gate,registration_guard)))
+                        out.append((combined,env,ev,chain+(cn if needs_condition else ())+(name,),pp+register_proof+(cp if needs_condition else ())+gates+proof,pi+(missing if needs_condition else ())+point.issues+registration_issues))
                 if not t['events'] and not t['execute']:
-                    out.append((local_guard,env,(),(name,),register_proof+gates+proof,point.issues+('触发器没有已确认事件或调用入口',)))
+                    out.append((_logic('and',local_guard,registration_guard),env,(),(name,),register_proof+gates+proof,
+                        point.issues+registration_issues+('触发器没有已确认事件或调用入口',)))
             else:
                 params=self.program.functions[name].params
                 arguments=caller.call.args if caller.call.value==name else ()
@@ -616,7 +697,7 @@ _TEXT_SETTERS={name:(kind,prop) for kind,names in (('Q',('QuestSetTitle','QuestS
 _TEXT_SETTERS.update({name+'BJ':value for name,value in tuple(_TEXT_SETTERS.items())})
 _STATE_SETTERS={'QuestSetCompleted':('Q','completed'),'QuestSetFailed':('Q','failed'),'QuestItemSetCompleted':('I','completed')}
 _STATE_SETTERS.update({name+'BJ':value for name,value in tuple(_STATE_SETTERS.items())})
-_PREDICATES={'AllowVictoryDefeat','TriggerEvaluate','RegistrationOccurred','IsUnitDeadBJ','IsUnitAliveBJ','IsUnitEnemy','IsUnitAlly',
+_PREDICATES={'AllowVictoryDefeat','TriggerEvaluate','RegistrationOccurred','UnconfirmedRegistration','IsUnitDeadBJ','IsUnitAliveBJ','IsUnitEnemy','IsUnitAlly',
     'IsQuestCompleted','IsQuestFailed','IsQuestItemCompleted','IsQuestDiscovered','GetTriggerUnit','Player',
     'GetPlayerState','GetUnitTypeId','GetOwningPlayer','GetEnteringUnit','GetDyingUnit','GetKillingUnit',
     'GetGameDifficulty','GetHeroLevel','GetTriggeringTrigger','GetEventPlayerChatString','GetTriggerPlayer'}
