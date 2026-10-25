@@ -1,0 +1,17 @@
+# -*- mode: python ; coding: utf-8 -*-
+# R22 separate output: previous EXEs, specs and helper protocol are preserved.
+a = Analysis(
+    ['war3_reforged_trainer.py'], pathex=[],
+    binaries=[('tools/war3_native_helper.dll','tools'),('tools/capstone.dll','capstone/lib'),('tools/StormLib.dll','tools')],
+    datas=[('assets/app_icon.png','assets'),('third_party/StormLib','third_party/StormLib')],
+    hiddenimports=['capstone','war3_runtime_check','war3_current_map_catalog','war3_current_map_script','war3_jass','war3_quest_analysis','war3_quest_ui'],
+    hookspath=[], hooksconfig={}, runtime_hooks=[], excludes=[], noarchive=False, optimize=0,
+)
+pyz = PYZ(a.pure)
+exe = EXE(
+    pyz,a.scripts,a.binaries,a.datas,[],name='War3ReforgedTrainer-v1.0.19-FullClone-R22-Test',
+    debug=False,bootloader_ignore_signals=False,strip=False,upx=True,upx_exclude=[],
+    runtime_tmpdir=None,console=False,disable_windowed_traceback=False,uac_admin=True,
+    argv_emulation=False,target_arch=None,codesign_identity=None,entitlements_file=None,
+    icon='assets/app_icon.ico',version='tools/war3_version_info.txt',
+)
