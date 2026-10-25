@@ -85,16 +85,53 @@ def read_build_identity(root:Path)->CascBuildIdentity:
 
 
 def official_member(map_path:str)->str:
-    """Accept only canonical official campaign paths supplied by live metadata."""
+    """Accept canonical map paths supplied by the live game metadata."""
     if not isinstance(map_path,str) or not map_path or len(map_path)>4096 or any(ord(c)<32 for c in map_path):
         raise CascUnavailable('官方地图资源路径无效')
     path=PureWindowsPath(map_path)
     parts=path.parts
-    if (path.drive or path.root or '..' in parts or ':' in map_path or
-        len(parts)<4 or parts[0].casefold()!='campaign' or
-        parts[1].casefold() not in ('classic','reforged') or path.suffix.casefold() not in ('.w3m','.w3x')):
+    campaign=(len(parts)>=4 and parts[0].casefold()=='campaign' and
+        parts[1].casefold() in ('classic','reforged'))
+    game_map=(len(parts)>=2 and parts[0].casefold()=='maps')
+    if (path.drive or path.root or '..' in parts or ':' in map_path or not (campaign or game_map) or
+        path.suffix.casefold() not in ('.w3m','.w3x')):
         raise CascUnavailable('官方地图资源路径无法确认')
     return 'war3.w3mod:'+'\\'.join(x.casefold() for x in parts)
+
+
+def _local_file_override_configuration():
+    """Read the override switch and alternate registered install root only."""
+    import os
+    if os.name!='nt':raise CascUnavailable('无法核对 Warcraft III 本地文件覆盖设置')
+    try:
+        import winreg
+        key=winreg.OpenKey(winreg.HKEY_CURRENT_USER,r'Software\Blizzard Entertainment\Warcraft III')
+    except FileNotFoundError:return False,()
+    except OSError as exc:raise CascUnavailable('无法读取 Warcraft III 本地文件覆盖设置') from exc
+    try:
+        try:enabled,kind=winreg.QueryValueEx(key,'Allow Local Files')
+        except FileNotFoundError:return False,()
+        if kind!=winreg.REG_DWORD or type(enabled) is not int or enabled not in (0,1):
+            raise CascUnavailable('Warcraft III 本地文件覆盖设置格式无效')
+        roots=[]
+        try:
+            install_path,install_kind=winreg.QueryValueEx(key,'InstallPath')
+            if install_kind==winreg.REG_SZ and isinstance(install_path,str) and install_path.strip():
+                roots.append(Path(install_path.strip()).resolve())
+        except FileNotFoundError:pass
+        return bool(enabled),tuple(roots)
+    except OSError as exc:raise CascUnavailable('无法读取 Warcraft III 本地文件覆盖设置') from exc
+    finally:winreg.CloseKey(key)
+
+
+def ensure_no_local_map_override(install_root:Path,map_path:str):
+    """Fail closed until the effective local-override search order is proven."""
+    official_member(map_path)
+    try:enabled,_=_local_file_override_configuration()
+    except CascUnavailable:raise
+    except Exception as exc:raise CascUnavailable('无法核对 Warcraft III 本地文件覆盖设置') from exc
+    if enabled:
+        raise CascUnavailable('Warcraft III 已启用本地文件覆盖，尚不能确认官方脚本的实际生效优先级')
 
 
 class _FileInfo(C.Structure):

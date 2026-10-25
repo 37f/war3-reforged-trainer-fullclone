@@ -86,9 +86,27 @@ def test_invalid_or_ambiguous_active_build_is_rejected(tmp_path,rows):
 def test_member_maps_active_path_and_rejects_namespace_or_path_escape():
     module=importlib.import_module('war3_casc_source')
     assert module.official_member('Campaign/Classic/ROC/Prologue01.w3m')=='war3.w3mod:campaign\\classic\\roc\\prologue01.w3m'
+    assert module.official_member('Maps/FrozenThrone/Scenario/One.w3x')=='war3.w3mod:maps\\frozenthrone\\scenario\\one.w3x'
     for path in ('C:/Campaign/one.w3m','../Campaign/one.w3m','Campaign/../one.w3m',
-                 'other.w3mod:Campaign/one.w3m','Campaign/one.w3m\x00x','Maps/one.w3x'):
+                 'other.w3mod:Campaign/one.w3m','Campaign/one.w3m\x00x','Assets/one.w3x'):
         with pytest.raises(module.CascUnavailable):module.official_member(path)
+
+
+def test_local_file_override_policy_allows_only_disabled_override_configuration(tmp_path,monkeypatch):
+    module=importlib.import_module('war3_casc_source')
+    monkeypatch.setattr(module,'_local_file_override_configuration',lambda:(False,()))
+    module.ensure_no_local_map_override(tmp_path,'Campaign/Classic/ROC/Prologue01.w3m')
+    # A few absent guessed paths cannot prove the complete VFS override order.
+    monkeypatch.setattr(module,'_local_file_override_configuration',lambda:(True,()))
+    with pytest.raises(module.CascUnavailable):
+        module.ensure_no_local_map_override(tmp_path,'Campaign/Classic/ROC/Prologue01.w3m')
+
+
+def test_local_file_override_policy_fails_closed_when_configuration_is_unknown(tmp_path,monkeypatch):
+    module=importlib.import_module('war3_casc_source')
+    monkeypatch.setattr(module,'_local_file_override_configuration',lambda:(_ for _ in ()).throw(OSError('registry denied')))
+    with pytest.raises(module.CascUnavailable):
+        module.ensure_no_local_map_override(tmp_path,'Campaign/Classic/ROC/Prologue01.w3m')
 
 
 def test_read_preserves_content_and_returns_storage_proof(casc):

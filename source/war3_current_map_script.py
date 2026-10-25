@@ -24,6 +24,11 @@ class SourceUnavailable(RuntimeError):
     pass
 
 
+class GameMapNotOwned(SourceUnavailable):
+    """The active virtual resource is not held as an ordinary map file."""
+    pass
+
+
 @dataclass(frozen=True)
 class MapSourceMetadata:
     session_token:int
@@ -219,7 +224,7 @@ def bind_owned_source(metadata,files,inspect_file)->BoundScriptFile:
             if not file.file_id or len(file.file_id)!=2 or not file.file_id[1]:
                 raise SourceUnavailable('游戏持有文件的身份无法确认')
             candidates[file.file_id]=file
-    if not candidates:raise SourceUnavailable('没有找到游戏实际持有的当前地图档案')
+    if not candidates:raise GameMapNotOwned('没有找到游戏实际持有的当前地图档案')
     if len(candidates)!=1:raise SourceUnavailable('当前地图档案匹配不唯一，不能确定来源')
     game=next(iter(candidates.values()))
     if game.process_created<=0 or game.modified>game.process_created:
@@ -231,12 +236,16 @@ def bind_owned_source(metadata,files,inspect_file)->BoundScriptFile:
 
 
 class RuntimeScriptSource:
-    """Verified metadata + owned-file callbacks, then read-only MPQ extraction."""
-    def __init__(self,metadata,owned_files,inspect_file,identity):
+    """Verified metadata + owned-file or exact installed-CASC source."""
+    def __init__(self,metadata,owned_files,inspect_file,identity,casc_root=None,casc_owned_files=None):
         self.metadata,self.owned_files,self.inspect_file,self.identity=metadata,owned_files,inspect_file,identity
+        self.casc_root=casc_root
+        self.casc_owned_files=casc_owned_files
 
     def query(self,*,snapshot=None,cancelled=lambda:False):
         if snapshot is not None:
+            if snapshot.stamp and snapshot.stamp[0]=='official-casc':
+                return self._check_official_snapshot(snapshot)
             if len(snapshot.stamp)!=2:return False
             before,file=snapshot.stamp
             if self.metadata()!=before:return False
@@ -246,7 +255,11 @@ class RuntimeScriptSource:
             if cancelled():raise RuntimeError('当前地图脚本读取已取消')
             if time.monotonic()-start>MAX_READ_SECONDS:raise TimeoutError('当前地图脚本读取超过时间上限')
             if self.identity()!=identity:raise RuntimeError('游戏连接已变化')
-        check();before=self.metadata();binding=bind_owned_source(before,self.owned_files(),self.inspect_file)
+        check();before=self.metadata()
+        try:binding=bind_owned_source(before,self.owned_files(),self.inspect_file)
+        except GameMapNotOwned:
+            if self.casc_root is None:raise
+            return self._read_official_map(before,identity,start,check)
         entry,language,script,strings=self._read_map(binding,start+MAX_READ_SECONDS,check)
         check()
         if self.metadata()!=before or _file_signature(self.inspect_file(binding.file.path))!=_file_signature(binding.file):
@@ -259,32 +272,114 @@ class RuntimeScriptSource:
             hashlib.sha256(script).hexdigest(),hashlib.sha256(strings).hexdigest(),validated_at,
             provenance,(before,binding.file))
 
+    def _read_official_map(self,before,identity,start,check):
+        from war3_casc_source import (CascArchive,CascUnavailable,MAX_CASC_BYTES,
+            ensure_no_local_map_override,official_member,read_build_identity)
+        try:
+            root=Path(self.casc_root()).resolve();build=read_build_identity(root)
+            if build.product!='w3' or build.version!='2.0.4.23745':
+                raise SourceUnavailable('当前游戏版本与官方资源读取器不匹配')
+            member=official_member(before.map_path)
+            ensure_no_local_map_override(root,before.map_path)
+            with CascArchive(root,build,deadline=start+MAX_READ_SECONDS,cancelled=check) as archive:
+                entry=archive.read_entry(member,MAX_CASC_BYTES)
+            if entry is None:raise SourceUnavailable('当前官方地图在本机 CASC 资源中不存在')
+            storage=self._bind_casc_data_file(root,entry,check)
+            check()
+            script_entry,language,script,strings=self._read_map_data(entry.data,start+MAX_READ_SECONDS,check)
+            check()
+            if self.metadata()!=before or self.identity()!=identity:
+                raise SourceUnavailable('读取官方地图时当前会话发生变化')
+            if _file_signature(self.inspect_file(storage.path))!=_file_signature(storage):
+                raise SourceUnavailable('官方地图数据文件在读取时变化')
+            map_sha256=hashlib.sha256(entry.data).hexdigest()
+            origin=f'CASC::{root}::{member}::{script_entry}'
+            provenance=('active-map/profiled-config-and-session','official-member-from-live-map-path',
+                'local-casc-build-and-exact-resource-content','game-owned-casc-data-file',
+                'local-file-overrides-disabled','read-only-mpq-exact-script',
+                'map-string-table:war3map.wts:base-resource-text')
+            return ScriptSnapshot(identity,before.session_token,origin,language,script,strings,
+                hashlib.sha256(script).hexdigest(),hashlib.sha256(strings).hexdigest(),time.monotonic(),
+                provenance,('official-casc',before,str(root),build,member,map_sha256,storage))
+        except CascUnavailable as exc:
+            raise SourceUnavailable(str(exc)) from exc
+
+    def _check_official_snapshot(self,snapshot):
+        try:
+            _,before,root_text,build,member,map_sha256,storage=snapshot.stamp
+            if self.identity()!=snapshot.identity or self.metadata()!=before:return False
+            root=Path(self.casc_root()).resolve()
+            if str(root)!=root_text:return False
+            from war3_casc_source import (CascArchive,CascUnavailable,MAX_CASC_BYTES,
+                ensure_no_local_map_override,official_member,read_build_identity)
+            current=read_build_identity(root)
+            if current!=build or official_member(before.map_path)!=member:return False
+            ensure_no_local_map_override(root,before.map_path)
+            if _file_signature(self.inspect_file(storage.path))!=_file_signature(storage):return False
+            with CascArchive(root,current,deadline=time.monotonic()+MAX_READ_SECONDS) as archive:
+                entry=archive.read_entry(member,MAX_CASC_BYTES)
+            return (entry is not None and entry.span_count==1 and
+                _path_parts(root/'Data'/'data'/f'data.{entry.segment_index:03d}')==_path_parts(storage.path) and
+                hashlib.sha256(entry.data).hexdigest()==map_sha256 and
+                self.metadata()==before and self.identity()==snapshot.identity)
+        except (OSError,RuntimeError,ValueError,TypeError):
+            return False
+
+    def _bind_casc_data_file(self,root,entry,check):
+        if self.casc_owned_files is None:
+            raise SourceUnavailable('官方资源尚未绑定游戏实际持有的数据文件')
+        if (entry.span_count!=1 or type(entry.segment_index) is not int or not 0<=entry.segment_index<=9999 or
+            type(entry.segment_offset) is not int or entry.segment_offset<0 or
+            type(entry.encoded_size) is not int or entry.encoded_size<=0):
+            raise SourceUnavailable('官方资源的数据分段身份未受支持')
+        path=root/'Data'/'data'/f'data.{entry.segment_index:03d}'
+        files={file.file_id:file for file in self.casc_owned_files(path,check)
+            if _path_parts(file.path)==_path_parts(path)}
+        if len(files)!=1:raise SourceUnavailable('未找到游戏唯一实际持有的官方数据文件')
+        game=next(iter(files.values()));check()
+        if (len(game.file_id)!=2 or not game.file_id[1] or game.process_created<=0 or
+            game.modified>game.process_created or entry.segment_offset+entry.encoded_size>game.size):
+            raise SourceUnavailable('官方数据文件身份、加载时间或资源边界无法确认')
+        local=self.inspect_file(path)
+        if _file_signature(local)!=_file_signature(game):
+            raise SourceUnavailable('本地官方数据文件与游戏持有文件不一致')
+        return local
+
     @staticmethod
     def _read_map(binding,deadline,check):
         from war3_campaign_catalog import StormArchive,MAX_MAP_BYTES
-        def extract(path):
-            with StormArchive(path,deadline) as archive:
-                candidates=[];total=0
-                for name,language in (('war3map.j','jass'),('scripts\\war3map.j','jass'),
-                                      ('war3map.lua','lua'),('scripts\\war3map.lua','lua')):
-                    check();data=archive.read(name,MAX_SCRIPT_BYTES)
-                    if data is not None:
-                        total+=len(data)
-                        if total>MAX_SCRIPT_BYTES:raise SourceUnavailable('脚本入口候选超过总读取上限')
-                        candidates.append((name,language,data))
-                if not candidates:raise SourceUnavailable('当前地图没有可读取的 JASS/Lua 脚本入口')
-                if len({(language,hashlib.sha256(data).digest()) for _,language,data in candidates})!=1:
-                    raise SourceUnavailable('当前地图有多个不同脚本入口，无法确认生效脚本')
-                entry,language,script=candidates[0]
-                check();strings=archive.read('war3map.wts',MAX_STRINGS_BYTES) or b''
-                return entry,language,script,strings
-        if not binding.member:return extract(Path(binding.file.path))
+        if not binding.member:return RuntimeScriptSource._extract_map_path(Path(binding.file.path),deadline,check)
         with StormArchive(Path(binding.file.path),deadline) as outer:
             check();data=outer.read(binding.member,MAX_MAP_BYTES)
             if data is None:raise SourceUnavailable('当前战役中没有运行时指定的章节档案')
         with tempfile.TemporaryDirectory(prefix='war3-r22-source-') as temporary:
             path=Path(temporary)/'chapter.w3x';path.write_bytes(data)
-            check();return extract(path)
+            check();return RuntimeScriptSource._extract_map_path(path,deadline,check)
+
+    @staticmethod
+    def _read_map_data(data,deadline,check):
+        with tempfile.TemporaryDirectory(prefix='war3-r23-source-') as temporary:
+            path=Path(temporary)/'official-map.w3m';path.write_bytes(data)
+            check();return RuntimeScriptSource._extract_map_path(path,deadline,check)
+
+    @staticmethod
+    def _extract_map_path(path,deadline,check):
+        from war3_campaign_catalog import StormArchive
+        with StormArchive(Path(path),deadline) as archive:
+            candidates=[];total=0
+            for name,language in (('war3map.j','jass'),('scripts\\war3map.j','jass'),
+                                  ('war3map.lua','lua'),('scripts\\war3map.lua','lua')):
+                check();data=archive.read(name,MAX_SCRIPT_BYTES)
+                if data is not None:
+                    total+=len(data)
+                    if total>MAX_SCRIPT_BYTES:raise SourceUnavailable('脚本入口候选超过总读取上限')
+                    candidates.append((name,language,data))
+            if not candidates:raise SourceUnavailable('当前地图没有可读取的 JASS/Lua 脚本入口')
+            if len({(language,hashlib.sha256(data).digest()) for _,language,data in candidates})!=1:
+                raise SourceUnavailable('当前地图有多个不同脚本入口，无法确认生效脚本')
+            entry,language,script=candidates[0]
+            check();strings=archive.read('war3map.wts',MAX_STRINGS_BYTES) or b''
+            return entry,language,script,strings
 
 
 @lru_cache(maxsize=1)
@@ -344,9 +439,10 @@ def inspect_windows_source_file(path,pid)->GameSourceFile:
         k.CloseHandle(process)
 
 
-def enumerate_game_files(pid,cancelled=lambda:False)->tuple[GameSourceFile,...]:
+def enumerate_game_files(pid,cancelled=lambda:False,*,exact_paths=())->tuple[GameSourceFile,...]:
     """Query only this game's existing disk handles; never change file offset."""
     if cancelled():raise RuntimeError('当前地图脚本读取已取消')
+    requested=frozenset(_path_parts(path) for path in exact_paths)
     C,k,nt=_windows_api();size=1024*1024;deadline=time.monotonic()+MAX_READ_SECONDS
     for _ in range(8):
         if cancelled():raise RuntimeError('当前地图脚本读取已取消')
@@ -377,7 +473,9 @@ def enumerate_game_files(pid,cancelled=lambda:False)->tuple[GameSourceFile,...]:
                 path=C.create_unicode_buffer(32768)
                 length=k.GetFinalPathNameByHandleW(duplicate,path,len(path),0)
                 if not 0<length<len(path):continue
-                if PureWindowsPath(path.value).suffix.casefold() not in ('.w3n','.w3x','.w3m'):continue
+                if requested:
+                    if _path_parts(path.value) not in requested:continue
+                elif PureWindowsPath(path.value).suffix.casefold() not in ('.w3n','.w3x','.w3m'):continue
                 try:rows.append(_handle_file_info(k,C,duplicate,path.value,created))
                 except SourceUnavailable:continue
                 if len(rows)>4096:raise SourceUnavailable('游戏地图文件数量超过查询上限')
@@ -397,6 +495,35 @@ def game_image_base(process_handle)->int:
         if k.K32GetModuleFileNameExW(process_handle,module,path,len(path)) and PureWindowsPath(path.value).name.casefold()=='warcraft iii.exe':
             matches.append(int(module))
     if len(matches)!=1:raise SourceUnavailable('游戏映像不是唯一匹配')
+    return matches[0]
+
+
+def game_image_path(process_handle)->Path:
+    """Resolve the running game executable path without reading game memory."""
+    C,k,_=_windows_api();modules=(C.c_void_p*1024)();needed=C.c_uint32()
+    if not k.K32EnumProcessModules(process_handle,modules,C.sizeof(modules),C.byref(needed)) or needed.value>C.sizeof(modules):
+        raise SourceUnavailable('无法查询游戏映像路径')
+    matches=[]
+    for module in modules[:needed.value//C.sizeof(C.c_void_p)]:
+        path=C.create_unicode_buffer(32768)
+        if k.K32GetModuleFileNameExW(process_handle,module,path,len(path)) and PureWindowsPath(path.value).name.casefold()=='warcraft iii.exe':
+            matches.append(Path(path.value))
+    if len(matches)!=1:raise SourceUnavailable('游戏映像路径不是唯一匹配')
+    return matches[0]
+
+
+def find_casc_install_root(executable_path)->Path:
+    """Bind CASC to the unique supported build above the running executable."""
+    from war3_casc_source import CascUnavailable,read_build_identity
+    executable=Path(executable_path).resolve()
+    matches=[]
+    for root in (executable.parent,*executable.parents[:6]):
+        if not (root/'.build.info').is_file():continue
+        try:identity=read_build_identity(root)
+        except CascUnavailable:continue
+        if identity.product=='w3' and identity.version=='2.0.4.23745':matches.append(root.resolve())
+    matches=tuple(dict.fromkeys(matches))
+    if len(matches)!=1:raise SourceUnavailable('无法从当前游戏映像唯一确认官方 CASC 安装目录')
     return matches[0]
 
 
@@ -423,6 +550,10 @@ def create_current_map_script_client(pid,catalog,memory_factory)->CurrentMapScri
                 last=SourceUnavailable('来源验证时数据发生变化，请重新检索')
             except SourceUnavailable as exc:last=exc
         raise last
+    def casc_root():
+        with memory_factory() as memory:executable=game_image_path(memory.handle)
+        return find_casc_install_root(executable)
     source=RuntimeScriptSource(metadata,lambda:enumerate_game_files(pid),
-        lambda path:inspect_windows_source_file(path,pid),catalog.identity)
+        lambda path:inspect_windows_source_file(path,pid),catalog.identity,casc_root=casc_root,
+        casc_owned_files=lambda path,cancelled:enumerate_game_files(pid,cancelled,exact_paths=(path,)))
     return CurrentMapScriptClient(source.query,catalog.identity)

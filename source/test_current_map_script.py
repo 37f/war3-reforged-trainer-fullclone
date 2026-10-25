@@ -166,6 +166,73 @@ def test_bound_nested_script_read_is_readonly_and_keeps_exact_origin(tmp_path):
     assert outer.read_bytes()==before
 
 
+def test_official_map_uses_exact_casc_member_and_rechecks_session_and_content(tmp_path,monkeypatch):
+    from pathlib import Path
+    from types import SimpleNamespace
+    from test_campaign_catalog import make_mpq
+    import war3_casc_source as casc
+    from war3_current_map_script import GameSourceFile,MapSourceMetadata,RuntimeScriptSource
+    archive_path=tmp_path/'official.w3m'
+    script=b'function main takes nothing returns nothing\nendfunction\n'
+    strings=b'STRING 1\n{\nOfficial quest\n}\n'
+    make_mpq(archive_path,{'war3map.j':script,'war3map.wts':strings})
+    original=archive_path.read_bytes();current=[original]
+    metadata=MapSourceMetadata(123,'official-session','Campaign/Classic/ROC/Prologue01.w3m','',False)
+    build=casc.CascBuildIdentity(str(tmp_path),'9a94ff7d25781db6c09190cd69d52458','2.0.4.23745','w3','zhCN',
+        hashlib.sha256(b'build').hexdigest(),(1,2,3,4))
+    def read_build(root):assert Path(root)==tmp_path;return build
+    class FakeArchive:
+        def __init__(self,root,identity,deadline=None,cancelled=lambda:False):
+            assert Path(root)==tmp_path and identity==build
+        def __enter__(self):return self
+        def __exit__(self,*_):pass
+        def read_entry(self,member,max_bytes):
+            assert member=='war3.w3mod:campaign\\classic\\roc\\prologue01.w3m'
+            assert max_bytes>=len(current[0])
+            if current[0] is None:return None
+            return SimpleNamespace(data=current[0],content_key='key',segment_index=17,
+                segment_offset=32,encoded_size=len(current[0]),span_count=1)
+    monkeypatch.setattr(casc,'read_build_identity',read_build)
+    monkeypatch.setattr(casc,'CascArchive',FakeArchive)
+    monkeypatch.setattr(casc,'ensure_no_local_map_override',lambda root,path:None)
+    storage=[GameSourceFile(str(tmp_path/'Data'/'data'/'data.017'),(1,7),len(original)+1024,10,20)]
+    def inspect_storage(path):
+        assert Path(path)==Path(storage[0].path)
+        return storage[0]
+    source=RuntimeScriptSource(lambda:metadata,lambda:(),inspect_storage,
+        lambda:'game',casc_root=lambda:tmp_path,casc_owned_files=lambda path,cancelled:(storage[0],))
+    client=CurrentMapScriptClient(source.query,lambda:'game')
+    result=client.read()
+    assert result.script==script and result.strings_data==strings
+    assert 'war3.w3mod:campaign\\classic\\roc\\prologue01.w3m' in result.origin
+    assert result.stamp[0]=='official-casc'
+    assert client.check(result)
+    current[0]=original+b'changed'
+    assert not client.check(result)
+    current[0]=original
+    storage[0]=replace(storage[0],file_id=(1,8))
+    assert not client.check(result)
+    unowned=RuntimeScriptSource(lambda:metadata,lambda:(),inspect_storage,
+        lambda:'game',casc_root=lambda:tmp_path,casc_owned_files=lambda path,cancelled:())
+    with pytest.raises(SourceUnavailable,match='持有'):unowned.query()
+
+
+def test_official_casc_source_refuses_local_map_override(tmp_path,monkeypatch):
+    import hashlib
+    from test_campaign_catalog import make_mpq
+    import war3_casc_source as casc
+    from war3_current_map_script import MapSourceMetadata,RuntimeScriptSource
+    archive_path=tmp_path/'official.w3m';make_mpq(archive_path,{'war3map.j':b'function main takes nothing returns nothing\nendfunction'})
+    metadata=MapSourceMetadata(123,'official-session','Campaign/Classic/ROC/Prologue01.w3m','',False)
+    build=casc.CascBuildIdentity(str(tmp_path),'9a94ff7d25781db6c09190cd69d52458','2.0.4.23745','w3','zhCN',
+        hashlib.sha256(b'build').hexdigest(),(1,2,3,4))
+    monkeypatch.setattr(casc,'read_build_identity',lambda root:build)
+    monkeypatch.setattr(casc,'ensure_no_local_map_override',lambda root,path:(_ for _ in ()).throw(casc.CascUnavailable('本地覆盖')))
+    source=RuntimeScriptSource(lambda:metadata,lambda:(),lambda path:None,lambda:'game',casc_root=lambda:tmp_path)
+    with pytest.raises(SourceUnavailable):
+        source.query()
+
+
 def test_different_jass_lua_entries_are_not_guessed(tmp_path):
     from test_campaign_catalog import make_mpq
     from war3_current_map_script import MapSourceMetadata,GameSourceFile,RuntimeScriptSource
