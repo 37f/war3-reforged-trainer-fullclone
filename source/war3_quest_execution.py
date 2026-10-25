@@ -70,6 +70,7 @@ class CompletionPlan:
     root_conditions:tuple[str,...]
     eligible:bool
     reasons:tuple[str,...]
+    source_snapshot:object
 
 
 def _unique(values):return tuple(dict.fromkeys(values))
@@ -122,7 +123,7 @@ def build_completion_plan(report,quest_key,cancelled=lambda:False)->CompletionPl
         return CompletionPlan(snapshot.identity,snapshot.session_token,snapshot.origin,
             snapshot.script_sha256,snapshot.strings_sha256,quest.key,quest.title,alias,
             entry[0] if entry else None,entry[1] if entry else None,tuple(functions),
-            tuple(bindings),_unique(calls),tuple(proof),tuple(conditions),not reasons,_unique(reasons))
+            tuple(bindings),_unique(calls),tuple(proof),tuple(conditions),not reasons,_unique(reasons),snapshot)
     check()
     if (hashlib.sha256(snapshot.script).hexdigest()!=snapshot.script_sha256 or
         hashlib.sha256(snapshot.strings_data).hexdigest()!=snapshot.strings_sha256):
