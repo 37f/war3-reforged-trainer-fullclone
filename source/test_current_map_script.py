@@ -130,3 +130,84 @@ def test_source_deadline_covers_slow_provider_and_check_revalidates_identity(mon
     identity=['game']
     def changed(**kw):identity[0]='other';return True
     assert not CurrentMapScriptClient(changed,lambda:identity[0]).check(s)
+
+
+def test_owned_file_binding_is_exact_and_rejects_recent_or_replaced_sources():
+    from war3_current_map_script import MapSourceMetadata,GameSourceFile,bind_owned_source
+    m=MapSourceMetadata(123,'proof','chapter.w3x','C:/Campaigns/a.w3n',True)
+    f=GameSourceFile('C:/Campaigns/a.w3n',(1,2),100,10,20)
+    b=bind_owned_source(m,(f,),lambda path:f)
+    assert b.member=='chapter.w3x' and b.file==f
+    for rows,local in (((),f),((f,),replace(f,file_id=(1,3))),((replace(f,modified=21),),replace(f,modified=21))):
+        with pytest.raises(SourceUnavailable):bind_owned_source(m,rows,lambda path:local)
+
+
+def test_standalone_relative_path_requires_unique_game_owned_file():
+    from war3_current_map_script import MapSourceMetadata,GameSourceFile,bind_owned_source
+    m=MapSourceMetadata(123,'proof','Maps/One.w3x','',False)
+    a=GameSourceFile('C:/Game/Maps/One.w3x',(1,2),100,10,20)
+    b=replace(a,path='D:/Other/Maps/One.w3x',file_id=(2,3))
+    assert bind_owned_source(m,(a,),lambda path:a).file==a
+    with pytest.raises(SourceUnavailable,match='不唯一'):bind_owned_source(m,(a,b),lambda path:a)
+
+
+def test_bound_nested_script_read_is_readonly_and_keeps_exact_origin(tmp_path):
+    from test_campaign_catalog import make_mpq
+    from war3_current_map_script import MapSourceMetadata,GameSourceFile,RuntimeScriptSource
+    inner=tmp_path/'chapter.w3x';script=b'function main takes nothing returns nothing\nendfunction\n'
+    wts=b'STRING 1\n{\nQuest\n}\n';make_mpq(inner,{'war3map.j':script,'war3map.wts':wts})
+    outer=tmp_path/'campaign.w3n';make_mpq(outer,{'chapter.w3x':inner.read_bytes()})
+    before=outer.read_bytes();m=MapSourceMetadata(123,'proof','chapter.w3x',str(outer),True)
+    f=GameSourceFile(str(outer),(1,2),len(before),10,20)
+    source=RuntimeScriptSource(lambda:m,lambda:(f,),lambda path:f,lambda:'game')
+    client=CurrentMapScriptClient(source.query,lambda:'game');s=client.read()
+    assert s.script==script and s.strings_data==wts and 'chapter.w3x' in s.origin
+    assert s.script_sha256==hashlib.sha256(script).hexdigest() and client.check(s)
+    assert outer.read_bytes()==before
+
+
+def test_different_jass_lua_entries_are_not_guessed(tmp_path):
+    from test_campaign_catalog import make_mpq
+    from war3_current_map_script import MapSourceMetadata,GameSourceFile,RuntimeScriptSource
+    path=tmp_path/'map.w3x';make_mpq(path,{'war3map.j':b'JASS','war3map.lua':b'Lua'})
+    m=MapSourceMetadata(123,'proof',str(path),'',False);f=GameSourceFile(str(path),(1,2),path.stat().st_size,10,20)
+    c=CurrentMapScriptClient(RuntimeScriptSource(lambda:m,lambda:(f,),lambda path:f,lambda:1).query,lambda:1)
+    with pytest.raises(SourceUnavailable,match='入口'):c.read()
+
+
+def test_runtime_source_check_expires_on_source_or_map_changes(tmp_path):
+    from test_campaign_catalog import make_mpq
+    from war3_current_map_script import MapSourceMetadata,GameSourceFile,RuntimeScriptSource
+    path=tmp_path/'map.w3x';make_mpq(path,{'war3map.j':b'// empty'})
+    m=[MapSourceMetadata(123,'proof',str(path),'',False)]
+    file=[GameSourceFile(str(path),(1,2),path.stat().st_size,10,20)]
+    c=CurrentMapScriptClient(RuntimeScriptSource(lambda:m[0],lambda:(file[0],),lambda path:file[0],lambda:1).query,lambda:1)
+    s=c.read();m[0]=replace(m[0],session_token=124);assert not c.check(s)
+    m[0]=replace(m[0],session_token=123);file[0]=replace(file[0],modified=11);assert not c.check(s)
+
+
+def test_windows_file_binding_matches_actual_open_handle_and_unicode_path(tmp_path):
+    import os
+    from war3_current_map_script import enumerate_game_files,inspect_windows_source_file
+    path=tmp_path/'源.w3x';path.write_bytes(b'fixture')
+    with path.open('rb'):
+        info=inspect_windows_source_file(str(path),os.getpid())
+        files=enumerate_game_files(os.getpid())
+    assert info.size==7 and info.file_id[1] and info.process_created>0
+    assert any(row.file_id==info.file_id and row.size==7 for row in files)
+
+
+def test_cancelled_owned_file_enumeration_stops_before_scan():
+    import os
+    from war3_current_map_script import enumerate_game_files
+    with pytest.raises(RuntimeError,match='取消'):enumerate_game_files(os.getpid(),lambda:True)
+
+
+def test_runtime_factory_preserves_closed_connection_rejection(monkeypatch):
+    import war3_current_map_script as m
+    class ClosedCatalog:
+        def identity(self):return ('closed',True)
+        def query(self,*args,**kwargs):raise RuntimeError('游戏连接已关闭')
+    def forbidden():raise AssertionError('closed query must not open process memory')
+    client=m.create_current_map_script_client(1,ClosedCatalog(),forbidden)
+    with pytest.raises(RuntimeError,match='关闭'):client.read()
