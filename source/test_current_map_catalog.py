@@ -1,4 +1,5 @@
 import struct
+import threading
 from dataclasses import replace
 
 import pytest
@@ -101,6 +102,7 @@ def test_trainer_bridge_uses_read_only_unbound_operations():
     from unittest.mock import Mock
     import war3_reforged_trainer as module
     trainer=object.__new__(module.War3Trainer);trainer.pid=5;trainer.hwnd=6
+    trainer._native_helper_lock=threading.RLock()
     trainer._run_native_helper_ops=Mock(return_value=[module.NativeHelperOpResult(318,0,extra_results=(MAGIC,1,12,0,0,0))])
     client=trainer.current_map_catalog_client()
     assert client.read().counts==(0,0,0)
@@ -114,6 +116,7 @@ def test_trainer_bridge_explains_menu_and_rejects_closed_connection():
     import war3_reforged_trainer as module
     trainer=object.__new__(module.War3Trainer);trainer.pid=5;trainer.hwnd=6
     trainer._persistent_bootstrap_stop=threading.Event()
+    trainer._native_helper_lock=threading.RLock()
     trainer._run_native_helper_ops=Mock(side_effect=RuntimeError('native helper 执行失败：status=3 last_error=21'))
     client=trainer.current_map_catalog_client()
     with pytest.raises(RuntimeError,match='未进入地图'): client.read()
@@ -129,6 +132,7 @@ def test_catalog_cold_connection_waits_for_persistent_injector_thread():
     trainer=object.__new__(module.War3Trainer);trainer.pid=5;trainer.hwnd=6
     trainer._persistent_bootstrap_stop=threading.Event()
     trainer._persistent_bootstrap_thread=SimpleNamespace(is_alive=lambda:True)
+    trainer._native_helper_lock=threading.RLock()
     trainer._native_helper_persistent_hook=None
     def query(*args,**kw):
         assert trainer._native_helper_persistent_hook==1,'short-lived query worker must not own the hook'
@@ -137,3 +141,52 @@ def test_catalog_cold_connection_waits_for_persistent_injector_thread():
     timer=threading.Timer(.03,lambda:setattr(trainer,'_native_helper_persistent_hook',1));timer.start()
     try: assert trainer.current_map_catalog_client().read().counts==(0,0,0)
     finally:timer.join()
+
+
+def test_snapshot_validation_time_precedes_name_resolution(monkeypatch):
+    import war3_current_map_catalog as module
+    clock=[100.];original=module.build_runtime_result
+    monkeypatch.setattr(module.time,'monotonic',lambda:clock[0])
+    def slow_names(records):
+        clock[0]+=20
+        return original(records)
+    monkeypatch.setattr(module,'build_runtime_result',slow_names)
+    snapshot=CurrentMapCatalogClient(lambda *a,**kw:(MAGIC,1,123,0,0,0),lambda:1).read()
+    assert snapshot.validated_at==100. and snapshot.elapsed_ms==20000.
+
+
+@pytest.mark.parametrize('change',('closed','reconnected','hook_removed'))
+def test_queued_catalog_query_rechecks_connection_before_helper_submission(change):
+    import contextlib
+    import threading
+    from types import SimpleNamespace
+    from unittest.mock import Mock
+    import war3_reforged_trainer as module
+    trainer=object.__new__(module.War3Trainer);trainer.pid=5;trainer.hwnd=6
+    trainer._persistent_bootstrap_stop=threading.Event()
+    trainer._persistent_bootstrap_thread=SimpleNamespace(is_alive=lambda:True)
+    trainer._native_helper_persistent_hook=1
+    lock=threading.RLock();waiting=threading.Event()
+    class ObservedLock:
+        def __enter__(self):
+            waiting.set();lock.acquire();return self
+        def __exit__(self,*args): lock.release()
+    trainer._native_helper_lock=ObservedLock()
+    trainer._ensure_native_helper_persistent_hook=Mock()
+    trainer._native_helper_transaction=lambda **kw:contextlib.nullcontext()
+    trainer._run_native_helper_ops_locked=Mock(return_value=[module.NativeHelperOpResult(318,0,extra_results=(MAGIC,1,12,0,0,0))])
+    trainer._write_native_helper_failure_log=Mock()
+    client=trainer.current_map_catalog_client();errors=[]
+    def worker():
+        try: client.read()
+        except Exception as exc: errors.append(exc)
+    with lock:
+        thread=threading.Thread(target=worker);thread.start()
+        assert waiting.wait(2)
+        if change=='closed': trainer._persistent_bootstrap_stop.set()
+        elif change=='reconnected': trainer.pid=7;trainer.hwnd=8
+        else: trainer._native_helper_persistent_hook=None
+    thread.join(2)
+    assert not thread.is_alive() and errors
+    trainer._ensure_native_helper_persistent_hook.assert_not_called()
+    trainer._run_native_helper_ops_locked.assert_not_called()

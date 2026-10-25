@@ -131,14 +131,16 @@ class CampaignCatalogUI:
                     if token==self._runtime_generation:
                         if error:
                             self.invalidate_runtime(error)
-                        elif operation=='runtime-check':
-                            if payload: self._runtime_checked_at=time.monotonic()
-                            else: self.invalidate_runtime(self.text('地图会话或游戏连接已变化，请重新检测','Map session or connection changed; read again'))
                         else:
-                            client=self._get_runtime_client()
-                            if client is not None and client.identity()==payload.identity:
-                                self.runtime_snapshot=payload;self._runtime_checked_at=time.monotonic()
-                            else: self.invalidate_runtime(self.text('游戏连接已变化','Game connection changed'))
+                            payload,validated_at=payload
+                            if operation=='runtime-check':
+                                if payload: self._runtime_checked_at=validated_at
+                                else: self.invalidate_runtime(self.text('地图会话或游戏连接已变化，请重新检测','Map session or connection changed; read again'))
+                            else:
+                                client=self._get_runtime_client()
+                                if client is not None and client.identity()==payload.identity:
+                                    self.runtime_snapshot=payload;self._runtime_checked_at=validated_at
+                                else: self.invalidate_runtime(self.text('游戏连接已变化','Game connection changed'))
                 elif token==self.selection.generation:
                     self._error=error
                     if not error:
@@ -195,7 +197,11 @@ class CampaignCatalogUI:
     def _launch_runtime(self,operation,fn):
         token=self._runtime_generation;self._busy=True;self._operation=operation;self.update_display()
         def work():
-            try: payload,error=fn(),''
+            try:
+                value=fn()
+                # Carry worker validation time; dequeuing must never renew it.
+                checked_at=value.validated_at if operation=='runtime-read' else time.monotonic()
+                payload,error=(value,checked_at),''
             except Exception as exc: payload,error=None,str(exc)
             self._queue.put((token,operation,payload,error))
         threading.Thread(target=work,name='war3-current-map-catalog',daemon=True).start()

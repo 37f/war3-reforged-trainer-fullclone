@@ -172,3 +172,31 @@ def test_delayed_tk_tick_keeps_snapshot_but_requires_fresh_validation_for_copy(g
     assert not ui.can_copy('H600','unit')
     ui.check_runtime();pump(gui_root,lambda:not ui._busy)
     assert ui.can_copy('H600','unit')
+
+
+@pytest.mark.parametrize('operation',('runtime-read','runtime-check'))
+def test_queued_runtime_reply_cannot_renew_validation_after_map_change(gui_root,monkeypatch,operation):
+    import queue
+    clock=[100.]
+    monkeypatch.setattr(time,'monotonic',lambda:clock[0])
+    client,state=runtime_client(42)
+    ui=CampaignCatalogUI(gui_root,lambda:None,lambda:'zh',runtime_client=client)
+    ui.modes['unit'].set('runtime')
+    ready=threading.Event()
+    class ReplyQueue(queue.Queue):
+        def put(self,*args,**kwargs):
+            super().put(*args,**kwargs);ready.set()
+    ui._queue=ReplyQueue()
+    if operation=='runtime-check':
+        ui.runtime_snapshot=client.read();ui._runtime_checked_at=clock[0]
+        ui.check_runtime()
+    else: ui.detect_runtime()
+    assert ready.wait(2)
+    # The worker validated map 42, then Tk was blocked while map 43 loaded.
+    clock[0]+=20;state[0]=43
+    ui._poll()
+    assert ui.runtime_snapshot is not None and not client.check(ui.runtime_snapshot)
+    assert not ui.can_copy('H600','unit')
+    # Only a new worker validation can enable copy again.
+    ready.clear();ui.detect_runtime();assert ready.wait(2);ui._poll()
+    assert ui.runtime_snapshot.token==43 and ui.can_copy('H600','unit')

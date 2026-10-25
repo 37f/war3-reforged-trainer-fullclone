@@ -43,6 +43,7 @@ _EN_TRANSLATIONS = {
     "地图会话已变化，请重新检测": "Map session changed; read again",
     "当前游戏版本不支持目录读取": "This game version does not support catalog queries",
     "游戏连接已关闭，请重新连接": "Game connection closed; reconnect first",
+    "游戏连接已变化": "Game connection changed",
     "常驻 helper 尚未就绪，请连接游戏后重试": "Persistent helper is not ready; connect and retry",
     "该对象 ID 无法安全复制，请查看备注": "This object ID cannot be safely copied; see Notes",
     "双击表格行可复制 ID。通用目录来源：W3x2LNI zhCN-1.32.8 与 war3-objectdata 英文社区快照。自定义对象请切换到战役与所选章节；仅代表所选文件定义。": "Double-click to copy an ID. General catalog: W3x2LNI zhCN-1.32.8 and the war3-objectdata English snapshot. Switch to Campaign and selected chapter for custom definitions; these describe the selected files only.",

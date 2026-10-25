@@ -4586,7 +4586,8 @@ class War3Trainer:
         def query(operation,kind=0,start=0,token=0):
             if operation not in (318,319):
                 raise ValueError("未知的当前地图目录操作")
-            if identity()[-1]: raise RuntimeError("游戏连接已关闭，请重新连接")
+            request_identity=identity()
+            if request_identity[-1]: raise RuntimeError("游戏连接已关闭，请重新连接")
             # R21 query workers are short-lived. Let the existing long-lived
             # bootstrap thread own the hook; Windows removes it on owner exit.
             injector=getattr(self,"_persistent_bootstrap_thread",None)
@@ -4598,8 +4599,22 @@ class War3Trainer:
                     if time.monotonic()>deadline:
                         raise RuntimeError("常驻 helper 尚未就绪，请连接游戏后重试")
                     time.sleep(.01)
+            owner_hook=getattr(self,"_native_helper_persistent_hook",None)
             try:
-                result=self._run_native_helper_ops(0,((operation,kind,0,start,token),),timeout_ms=5000)
+                # R21 rechecks after lock acquisition: close/reconnect may win
+                # while this query waits. Never let a stale worker reinstall
+                # the hook or submit to a different connection.
+                with self._native_helper_lock:
+                    current_identity=identity()
+                    if current_identity[-1]: raise RuntimeError("游戏连接已关闭，请重新连接")
+                    if current_identity!=request_identity: raise RuntimeError("游戏连接已变化")
+                    if injector is not None and (
+                        getattr(self,"_persistent_bootstrap_thread",None) is not injector or
+                        not injector.is_alive() or not owner_hook or
+                        getattr(self,"_native_helper_persistent_hook",None)!=owner_hook
+                    ):
+                        raise RuntimeError("常驻 helper 尚未就绪，请连接游戏后重试")
+                    result=self._run_native_helper_ops(0,((operation,kind,0,start,token),),timeout_ms=5000)
             except RuntimeError as exc:
                 match=re.search(r'\blast_error=(\d+)\b',str(exc))
                 messages={21:"当前未进入地图或地图仍在加载",1237:"地图会话已变化，请重新检测",

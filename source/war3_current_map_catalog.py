@@ -50,6 +50,7 @@ class RuntimeCatalogSnapshot:
     timestamp:float
     elapsed_ms:float
     result:CatalogResult
+    validated_at:float
 
 
 def _words(values):
@@ -157,8 +158,13 @@ class CurrentMapCatalogClient:
                 rows.extend(page.records)
             records[kind]=tuple(rows)
         if parse_catalog_header(request(318))!=(token,counts): raise RuntimeError('地图会话已变化，请重新检测')
+        # R21 freshness starts at target validation, before name resolution or
+        # a delayed Tk queue delivery can make an old snapshot appear current.
+        validated_at=time.monotonic();timestamp=time.time()
+        result=build_runtime_result(records)
         if cancelled(): raise RuntimeError('当前地图检测已取消')
-        return RuntimeCatalogSnapshot(token,counts,identity,time.time(),(time.monotonic()-start_time)*1000,build_runtime_result(records))
+        if self.identity()!=identity: raise RuntimeError('游戏连接已变化')
+        return RuntimeCatalogSnapshot(token,counts,identity,timestamp,(time.monotonic()-start_time)*1000,result,validated_at)
 
     def check(self,snapshot):
         if self.identity()!=snapshot.identity: return False
