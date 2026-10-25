@@ -194,7 +194,7 @@ def test_official_map_uses_exact_casc_member_and_rechecks_session_and_content(tm
                 segment_offset=32,encoded_size=len(current[0]),span_count=1)
     monkeypatch.setattr(casc,'read_build_identity',read_build)
     monkeypatch.setattr(casc,'CascArchive',FakeArchive)
-    monkeypatch.setattr(casc,'ensure_no_local_map_override',lambda root,path:None)
+    monkeypatch.setattr(casc,'ensure_no_local_map_override',lambda root,path,**kwargs:None)
     storage=[GameSourceFile(str(tmp_path/'Data'/'data'/'data.017'),(1,7),len(original)+1024,10,20)]
     def inspect_storage(path):
         assert Path(path)==Path(storage[0].path)
@@ -262,6 +262,19 @@ def test_windows_file_binding_matches_actual_open_handle_and_unicode_path(tmp_pa
         files=enumerate_game_files(os.getpid())
     assert info.size==7 and info.file_id[1] and info.process_created>0
     assert any(row.file_id==info.file_id and row.size==7 for row in files)
+
+
+def test_exact_storage_handle_can_be_rechecked_inside_the_game_process(tmp_path):
+    import os
+    from war3_current_map_script import enumerate_game_files,inspect_windows_source_file
+    path=tmp_path/'data.017';path.write_bytes(b'fixture')
+    with path.open('rb'):
+        ordinary=enumerate_game_files(os.getpid())
+        selected=enumerate_game_files(os.getpid(),exact_paths=(path,))
+        local=inspect_windows_source_file(path,os.getpid())
+        assert not any(row.file_id==local.file_id for row in ordinary)
+        assert len(selected)==1 and selected[0].file_id==local.file_id
+        assert selected[0].handle>0 and local.handle==0
 
 
 def test_cancelled_owned_file_enumeration_stops_before_scan():

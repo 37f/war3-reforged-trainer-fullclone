@@ -5,7 +5,7 @@ provider must additionally bind metadata to game-owned files and map session.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass,replace
 from functools import lru_cache
 import hashlib
 import math
@@ -187,6 +187,7 @@ class GameSourceFile:
     size:int
     modified:int
     process_created:int
+    handle:int=0
 
 
 @dataclass(frozen=True)
@@ -232,7 +233,7 @@ def bind_owned_source(metadata,files,inspect_file)->BoundScriptFile:
     local=inspect_file(expected if absolute else game.path)
     if _file_signature(local)!=_file_signature(game):
         raise SourceUnavailable('当前路径文件与游戏持有文件不一致或已被替换')
-    return BoundScriptFile(local,metadata.map_path if metadata.is_campaign else '')
+    return BoundScriptFile(replace(local,handle=game.handle),metadata.map_path if metadata.is_campaign else '')
 
 
 class RuntimeScriptSource:
@@ -285,6 +286,7 @@ class RuntimeScriptSource:
                 entry=archive.read_entry(member,MAX_CASC_BYTES)
             if entry is None:raise SourceUnavailable('当前官方地图在本机 CASC 资源中不存在')
             storage=self._bind_casc_data_file(root,entry,check)
+            ensure_no_local_map_override(root,before.map_path,process_created=storage.process_created)
             check()
             script_entry,language,script,strings=self._read_map_data(entry.data,start+MAX_READ_SECONDS,check)
             check()
@@ -314,7 +316,7 @@ class RuntimeScriptSource:
                 ensure_no_local_map_override,official_member,read_build_identity)
             current=read_build_identity(root)
             if current!=build or official_member(before.map_path)!=member:return False
-            ensure_no_local_map_override(root,before.map_path)
+            ensure_no_local_map_override(root,before.map_path,process_created=storage.process_created)
             if _file_signature(self.inspect_file(storage.path))!=_file_signature(storage):return False
             with CascArchive(root,current,deadline=time.monotonic()+MAX_READ_SECONDS) as archive:
                 entry=archive.read_entry(member,MAX_CASC_BYTES)
@@ -343,7 +345,7 @@ class RuntimeScriptSource:
         local=self.inspect_file(path)
         if _file_signature(local)!=_file_signature(game):
             raise SourceUnavailable('本地官方数据文件与游戏持有文件不一致')
-        return local
+        return replace(local,handle=game.handle)
 
     @staticmethod
     def _read_map(binding,deadline,check):
@@ -415,13 +417,13 @@ def _process_creation(k,C,handle):
     return values[0].value
 
 
-def _handle_file_info(k,C,handle,path,created):
+def _handle_file_info(k,C,handle,path,created,game_handle=0):
     # BY_HANDLE_FILE_INFORMATION has 4-byte alignment, including FILETIMEs.
     info=C.create_string_buffer(52)
     if not k.GetFileInformationByHandle(handle,info):raise SourceUnavailable('无法查询来源文件身份')
     attributes,_,_,modified,volume,high,low,_,index_high,index_low=struct.unpack('<IQQQIIIIII',info.raw)
     if attributes&0x10:raise SourceUnavailable('来源不是普通文件')
-    return GameSourceFile(str(path),(volume,(index_high<<32)|index_low),(high<<32)|low,modified,created)
+    return GameSourceFile(str(path),(volume,(index_high<<32)|index_low),(high<<32)|low,modified,created,game_handle)
 
 
 def inspect_windows_source_file(path,pid)->GameSourceFile:
@@ -476,7 +478,7 @@ def enumerate_game_files(pid,cancelled=lambda:False,*,exact_paths=())->tuple[Gam
                 if requested:
                     if _path_parts(path.value) not in requested:continue
                 elif PureWindowsPath(path.value).suffix.casefold() not in ('.w3n','.w3x','.w3m'):continue
-                try:rows.append(_handle_file_info(k,C,duplicate,path.value,created))
+                try:rows.append(_handle_file_info(k,C,duplicate,path.value,created,value))
                 except SourceUnavailable:continue
                 if len(rows)>4096:raise SourceUnavailable('游戏地图文件数量超过查询上限')
             finally:k.CloseHandle(duplicate)

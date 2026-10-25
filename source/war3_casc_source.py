@@ -106,11 +106,11 @@ def _local_file_override_configuration():
     try:
         import winreg
         key=winreg.OpenKey(winreg.HKEY_CURRENT_USER,r'Software\Blizzard Entertainment\Warcraft III')
-    except FileNotFoundError:return False,()
+    except FileNotFoundError:return False,(),0
     except OSError as exc:raise CascUnavailable('无法读取 Warcraft III 本地文件覆盖设置') from exc
     try:
         try:enabled,kind=winreg.QueryValueEx(key,'Allow Local Files')
-        except FileNotFoundError:return False,()
+        except FileNotFoundError:return False,(),winreg.QueryInfoKey(key)[2]
         if kind!=winreg.REG_DWORD or type(enabled) is not int or enabled not in (0,1):
             raise CascUnavailable('Warcraft III 本地文件覆盖设置格式无效')
         roots=[]
@@ -119,19 +119,21 @@ def _local_file_override_configuration():
             if install_kind==winreg.REG_SZ and isinstance(install_path,str) and install_path.strip():
                 roots.append(Path(install_path.strip()).resolve())
         except FileNotFoundError:pass
-        return bool(enabled),tuple(roots)
+        return bool(enabled),tuple(roots),winreg.QueryInfoKey(key)[2]
     except OSError as exc:raise CascUnavailable('无法读取 Warcraft III 本地文件覆盖设置') from exc
     finally:winreg.CloseKey(key)
 
 
-def ensure_no_local_map_override(install_root:Path,map_path:str):
+def ensure_no_local_map_override(install_root:Path,map_path:str,*,process_created=0):
     """Fail closed until the effective local-override search order is proven."""
     official_member(map_path)
-    try:enabled,_=_local_file_override_configuration()
+    try:enabled,_,modified=_local_file_override_configuration()
     except CascUnavailable:raise
     except Exception as exc:raise CascUnavailable('无法核对 Warcraft III 本地文件覆盖设置') from exc
     if enabled:
         raise CascUnavailable('Warcraft III 已启用本地文件覆盖，尚不能确认官方脚本的实际生效优先级')
+    if process_created and modified>process_created:
+        raise CascUnavailable('本地文件覆盖设置在游戏启动后有过修改，请彻底重开游戏后再检索')
 
 
 class _FileInfo(C.Structure):

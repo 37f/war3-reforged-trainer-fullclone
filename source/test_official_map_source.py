@@ -94,10 +94,10 @@ def test_member_maps_active_path_and_rejects_namespace_or_path_escape():
 
 def test_local_file_override_policy_allows_only_disabled_override_configuration(tmp_path,monkeypatch):
     module=importlib.import_module('war3_casc_source')
-    monkeypatch.setattr(module,'_local_file_override_configuration',lambda:(False,()))
+    monkeypatch.setattr(module,'_local_file_override_configuration',lambda:(False,(),0))
     module.ensure_no_local_map_override(tmp_path,'Campaign/Classic/ROC/Prologue01.w3m')
     # A few absent guessed paths cannot prove the complete VFS override order.
-    monkeypatch.setattr(module,'_local_file_override_configuration',lambda:(True,()))
+    monkeypatch.setattr(module,'_local_file_override_configuration',lambda:(True,(),0))
     with pytest.raises(module.CascUnavailable):
         module.ensure_no_local_map_override(tmp_path,'Campaign/Classic/ROC/Prologue01.w3m')
 
@@ -107,6 +107,14 @@ def test_local_file_override_policy_fails_closed_when_configuration_is_unknown(t
     monkeypatch.setattr(module,'_local_file_override_configuration',lambda:(_ for _ in ()).throw(OSError('registry denied')))
     with pytest.raises(module.CascUnavailable):
         module.ensure_no_local_map_override(tmp_path,'Campaign/Classic/ROC/Prologue01.w3m')
+
+
+def test_disabled_override_changed_after_game_start_requires_a_fresh_process(tmp_path,monkeypatch):
+    module=importlib.import_module('war3_casc_source')
+    monkeypatch.setattr(module,'_local_file_override_configuration',lambda:(False,(),30))
+    with pytest.raises(module.CascUnavailable,match='启动后'):
+        module.ensure_no_local_map_override(tmp_path,'Campaign/Classic/ROC/Prologue01.w3m',process_created=20)
+    module.ensure_no_local_map_override(tmp_path,'Campaign/Classic/ROC/Prologue01.w3m',process_created=40)
 
 
 def test_read_preserves_content_and_returns_storage_proof(casc):
