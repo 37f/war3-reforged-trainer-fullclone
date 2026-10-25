@@ -1,0 +1,132 @@
+"""R22 source contracts/profile proof use owned memory; never scan/inject a game."""
+from dataclasses import replace
+import hashlib
+import struct
+import time
+import pytest
+
+from war3_current_map_script import (ScriptSnapshot,CurrentMapScriptClient,
+    read_profiled_map_metadata,SourceUnavailable)
+
+
+DIFFICULTY_TAIL=bytes.fromhex('488b055a99f00148b9c9aeef3dfdbb3a364833c1483305aa7bf8017511b957000000e8c63e69ff33c04883c428c3488b80702600000fb6406e4883c428c3')
+CAMPAIGN_TEST=bytes.fromhex('33c0488d15b79b1f023805b19b1f02480f45c24885c0740c80b94f300000007503b001c332c0c3')
+
+
+class ProfileMemory:
+    base=0x180000000
+    world=0x600000000
+    config=0x600010000
+    entry=0x600020000
+    chars=0x600030000
+    def __init__(self):
+        self.spans={}
+        dos=bytearray(64);dos[:2]=b'MZ';struct.pack_into('<I',dos,0x3c,0x80);self.put(self.base,dos)
+        pe=bytearray(0x108);pe[:4]=b'PE\0\0';struct.pack_into('<H',pe,4,0x8664);struct.pack_into('<I',pe,8,0x69e54471)
+        struct.pack_into('<H',pe,24,0x20b);struct.pack_into('<I',pe,80,0xdd20000);self.put(self.base+0x80,pe)
+        self.put(self.base+0xc50003,DIFFICULTY_TAIL);self.put(self.base+0x9dde50,CAMPAIGN_TEST)
+        self.q(self.base+0x2b59964,self.world^0x363abbfd3defaec9^123)
+        self.q(self.base+0x2bd7bc8,123)
+        self.q(self.world,self.base+0x23d0690);self.q(self.world+0x2670,self.config)
+        self.put(self.world+0x304f,b'\0')
+        self.q(self.config,self.base+0x23d0508);self.q(self.config+0x40,self.base+0x21dea60)
+        self.q(self.config+0x50,self.entry);self.q(self.entry,self.base+0x21de9b0)
+        self.q(self.entry+0x38,self.chars)
+        self.put(self.chars,b'chapter3.w3x\0'+b'\0'*4096)
+        self.put(self.base+0x2bd7a10,'C:/Campaigns/战役.w3n'.encode()+b'\0'*256)
+    def put(self,address,value):self.spans[address]=bytes(value)
+    def q(self,address,value):self.put(address,struct.pack('<Q',value))
+    def read(self,address,count):
+        for start,value in reversed(tuple(self.spans.items())):
+            if start<=address and address+count<=start+len(value):return value[address-start:address-start+count]
+        raise OSError('unreadable synthetic span')
+
+
+def test_profile_metadata_binds_current_config_and_campaign_without_writes():
+    memory=ProfileMemory();before=dict(memory.spans)
+    m=read_profiled_map_metadata(memory.read,memory.base,123)
+    assert m.map_path=='chapter3.w3x' and m.campaign_path=='C:/Campaigns/战役.w3n'
+    assert m.is_campaign and m.session_token==123 and m.fingerprint
+    assert memory.spans==before
+    memory.put(memory.chars,b'chapter4.w3x\0'+b'\0'*4096)
+    assert read_profiled_map_metadata(memory.read,memory.base,123).fingerprint!=m.fingerprint
+
+
+@pytest.mark.parametrize('change',('code','version','world_type','config_type','string_type','unreadable','path'))
+def test_unverified_source_profile_or_path_is_rejected(change):
+    m=ProfileMemory()
+    if change=='code':m.put(m.base+0x9dde50,b'\x90'*39)
+    elif change=='version':m.put(m.base+0x80,b'PE\0\0'+b'\0'*260)
+    elif change=='world_type':m.q(m.world,0)
+    elif change=='config_type':m.q(m.config,0)
+    elif change=='string_type':m.q(m.entry,0)
+    elif change=='unreadable':m.q(m.entry+0x38,0x100000)
+    else:m.put(m.chars,b'../escape.w3x\0'+b'\0'*4096)
+    with pytest.raises(SourceUnavailable):read_profiled_map_metadata(m.read,m.base,123)
+
+
+def test_stale_campaign_path_is_not_used_for_standalone_game():
+    m=ProfileMemory();m.put(m.world+0x304f,b'\1')
+    metadata=read_profiled_map_metadata(m.read,m.base,123)
+    assert not metadata.is_campaign and metadata.campaign_path==''
+    with pytest.raises(SourceUnavailable):read_profiled_map_metadata(m.read,m.base,0)
+
+
+def test_observed_loaded_header_machine_marker_is_supported():
+    m=ProfileMemory();pe=bytearray(m.read(m.base+0x80,0x108));struct.pack_into('<H',pe,4,0x200)
+    m.put(m.base+0x80,pe)
+    assert read_profiled_map_metadata(m.read,m.base,123).map_path=='chapter3.w3x'
+
+
+def snapshot(identity='game',language='jass'):
+    script=b'function main takes nothing returns nothing\nendfunction\n';strings=b''
+    return ScriptSnapshot(identity,123,'campaign.w3n::chapter3.w3x',language,script,strings,
+        hashlib.sha256(script).hexdigest(),hashlib.sha256(strings).hexdigest(),time.monotonic(),
+        ('active-map/config-and-owned-file',),())
+
+
+def test_client_checks_identity_hashes_provenance_and_cancellation():
+    s=snapshot();calls=[]
+    def query(*,snapshot=None,cancelled=lambda:False):
+        calls.append(snapshot);return s if snapshot is None else True
+    c=CurrentMapScriptClient(query,lambda:'game')
+    assert c.read()==s and c.check(s)
+    with pytest.raises(RuntimeError,match='取消'):c.read(lambda:True)
+    for invalid in (replace(s,script=b'changed'),replace(s,identity='other'),replace(s,provenance=()),replace(s,session_token=0)):
+        c=CurrentMapScriptClient(lambda **kw:invalid,lambda:'game')
+        with pytest.raises((ValueError,RuntimeError)):c.read()
+
+
+def test_client_cannot_publish_after_connection_or_cancel_changes():
+    identity=['old'];cancel=[False]
+    def query(**kwargs):identity[0]='new';return snapshot('old')
+    with pytest.raises(RuntimeError,match='连接'):CurrentMapScriptClient(query,lambda:identity[0]).read()
+    def query(**kwargs):cancel[0]=True;return snapshot()
+    with pytest.raises(RuntimeError,match='取消'):CurrentMapScriptClient(query,lambda:'game').read(lambda:cancel[0])
+
+
+def test_source_size_and_deadline_are_explicit(monkeypatch):
+    import war3_current_map_script as m
+    s=snapshot();monkeypatch.setattr(m,'MAX_SCRIPT_BYTES',10)
+    with pytest.raises(ValueError,match='上限'):CurrentMapScriptClient(lambda **kw:s,lambda:'game').read()
+
+
+def test_lua_is_a_real_source_but_not_silently_relabelled_jass():
+    s=snapshot(language='lua')
+    assert CurrentMapScriptClient(lambda **kw:s,lambda:'game').read().language=='lua'
+
+
+@pytest.mark.parametrize('token',(-1,2**64,True))
+def test_snapshot_session_token_is_an_unsigned_nonzero_word(token):
+    s=replace(snapshot(),session_token=token)
+    with pytest.raises(ValueError):CurrentMapScriptClient(lambda **kw:s,lambda:'game').read()
+
+
+def test_source_deadline_covers_slow_provider_and_check_revalidates_identity(monkeypatch):
+    import war3_current_map_script as m
+    clock=[100.];monkeypatch.setattr(m.time,'monotonic',lambda:clock[0]);s=snapshot()
+    def slow(**kw):clock[0]+=61;return replace(s,validated_at=clock[0])
+    with pytest.raises(TimeoutError):CurrentMapScriptClient(slow,lambda:'game').read()
+    identity=['game']
+    def changed(**kw):identity[0]='other';return True
+    assert not CurrentMapScriptClient(changed,lambda:identity[0]).check(s)
