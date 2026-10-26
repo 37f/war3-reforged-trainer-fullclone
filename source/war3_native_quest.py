@@ -181,7 +181,10 @@ _MESSAGES={1:'任务来源文件已变化',2:'当前地图会话已变化',3:'�
     4:'任务实例未创建、已销毁、已完成或已失败',5:'原触发器动作绑定已变化',
     6:'此任务此前已派发，本次不会重复执行',7:'无法确认原 helper 去重记录，禁止再次派发',
     8:'当前游戏构建不支持任务执行桥',9:'原完成流程已派发，等待任务状态读回',
-    10:'任务来源或请求边界无效',11:'任务执行桥正在处理其他请求',12:'任务请求记录已满'}
+    10:'任务来源或请求边界无效',11:'任务执行桥正在处理其他请求',12:'任务请求记录已满',
+    13:'已观察到原流程将任务标为完成；奖励和后续请在游戏中核对',
+    14:'原流程可能已执行，当前结果无法确认；禁止重试原流程',
+    15:'本地文件覆盖已开启、无法核对或在游戏启动后变化，不能确认原任务脚本'}
 
 
 def decode_quest_response(request:QuestRuntimeRequest,words)->dict:
@@ -294,6 +297,25 @@ class QuestRuntimeClient:
         with self._lock:
             self._requests[request_id]=(key,result)
             if result.status=='rejected-before-dispatch':self._attempts.pop(key,None)
+        return result
+
+    def observe(self,plan:CompletionPlan,proof:QuestRuntimeProof,request_id:str)->QuestExecutionResult:
+        """Read the original dispatch record; never reserve or execute again."""
+        with self._lock:
+            previous=self._requests.get(request_id)
+        key=(proof.vm,proof.quest_full,proof.quest_object) if isinstance(proof,QuestRuntimeProof) else None
+        if previous is None or previous[0]!=key or not previous[1].may_have_run:
+            return self._rejected(request_id,'没有可观察的已派发请求')
+        try:
+            if self.identity()!=proof.connection_identity:
+                return self._unknown(request_id,'原游戏连接已变化，不能确认先前的任务执行结果')
+            request=_request(plan,'status',proof,request_id)
+            result=self._parse_execution(request,self.query(request))
+            if self.identity()!=proof.connection_identity:
+                result=self._unknown(request_id,'读取执行状态期间游戏连接发生变化')
+        except Exception as exc:
+            result=self._unknown(request_id,'读取执行状态失败；不会重试原流程：'+str(exc))
+        with self._lock:self._requests[request_id]=(key,result)
         return result
 
     def _parse_execution(self,request,value):

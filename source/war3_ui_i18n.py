@@ -35,6 +35,19 @@ def detect_ui_language(locale_name: str | None = None) -> str:
 
 
 _EN_TRANSLATIONS = {
+    "任务执行桥的请求边界无效": "Invalid quest execution request envelope",
+    "任务运行时返回操作不一致": "Quest runtime response operation mismatch",
+    "未知的任务运行时操作": "Unknown quest runtime operation",
+    "正在校验原完成入口与运行中任务实例": "Checking the original entry and live quest instance",
+    "游戏尚未连接": "The game is not connected",
+    "原完成流程正在处理；不要重复提交": "Processing the original flow; do not submit again",
+    "正在只读查询上次派发状态": "Reading the previous dispatch status",
+    "当前原入口与任务实例已核对；证明有效期2秒，过期请重新检查": "Original entry and quest instance verified; proof expires in 2 seconds, then check again",
+    "运行时证明已过期，请重新检查完成入口": "Runtime proof expired; check the completion entry again",
+    "派发期间所选任务或来源已变化；先前流程可能已执行，不会重试": "Selection or source changed during dispatch; the original flow may have run and will not be retried",
+    "已观察到原流程将任务标为完成；奖励和后续请在游戏中核对": "The original flow marked the quest completed; verify rewards and continuation in the game",
+    "原完成流程已派发，等待任务状态读回": "Original flow dispatched; awaiting quest state observation",
+    "此任务此前已派发，本次不会重复执行": "This quest was previously dispatched and will not be executed again",
     "任务与条件": "Quests and conditions",
     "触发器身份无法唯一确认，不合并不同注册点：": "Trigger identity is ambiguous; registration sites are not merged: ",
     "触发器身份无法唯一确认：": "Trigger identity is ambiguous: ",

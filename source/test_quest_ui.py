@@ -212,3 +212,37 @@ def test_review_existing_report_expires_on_delayed_visible_tick():
         clock[0]=120.;c.tick(True)
         assert c.report is None and c.state not in ('ready','partial')
     finally:c.close()
+
+
+def test_actual_completion_buttons_require_preflight_and_language_never_executes(tk_root):
+    from test_quest_completion_ui import report,settle
+    from test_native_quest import _inspection,_execution
+    from war3_native_quest import QuestRuntimeClient
+    operations=[];language=['zh']
+    def query(request):
+        operations.append(request.operation)
+        return _inspection(request) if request.operation=='inspect' else _execution(request)
+    runtime=QuestRuntimeClient(query,lambda:1,lambda plan:True)
+    ui=QuestAnalysisUI(tk_root,lambda:language[0],lambda:None,runtime_client_provider=lambda:runtime)
+    panel=ttk.Frame(tk_root);ui.add_controls(panel)
+    try:
+        ui.controller.report=report();ui.controller.state='ready';ui.render()
+        assert str(ui.execute_button.cget('state'))=='disabled'
+        ui.inspect_button.invoke();settle(ui.completion);ui.render_completion()
+        assert str(ui.execute_button.cget('state'))=='normal' and operations==['inspect']
+        language[0]='en';ui.refresh_language()
+        assert ui.execute_button.cget('text')=='Complete quest (original flow)'
+        assert operations==['inspect']
+        ui.search.set('there_is_no_matching_quest')
+        assert str(ui.execute_button.cget('state'))=='disabled'
+        assert not ui.completion.can_inspect
+        ui.search.set('');ui.inspect_button.invoke();settle(ui.completion);ui.render_completion()
+        ui.execute_button.invoke();settle(ui.completion);ui.render_completion()
+        assert operations==['inspect','inspect','execute']
+        assert str(ui.execute_button.cget('state'))=='disabled'
+        ui.tree.selection_set('coverage');ui.show_selected()
+        assert str(ui.inspect_button.cget('state'))=='disabled'
+        ui.search.set('there_is_no_matching_quest')
+        assert str(ui.execute_button.cget('state'))=='disabled'
+        assert not ui.completion.can_inspect
+    finally:ui.close();panel.destroy()

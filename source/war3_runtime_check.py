@@ -45,6 +45,52 @@ endfunction
     return {'quest_source_model_ok':source_ok,'quest_analysis_ok':analysis_ok,'quest_controller_ok':controller_ok}
 
 
+def quest_execution_self_check():
+    """R23 offline fixture: inspect a simulated reply, refuse dispatch at source guard."""
+    import struct
+    from war3_current_map_script import ScriptSnapshot,GameSourceFile,MapSourceMetadata
+    from war3_quest_analysis import analyze_quests
+    from war3_quest_execution import build_completion_plan
+    from war3_native_quest import QuestRuntimeClient,encode_quest_request,decode_quest_response,QUEST_PROTOCOL
+    script=b'''globals
+quest q=null
+trigger t=null
+endglobals
+function Finish takes nothing returns nothing
+call QuestSetCompleted(q,true)
+endfunction
+function InitTrig takes nothing returns nothing
+set t=CreateTrigger()
+call TriggerRegisterAnyUnitEventBJ(t,PLAYER_EVENT_PLAYER_UNIT_PICKUP_ITEM)
+call TriggerAddAction(t,function Finish)
+endfunction
+function main takes nothing returns nothing
+set q=CreateQuest()
+call QuestSetTitle(q,"Offline completion")
+call InitTrig()
+endfunction
+'''
+    source=GameSourceFile('offline-fixture.w3x',(1,2),1000,10,20,handle=333)
+    snap=ScriptSnapshot('offline',7,'offline-fixture::war3map.j','jass',script,b'',
+        hashlib.sha256(script).hexdigest(),hashlib.sha256(b'').hexdigest(),0.,('offline fixture',),
+        (MapSourceMetadata(7,'offline','offline-fixture.w3x','',False),source))
+    report=analyze_quests(snap);plan=build_completion_plan(report,report.quests[0].key)
+    count=[0];valid=[True];wire_ok=[False]
+    def query(request):
+        count[0]+=1;words=encode_quest_request(request)
+        wire_ok[0]=words[:10]==(0x31515352,1,0,7,333,1,2,1000,10,20)
+        digest=lambda value:struct.unpack('<'+'Q'*(len(value)//16),bytes.fromhex(value))
+        reply=(0x31515352,1,0,7,*digest(request.plan_id),*digest('1'*32),*digest('2'*32),
+            0x10000,100,0x20000,1000,101,0x30000,1001,999,1,2,4,0,0,0,0,0,0,0,0,0)
+        return decode_quest_response(request,reply)
+    client=QuestRuntimeClient(query,lambda:'offline',lambda plan:valid[0])
+    proof=client.inspect(plan);valid[0]=False
+    result=client.execute(plan,proof,'3'*32)
+    return {'quest_completion_plan_ok':plan.eligible,'quest_wire_ok':wire_ok[0],
+        'quest_execution_guard_ok':result.status=='rejected-before-dispatch' and not result.may_have_run and count[0]==1,
+        'quest_native_protocol':QUEST_PROTOCOL}
+
+
 def run(output_path):
     report = {"ok": False, "frozen": bool(getattr(sys, "frozen", False))}
     try:
@@ -66,6 +112,9 @@ def run(output_path):
         helper = base / "tools" / "war3_native_helper.dll"
         library = ctypes.WinDLL(str(helper))
         getattr(library, "War3HookProc")
+        protocol=library.War3NativeProtocol;protocol.argtypes=[];protocol.restype=ctypes.c_uint32
+        report['helper_protocol']=int(protocol())
+        if report['helper_protocol']!=79:raise RuntimeError('Packaged helper protocol mismatch')
         report["helper_sha256"] = hashlib.sha256(helper.read_bytes()).hexdigest()
         # R20: also verify offline archive dependency from the frozen bundle.
         from war3_campaign_catalog import _storm_library
@@ -83,8 +132,17 @@ def run(output_path):
         if not report['current_map_parser_ok']:
             raise RuntimeError('Current-map protocol parser check failed')
         report.update(quest_self_check())
+        report.update(quest_execution_self_check())
+        from war3_casc_source import _load_library,CASC_DLL_SHA256
+        casc=_load_library();casc_path=Path(casc._name).resolve()
+        if report['frozen'] and not casc_path.is_relative_to(base.resolve()):
+            raise RuntimeError('CASC library was loaded from outside the executable bundle')
+        report['casclib_sha256']=hashlib.sha256(casc_path.read_bytes()).hexdigest()
+        if report['casclib_sha256']!=CASC_DLL_SHA256:raise RuntimeError('CASC dependency mismatch')
         if not all(report[name] for name in ('quest_source_model_ok','quest_analysis_ok','quest_controller_ok')):
             raise RuntimeError('Offline quest model/analysis/controller check failed')
+        if not all(report[name] for name in ('quest_completion_plan_ok','quest_wire_ok','quest_execution_guard_ok')):
+            raise RuntimeError('Offline quest completion/guard check failed')
         report["ok"] = True
     except Exception:
         report["error"] = traceback.format_exc()

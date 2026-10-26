@@ -107,7 +107,7 @@ def test_trainer_bridge_uses_read_only_unbound_operations():
     client=trainer.current_map_catalog_client()
     assert client.read().counts==(0,0,0)
     assert all(call.args[0]==0 and call.args[1]==((318,0,0,0,0),) for call in trainer._run_native_helper_ops.call_args_list)
-    assert trainer.NATIVE_HELPER_VERSION==78
+    assert trainer.NATIVE_HELPER_VERSION==79
 
 
 def test_trainer_bridge_explains_menu_and_rejects_closed_connection():

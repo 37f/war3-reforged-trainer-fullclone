@@ -201,3 +201,31 @@ def test_native_wire_rejects_unsupported_shape_or_flags(change):
     client=QuestRuntimeClient(lambda request:decode_quest_response(request,change(_wire_reply(request))),
         lambda:1,lambda p:True)
     with pytest.raises((ValueError,RuntimeError)):client.inspect(_plan())
+
+
+def test_observation_never_redispatches_original_flow():
+    from war3_native_quest import QuestRuntimeClient
+    operations=[]
+    def query(request):
+        operations.append(request.operation)
+        if request.operation=='inspect':return _inspection(request)
+        return _execution(request,**({'status':'observed-completed','completed':True}
+            if request.operation=='status' else {}))
+    client=QuestRuntimeClient(query,lambda:1,lambda p:True)
+    plan=_plan();proof=client.inspect(plan);request_id='3'*32
+    assert client.execute(plan,proof,request_id).status=='dispatched'
+    result=client.observe(plan,proof,request_id)
+    assert result.status=='observed-completed'
+    assert operations==['inspect','execute','status']
+    assert client.execute(plan,proof,'4'*32).status=='observed-completed'
+    assert operations==['inspect','execute','status']
+
+
+def test_observation_requires_an_existing_possibly_dispatched_request():
+    from war3_native_quest import QuestRuntimeClient
+    operations=[]
+    def query(request):operations.append(request.operation);return _inspection(request)
+    client=QuestRuntimeClient(query,lambda:1,lambda p:True)
+    plan=_plan();proof=client.inspect(plan)
+    assert client.observe(plan,proof,'3'*32).status=='rejected-before-dispatch'
+    assert operations==['inspect']
