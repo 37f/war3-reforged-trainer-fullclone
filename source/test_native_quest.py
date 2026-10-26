@@ -146,9 +146,58 @@ def test_helper_epoch_change_during_dispatch_is_unknown():
     assert client.execute(plan,proof,'3'*32).status=='unknown'
 
 
+def test_requery_retiring_catalog_token_cannot_make_same_live_quest_retryable():
+    from war3_native_quest import QuestRuntimeClient
+    requests=[];plan=_plan()
+    def query(r):
+        requests.append(r)
+        return _inspection(r) if r.operation=='inspect' else _execution(r)
+    client=QuestRuntimeClient(query,lambda:1,lambda p:True)
+    first=client.inspect(plan);assert client.execute(plan,first,'3'*32).status=='dispatched'
+    snapshot=replace(plan.source_snapshot,session_token=8,
+        stamp=(replace(plan.source_snapshot.stamp[0],session_token=8),plan.source_snapshot.stamp[1]))
+    refreshed=replace(plan,snapshot_token=8,source_snapshot=snapshot)
+    second=client.inspect(refreshed)
+    assert client.execute(refreshed,second,'4'*32).status=='dispatched'
+    assert sum(r.operation=='execute' for r in requests)==1
+
+
 def test_missing_game_owned_source_handle_is_not_replaced_with_a_host_file_handle():
     from war3_native_quest import QuestRuntimeClient
     plan=_plan();snapshot=plan.source_snapshot
     plan=replace(plan,source_snapshot=replace(snapshot,stamp=(snapshot.stamp[0],replace(snapshot.stamp[1],handle=0))))
     client=QuestRuntimeClient(lambda r:pytest.fail('unbound source must not reach native transport'),lambda:1,lambda p:True)
     with pytest.raises(RuntimeError):client.inspect(plan)
+
+
+def _wire_reply(request):
+    import struct
+    digest=lambda text:struct.unpack('<'+'Q'*(len(text)//16),bytes.fromhex(text))
+    return (0x31515352,1,0,request.session_token,*digest(request.plan_id),
+        *digest('1'*32),*digest('2'*32),0x600000000,100,0x600001000,1000,
+        101,0x600002000,1001,12345,*request.source.file_id,4,0,0,0,0,0,0,0,0,0)
+
+
+def test_native_wire_carries_only_bounded_names_and_verified_source_identity():
+    from war3_native_quest import QuestRuntimeClient,encode_quest_request,decode_quest_response
+    captured=[]
+    def query(request):
+        words=encode_quest_request(request);captured.append(words)
+        assert words[:10]==(0x31515352,1,0,7,333,1,2,1000,10,20)
+        assert len(words)<=8192
+        return decode_quest_response(request,_wire_reply(request))
+    client=QuestRuntimeClient(query,lambda:1,lambda p:True)
+    assert client.inspect(_plan()).quest_full==1000 and len(captured)==1
+
+
+@pytest.mark.parametrize('change',[
+    lambda words:words[:-1],lambda words:words+(0,),
+    lambda words:(0,)+words[1:],lambda words:words[:1]+(99,)+words[2:],
+    lambda words:words[:22]+(128,)+words[23:],
+    lambda words:words[:31]+(1,),
+])
+def test_native_wire_rejects_unsupported_shape_or_flags(change):
+    from war3_native_quest import QuestRuntimeClient,decode_quest_response
+    client=QuestRuntimeClient(lambda request:decode_quest_response(request,change(_wire_reply(request))),
+        lambda:1,lambda p:True)
+    with pytest.raises((ValueError,RuntimeError)):client.inspect(_plan())

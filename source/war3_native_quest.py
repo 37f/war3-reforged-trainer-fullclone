@@ -10,6 +10,7 @@ from dataclasses import dataclass
 import hashlib
 import json
 import re
+import struct
 import threading
 import time
 
@@ -19,6 +20,8 @@ from war3_quest_execution import CompletionPlan
 QUEST_PROTOCOL=79
 PROOF_SECONDS=2.
 MAX_ATTEMPTS=128
+QUEST_WIRE_MAGIC=0x31515352
+MAX_QUEST_WORDS=8192
 _IDENTIFIER=re.compile(r'[A-Za-z_][A-Za-z_0-9]{0,126}\Z')
 _NONCE=re.compile(r'[0-9a-f]{32}\Z')
 
@@ -128,6 +131,86 @@ def _request(plan,operation,proof=None,request_id=''):
         plan.chain_functions,plan.script_sha256,plan.strings_sha256,source,proof,request_id)
 
 
+def _digest_words(text,bytes_count):
+    if not isinstance(text,str) or not re.fullmatch('[0-9a-f]{'+str(bytes_count*2)+'}',text):
+        raise ValueError('任务协议的哈希或标识格式无效')
+    return struct.unpack('<'+'Q'*(bytes_count//8),bytes.fromhex(text))
+
+
+def _words_hex(words):return struct.pack('<'+'Q'*len(words),*words).hex()
+
+
+def encode_quest_request(request:QuestRuntimeRequest)->tuple[int,...]:
+    """Versioned bounded words, without arbitrary script/native call addresses."""
+    modes={'inspect':0,'execute':1,'status':2}
+    if not isinstance(request,QuestRuntimeRequest) or request.operation not in modes:
+        raise ValueError('任务协议请求类型无效')
+    source=request.source
+    words=[QUEST_WIRE_MAGIC,1,modes[request.operation],_integer(request.session_token,minimum=1),
+        _integer(source.handle,minimum=1),_integer(source.file_id[0],32),
+        _integer(source.file_id[1],minimum=1),_integer(source.size,minimum=1),
+        _integer(source.modified),_integer(source.process_created,minimum=1),
+        *_digest_words(request.plan_id,32),*_digest_words(request.script_sha256,32),
+        *_digest_words(request.strings_sha256,32)]
+    proof=request.proof
+    if proof is None:
+        if request.operation!='inspect':raise ValueError('任务派发缺少运行时证明')
+        words.extend((0,)*12)
+    else:
+        words.extend((*_digest_words(_nonce(proof.helper_epoch),16),*_digest_words(_nonce(proof.proof_id),16),
+            proof.vm,proof.quest_handle,proof.quest_object,proof.quest_full,
+            proof.trigger_handle,proof.trigger_object,proof.trigger_full,proof.bindings_fingerprint))
+    words.extend(_digest_words(_nonce(request.request_id),16) if request.request_id else (0,0))
+    def name(value):
+        if not isinstance(value,str) or not _IDENTIFIER.fullmatch(value):raise ValueError('任务协议标识符无效')
+        raw=value.encode('ascii');words.append(len(raw));raw+=b'\0'*((-len(raw))%8)
+        words.extend(struct.unpack('<'+'Q'*(len(raw)//8),raw))
+    for value in (request.quest_alias,request.entry_trigger,request.entry_function):name(value)
+    words.append(len(request.trigger_bindings))
+    for trigger,actions in request.trigger_bindings:
+        name(trigger);words.append(len(actions))
+        for action in actions:name(action)
+    words.append(len(request.chain_functions))
+    for function in request.chain_functions:name(function)
+    if len(words)>MAX_QUEST_WORDS:raise RuntimeError('任务原完成流程超过协议长度上限')
+    for word in words:_integer(word)
+    return tuple(words)
+
+
+_MESSAGES={1:'任务来源文件已变化',2:'当前地图会话已变化',3:'任务运行时证明已过期',
+    4:'任务实例未创建、已销毁、已完成或已失败',5:'原触发器动作绑定已变化',
+    6:'此任务此前已派发，本次不会重复执行',7:'无法确认原 helper 去重记录，禁止再次派发',
+    8:'当前游戏构建不支持任务执行桥',9:'原完成流程已派发，等待任务状态读回',
+    10:'任务来源或请求边界无效',11:'任务执行桥正在处理其他请求',12:'任务请求记录已满'}
+
+
+def decode_quest_response(request:QuestRuntimeRequest,words)->dict:
+    if not isinstance(words,tuple) or len(words)!=32:raise ValueError('任务协议返回长度无效')
+    for word in words:_integer(word)
+    mode={'inspect':0,'execute':1,'status':2}.get(request.operation)
+    if (words[:3]!=(QUEST_WIRE_MAGIC,1,mode) or words[3]!=request.session_token or
+        _words_hex(words[4:8])!=request.plan_id or words[22]&~7 or words[29]&~3 or words[31]):
+        raise ValueError('任务协议返回头、标识或状态位无效')
+    error=_integer(words[24],32);status=words[23];message_code=_integer(words[30],32)
+    helper_epoch=_words_hex(words[8:10]);flags=words[22]
+    message=_MESSAGES.get(message_code,'任务执行桥返回未识别的说明代码 '+str(message_code))
+    if request.operation=='inspect':
+        if status!=0 or error:raise RuntimeError(message+f'（error={error}）')
+        return {'protocol':QUEST_PROTOCOL,'kind':'inspected','plan_id':request.plan_id,
+            'session_token':words[3],'helper_epoch':helper_epoch,'proof_id':_words_hex(words[10:12]),
+            'vm':words[12],'quest_handle':words[13],'quest_object':words[14],'quest_full':words[15],
+            'trigger_handle':words[16],'trigger_object':words[17],'trigger_full':words[18],
+            'bindings_fingerprint':words[19],'source_file_id':words[20:22],
+            'completed':bool(flags&1),'failed':bool(flags&2),'discovered':bool(flags&4)}
+    statuses={1:'rejected-before-dispatch',2:'dispatched',3:'observed-completed',4:'unknown'}
+    if status not in statuses:raise ValueError('任务执行协议状态无效')
+    return {'protocol':QUEST_PROTOCOL,'kind':'execution-result','plan_id':request.plan_id,
+        'session_token':words[3],'helper_epoch':helper_epoch,'request_id':_words_hex(words[25:27]),
+        'dispatch_id':_words_hex(words[27:29]),'status':statuses[status],
+        'dispatched':bool(words[29]&1),'completed':bool(flags&1),
+        'message':message,'error':error,'already_dispatched':bool(words[29]&2)}
+
+
 class QuestRuntimeClient:
     def __init__(self,query,identity,source_validator,clock=time.monotonic):
         self.query,self.identity,self.source_validator=query,identity,source_validator
@@ -174,7 +257,9 @@ class QuestRuntimeClient:
         if not isinstance(proof,QuestRuntimeProof):return self._rejected(request_id,'缺少类型化的运行时证明')
         try:_nonce(request_id)
         except ValueError as exc:return self._rejected(request_id,str(exc))
-        key=(proof.session_token,proof.vm,proof.quest_full,proof.quest_object)
+        # Catalog validation can retire its token without destroying a quest.
+        # Dedup follows the live VM/object generation, never a refresh token.
+        key=(proof.vm,proof.quest_full,proof.quest_object)
         # Look up in-flight requests before transport or expiry checks. A second
         # click/reinspection cannot make a possibly dispatched instance retryable.
         with self._lock:
