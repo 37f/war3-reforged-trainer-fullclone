@@ -25,6 +25,19 @@ _ADAPTERS=frozenset(('QuestSetCompletedBJ','QuestSetFailedBJ','QuestMessageBJ',
     'ConditionalTriggerExecute','TriggerExecuteBJ','QueuedTriggerAddBJ',
     'QueuedTriggerRemoveBJ'))
 _NATIVES=frozenset(NATIVE_NAMES)
+# R23 review: availability is not proof of context independence. Only these
+# explicit-state getters have been classified; unfamiliar getters fail closed
+# rather than silently inheriting permission from a newer native profile.
+_CONTEXT_FREE_GETTERS=frozenset(('GetLocalPlayer','GetPlayerId','GetPlayerName',
+    'GetPlayerState','GetPlayerTeam','GetPlayerController','GetOwningPlayer',
+    'GetHandleId','GetTriggeringTrigger','GetUnitTypeId','GetUnitState','GetWidgetLife',
+    'GetUnitX','GetUnitY','GetUnitFacing','GetUnitMoveSpeed','GetUnitUserData',
+    'GetUnitName','GetUnitAbilityLevel','GetHeroLevel','GetHeroXP','GetHeroSkillPoints',
+    'GetHeroStr','GetHeroAgi','GetHeroInt','GetHeroProperName','GetItemTypeId',
+    'GetItemCharges','GetItemUserData','GetItemName','GetResourceAmount','GetObjectName',
+    'GetRandomInt','GetRandomReal','GetRectMinX','GetRectMinY','GetRectMaxX','GetRectMaxY',
+    'GetRectCenterX','GetRectCenterY','GetLocationX','GetLocationY','GetLocationZ',
+    'BlzGetUnitMaxHP','BlzGetUnitMaxMana','BlzGetUnitArmor','BlzGetUnitBaseDamage'))
 _DISPATCH=frozenset(('TriggerExecute','TriggerExecuteWait','ConditionalTriggerExecute',
     'TriggerExecuteBJ','QueuedTriggerAddBJ'))
 _EVENT_RESPONSES=frozenset(('GetTriggerUnit','GetEnteringUnit','GetLeavingUnit',
@@ -116,6 +129,8 @@ def build_completion_plan(report,quest_key,cancelled=lambda:False)->CompletionPl
     matches=[quest for quest in report.quests if quest.key==quest_key]
     if len(matches)!=1:raise ValueError('任务脚本键不是唯一的现有任务定义')
     quest=matches[0];reasons=[];deadline=time.monotonic()+MAX_PLAN_SECONDS
+    if snapshot.stamp and snapshot.stamp[0]=='official-casc':
+        reasons.append('官方基础资源的运行时语言／模组覆盖层尚未核对，本版仅提供基础脚本分析')
     def check():
         if cancelled():raise RuntimeError('任务完成入口分析已取消')
         if time.monotonic()>deadline:raise TimeoutError('任务完成入口分析超过时间上限')
@@ -234,6 +249,14 @@ def build_completion_plan(report,quest_key,cancelled=lambda:False)->CompletionPl
                 problems.append('原动作函数签名不是无参数、无返回值：'+name);return
             visiting.add(name);functions.append(name)
             for statement in _statements(fn.body):
+                check()
+                if statement.kind=='set':
+                    proof.append(CompletionEvidence(name,statement.line,'set '+expression(statement.exprs[0])+
+                        ' = '+expression(statement.exprs[1]),'原动作赋值'))
+                elif statement.kind=='local':
+                    declaration='local '+statement.type_name+(' array' if statement.array else '')+' '+statement.name
+                    if statement.exprs:declaration+=' = '+expression(statement.exprs[0])
+                    proof.append(CompletionEvidence(name,statement.line,declaration,'原动作局部变量'))
                 if statement.kind=='if':problems.append('原动作包含尚未校验的分支条件：'+name+':'+str(statement.line))
                 if statement.kind in ('loop','exitwhen','debug'):
                     problems.append('原动作包含未支持的循环或 debug 执行上下文：'+name)
@@ -246,7 +269,8 @@ def build_completion_plan(report,quest_key,cancelled=lambda:False)->CompletionPl
                     problems.append('原完成流程调用数量超过上限');break
                 proof.append(CompletionEvidence(name,call.line,expression(call),'原动作调用'))
                 callee=str(call.value)
-                if (callee in _EVENT_RESPONSES or callee.startswith(('GetEvent','GetEnum','GetFilter')) or
+                if (callee in _EVENT_RESPONSES or callee.startswith(('GetEvent','BlzGetEvent','SetEvent','BlzSetEvent','GetEnum','GetFilter',
+                    'GetSpell','GetOrderTarget','GetTournament')) or
                     (callee.startswith('GetTrigger') and callee!='GetTriggeringTrigger')):
                     problems.append('原动作依赖缺失的事件响应／枚举上下文：'+callee)
                 if callee=='ExecuteFunc':
@@ -254,6 +278,8 @@ def build_completion_plan(report,quest_key,cancelled=lambda:False)->CompletionPl
                 if callee in program.functions:
                     if call.args:problems.append('原动作调用带参数函数，尚未校验实参上下文：'+callee)
                     visit(callee);continue
+                if callee in _NATIVES and callee.startswith(('Get','BlzGet')) and callee not in _CONTEXT_FREE_GETTERS:
+                    problems.append('原动作读取接口的上下文尚未核对：'+callee)
                 if callee in _DISPATCH:
                     target=_global_name(call.args[0],globals_,'trigger') if call.args else None
                     if not target:
@@ -262,7 +288,7 @@ def build_completion_plan(report,quest_key,cancelled=lambda:False)->CompletionPl
                 elif callee not in _NATIVES and callee not in _ADAPTERS:
                     problems.append('原动作调用的函数体或标准接口未确认：'+callee)
                 if (callee in ('TimerStart','ForGroup','ForForce') or callee.startswith('Enum') or
-                    callee in ('TriggerAddAction','TriggerAddCondition') or callee.startswith('TriggerRegister')):
+                    callee in ('TriggerAddAction','TriggerAddCondition') or callee.startswith(('TriggerRegister','BlzTriggerRegister'))):
                     problems.append('原动作会建立未校验的回调或事件上下文：'+callee)
                 if callee in ('CreateQuest','CreateQuestBJ','DestroyQuest'):
                     problems.append('原动作会创建或销毁任务实例，无法保持本次任务身份：'+callee)

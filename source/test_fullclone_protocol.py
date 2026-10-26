@@ -39,6 +39,7 @@ EXTENSION_OPERATIONS = {
     "EXT_QUEST_INSPECT": 320,
     "EXT_QUEST_EXECUTE": 321,
     "EXT_QUEST_STATUS": 322,
+    "EXT_QUERY_SOURCE_POLICY": 323,
 }
 AUTHOR_PYTHON_OPERATIONS_SHA256 = (
     "13175af7125e57021cd919fa3d94bbdfe01a1fc3c89278569bfccd81ebaf071c"
@@ -89,11 +90,11 @@ def test_extension_operations_reach_the_real_python_transport(tmp_path):
             ((kind, 0, 0, 0, 0),),
         )
 
-    assert trainer._write_native_helper_command.call_count == len(EXTENSION_OPERATIONS)-3
-    assert trainer._wait_native_helper_result.call_count == len(EXTENSION_OPERATIONS)-3
+    assert trainer._write_native_helper_command.call_count == len(EXTENSION_OPERATIONS)-4
+    assert trainer._wait_native_helper_result.call_count == len(EXTENSION_OPERATIONS)-4
 
 
-@pytest.mark.parametrize("kind", range(323, 324))
+@pytest.mark.parametrize("kind", range(324, 325))
 def test_reserved_extension_operations_are_rejected_before_transport(tmp_path, kind):
     trainer = make_transport_trainer(tmp_path)
 
@@ -463,7 +464,7 @@ def test_real_c_dispatcher_rejects_invalid_implemented_transactions_without_plac
 
 
 def test_real_c_dispatcher_keeps_reserved_extension_range_unsupported(c_dispatcher):
-    for kind in range(323, 324):
+    for kind in range(324, 325):
         status, last_error, operation_error = dispatch(c_dispatcher, 79, kind)
         assert status == 3
         assert last_error == operation_error != 0

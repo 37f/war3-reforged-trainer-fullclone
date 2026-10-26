@@ -194,26 +194,28 @@ def test_official_map_uses_exact_casc_member_and_rechecks_session_and_content(tm
                 segment_offset=32,encoded_size=len(current[0]),span_count=1)
     monkeypatch.setattr(casc,'read_build_identity',read_build)
     monkeypatch.setattr(casc,'CascArchive',FakeArchive)
-    monkeypatch.setattr(casc,'ensure_no_local_map_override',lambda root,path,**kwargs:None)
+    monkeypatch.setattr(casc,'ensure_no_local_map_override',lambda *a,**k:(_ for _ in ()).throw(AssertionError('host policy must not authorize another process')))
+    policy=[20]
     storage=[GameSourceFile(str(tmp_path/'Data'/'data'/'data.017'),(1,7),len(original)+1024,10,20)]
     def inspect_storage(path):
         assert Path(path)==Path(storage[0].path)
         return storage[0]
     source=RuntimeScriptSource(lambda:metadata,lambda:(),inspect_storage,
-        lambda:'game',casc_root=lambda:tmp_path,casc_owned_files=lambda path,cancelled:(storage[0],))
+        lambda:'game',casc_root=lambda:tmp_path,casc_owned_files=lambda path,cancelled:(storage[0],),source_policy=lambda:policy[0])
     client=CurrentMapScriptClient(source.query,lambda:'game')
     result=client.read()
     assert result.script==script and result.strings_data==strings
     assert 'war3.w3mod:campaign\\classic\\roc\\prologue01.w3m' in result.origin
     assert result.stamp[0]=='official-casc'
     assert client.check(result)
+    policy[0]=21;assert not client.check(result);policy[0]=20
     current[0]=original+b'changed'
     assert not client.check(result)
     current[0]=original
     storage[0]=replace(storage[0],file_id=(1,8))
     assert not client.check(result)
     unowned=RuntimeScriptSource(lambda:metadata,lambda:(),inspect_storage,
-        lambda:'game',casc_root=lambda:tmp_path,casc_owned_files=lambda path,cancelled:())
+        lambda:'game',casc_root=lambda:tmp_path,casc_owned_files=lambda path,cancelled:(),source_policy=lambda:20)
     with pytest.raises(SourceUnavailable,match='持有'):unowned.query()
 
 
@@ -227,9 +229,9 @@ def test_official_casc_source_refuses_local_map_override(tmp_path,monkeypatch):
     build=casc.CascBuildIdentity(str(tmp_path),'9a94ff7d25781db6c09190cd69d52458','2.0.4.23745','w3','zhCN',
         hashlib.sha256(b'build').hexdigest(),(1,2,3,4))
     monkeypatch.setattr(casc,'read_build_identity',lambda root:build)
-    monkeypatch.setattr(casc,'ensure_no_local_map_override',lambda root,path:(_ for _ in ()).throw(casc.CascUnavailable('本地覆盖')))
-    source=RuntimeScriptSource(lambda:metadata,lambda:(),lambda path:None,lambda:'game',casc_root=lambda:tmp_path)
-    with pytest.raises(SourceUnavailable):
+    def denied():raise SourceUnavailable('游戏进程本地覆盖')
+    source=RuntimeScriptSource(lambda:metadata,lambda:(),lambda path:None,lambda:'game',casc_root=lambda:tmp_path,source_policy=denied)
+    with pytest.raises(SourceUnavailable,match='游戏进程'):
         source.query()
 
 

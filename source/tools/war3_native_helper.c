@@ -141,6 +141,7 @@
 #define WAR3_NATIVE_OP_EXT_QUEST_INSPECT 320u
 #define WAR3_NATIVE_OP_EXT_QUEST_EXECUTE 321u
 #define WAR3_NATIVE_OP_EXT_QUEST_STATUS 322u
+#define WAR3_NATIVE_OP_EXT_QUERY_SOURCE_POLICY 323u
 
 #define WAR3_PLAYER_TEAM_MAX_PEERS 28u
 #define WAR3_PLAYER_TEAM_ALLIANCE_TYPES 6u
@@ -4887,6 +4888,7 @@ static void run_command(void) {
             op->kind != WAR3_NATIVE_OP_EXT_QUEST_INSPECT &&
             op->kind != WAR3_NATIVE_OP_EXT_QUEST_EXECUTE &&
             op->kind != WAR3_NATIVE_OP_EXT_QUEST_STATUS &&
+            op->kind != WAR3_NATIVE_OP_EXT_QUERY_SOURCE_POLICY &&
             op->kind != WAR3_NATIVE_OP_BOUND_ABILITY_LIST &&
             op->kind != WAR3_NATIVE_OP_BOUND_UNIT_FIELDS &&
             op->kind != WAR3_NATIVE_OP_SET_UNIT_REGEN &&
@@ -4905,6 +4907,10 @@ static void run_command(void) {
             goto finish;
         }
         switch (op->kind) {
+            case WAR3_NATIVE_OP_EXT_QUERY_SOURCE_POLICY:
+                last_error=war3_quest_source_policy_query(&cmd,op,&extra_results,&extra_result_count);
+                if(last_error) {op->last_error=last_error;goto finish;}
+                break;
             case WAR3_NATIVE_OP_EXT_QUEST_INSPECT:
             case WAR3_NATIVE_OP_EXT_QUEST_EXECUTE:
             case WAR3_NATIVE_OP_EXT_QUEST_STATUS:

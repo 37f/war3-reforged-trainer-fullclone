@@ -1,5 +1,6 @@
 """Conservative R23 completion-plan qualification tests."""
 import hashlib
+import pytest
 
 from war3_current_map_script import ScriptSnapshot
 from war3_quest_analysis import analyze_quests
@@ -96,6 +97,65 @@ def test_event_response_dependent_action_is_rejected():
 
     assert not plan.eligible
     assert any('事件响应' in reason for reason in plan.reasons)
+
+
+@pytest.mark.parametrize('effect',[
+    'call SetPlayerTechResearched(Player(0),GetSpellAbilityId(),1)',
+    'call RemoveItem(GetSpellTargetItem())',
+    'call RemoveItem(GetOrderTargetItem())',
+    'call KillDestructable(GetSpellTargetDestructable())',
+    'call KillDestructable(GetOrderTargetDestructable())',
+    'call SetPlayerState(Player(0),PLAYER_STATE_RESOURCE_GOLD,R2I(BlzGetEventDamage()))',
+    'call SetPlayerAlliance(Player(0),Player(1),ALLIANCE_PASSIVE,BlzGetEventIsAttack())',
+    'call SetPlayerState(Player(0),PLAYER_STATE_RESOURCE_GOLD,GetTournamentScore(Player(0)))',
+    'call BlzSetEventDamage(0.)',
+    'call BlzSetEventAttackType(ATTACK_TYPE_NORMAL)',
+])
+def test_review_event_response_families_cannot_qualify(effect):
+    from war3_quest_execution import build_completion_plan
+    report=_report(_script(extra=effect))
+    plan=build_completion_plan(report,report.quests[0].key)
+    assert not plan.eligible
+    assert any('上下文' in reason for reason in plan.reasons)
+
+
+def test_review_unclassified_native_getter_requires_audited_context():
+    from war3_quest_execution import build_completion_plan
+    report=_report(_script(extra='call SetTimeOfDayScale(GetTimeOfDayScale())'))
+    plan=build_completion_plan(report,report.quests[0].key)
+    assert not plan.eligible and any('尚未核对' in reason for reason in plan.reasons)
+
+
+def test_review_explicit_player_state_reward_remains_eligible():
+    from war3_quest_execution import build_completion_plan
+    report=_report(_script(extra='call SetPlayerState(Player(0),PLAYER_STATE_RESOURCE_GOLD,GetPlayerState(Player(0),PLAYER_STATE_RESOURCE_GOLD)+100)'))
+    assert build_completion_plan(report,report.quests[0].key).eligible
+
+
+def test_review_official_base_resource_is_not_effective_overlay_execution_proof():
+    from dataclasses import replace
+    from war3_quest_execution import build_completion_plan
+    report=_report(_script())
+    report=replace(report,snapshot=replace(report.snapshot,
+        stamp=('official-casc','metadata','root','build','member','sha','storage')))
+    plan=build_completion_plan(report,report.quests[0].key)
+    assert not plan.eligible and any('覆盖层' in reason for reason in plan.reasons)
+
+
+def test_early_return_cannot_qualify_an_unreachable_completion_setter():
+    from war3_quest_execution import build_completion_plan
+    report=_report(_script(extra='return'))
+    plan=build_completion_plan(report,report.quests[0].key)
+    assert not plan.eligible
+
+
+def test_original_global_progress_assignment_is_in_effects_evidence():
+    from war3_quest_execution import build_completion_plan
+    script=_script(extra='set udg_Followup = 1').replace('quest udg_QUEST = null',
+        'quest udg_QUEST = null\ninteger udg_Followup = 0')
+    report=_report(script);plan=build_completion_plan(report,report.quests[0].key)
+    assert plan.eligible
+    assert any('set udg_Followup = 1' in e.source for e in plan.evidence)
 
 
 def test_dynamic_execute_func_in_completion_action_is_rejected():

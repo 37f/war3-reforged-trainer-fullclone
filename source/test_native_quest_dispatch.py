@@ -25,6 +25,7 @@ static DWORD inspect(const War3QuestWire *wire,War3QuestView *view,uint32_t *mes
     if(scenario==6 && calls){*message=2;return ERROR_RETRY;}
     if(scenario==7 && checks>1)view->resolved[3]=1002;
     if(scenario==8)view->flags|=1;
+    if((scenario==10 || scenario==11) && checks>3)RaiseException(0xe1230002,0,0,0);
     return 0;
 }
 static DWORD dispatch(const War3QuestView *view) {
@@ -59,6 +60,13 @@ int wmain(int argc,wchar_t **argv) {
         if(war3_quest_transaction(wire,reply,inspect,dispatch))return 103;
         return calls==1 && reply[23]==3 && (reply[29]&1)?0:104;
     }
+    if(scenario==10 || scenario==11) {
+        h[2]=scenario==10?2:1;
+        if(scenario==11) {h[34]=3;h[35]=4;}
+        if(war3_quest_transaction(wire,reply,inspect,dispatch))return 106;
+        return calls==1 && reply[23]==4 && (reply[29]&1) &&
+            g_quest_store.state->ledger.records[0].status==WAR3_QUEST_UNKNOWN?0:107;
+    }
     return calls==1?0:105;
 }
 '''
@@ -74,9 +82,10 @@ def dispatch_executable(tmp_path_factory):
     return exe
 
 
-@pytest.mark.parametrize('scenario',range(10),ids=['dispatch-recorded-first','duplicate-token-change',
+@pytest.mark.parametrize('scenario',range(12),ids=['dispatch-recorded-first','duplicate-token-change',
     'expired-proof','exception-after-dispatch','observed-complete','source-changed-before',
-    'map-changed-after','instance-changed','already-complete','observe-without-retry'])
+    'map-changed-after','instance-changed','already-complete','observe-without-retry',
+    'status-collector-exception-stays-unknown','duplicate-collector-exception-stays-unknown'])
 def test_native_dispatch_coordinator(dispatch_executable,tmp_path,scenario):
     words=encode_quest_request(_request(_plan(),'inspect'));path=tmp_path/'request.bin'
     path.write_bytes(struct.pack('<'+'Q'*len(words),*words))

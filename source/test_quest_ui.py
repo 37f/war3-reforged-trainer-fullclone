@@ -183,11 +183,11 @@ def test_trainer_script_bridge_uses_existing_catalog_and_read_only_memory_factor
     trainer=object.__new__(module.War3Trainer);trainer.pid=456
     catalog=object();trainer.current_map_catalog_client=lambda:catalog
     sentinel=object();calls=[]
-    def factory(pid,current,memory_factory):
-        calls.append((pid,current,memory_factory));return sentinel
+    def factory(pid,current,memory_factory,*,source_policy):
+        calls.append((pid,current,memory_factory,source_policy));return sentinel
     monkeypatch.setattr(script_module,'create_current_map_script_client',factory)
     assert trainer.current_map_script_client() is sentinel
-    assert calls[0][:2]==(456,catalog) and callable(calls[0][2])
+    assert calls[0][:2]==(456,catalog) and callable(calls[0][2]) and callable(calls[0][3])
 
 
 def test_review_existing_report_expires_while_map_check_worker_is_blocked():
@@ -245,4 +245,25 @@ def test_actual_completion_buttons_require_preflight_and_language_never_executes
         ui.search.set('there_is_no_matching_quest')
         assert str(ui.execute_button.cget('state'))=='disabled'
         assert not ui.completion.can_inspect
+    finally:ui.close();panel.destroy()
+
+
+def test_review_outer_reward_and_complete_original_chain_visible_before_execution(tk_root):
+    from test_quest_execution import _report,_script
+    from test_quest_completion_ui import settle
+    from test_native_quest import _plan,_inspection
+    from war3_native_quest import QuestRuntimeClient
+    report=_report(_script(extra='call SetPlayerState(Player(0),PLAYER_STATE_RESOURCE_GOLD,100)'))
+    report=replace(report,snapshot=replace(report.snapshot,identity=1,stamp=_plan().source_snapshot.stamp))
+    runtime=QuestRuntimeClient(_inspection,lambda:1,lambda plan:True)
+    ui=QuestAnalysisUI(tk_root,lambda:'zh',lambda:None,runtime_client_provider=lambda:runtime)
+    panel=ttk.Frame(tk_root);ui.add_controls(panel)
+    try:
+        ui.controller.report=report;ui.controller.state='ready';ui.render()
+        ui.inspect_button.invoke();settle(ui.completion);ui.render_completion()
+        details=ui.detail.get('1.0','end')
+        assert 'SetPlayerState' in details and 'PLAYER_STATE_RESOURCE_GOLD' in details
+        assert '100' in details and 'FinishAction' in details
+        assert '原流程' in details and '证据' in details
+        assert str(ui.execute_button.cget('state'))=='normal'
     finally:ui.close();panel.destroy()

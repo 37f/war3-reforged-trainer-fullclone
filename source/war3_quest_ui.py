@@ -146,6 +146,7 @@ class QuestAnalysisUI:
         self.controller=QuestAnalysisController(source_client_provider)
         self.completion=QuestCompletionController(runtime_client_provider)
         self.execution_status=tk.StringVar(root,'')
+        self._preview_key=None;self._preview_complete=False
         self.source=tk.StringVar(root,'');self.status=tk.StringVar(root,'');self.search=tk.StringVar(root,'')
         self.panel=None;self._labels=[];self._rows={};self._render_key=None;self._after=None;self._closed=False
         self._after=root.after(80,self._poll)
@@ -227,6 +228,9 @@ class QuestAnalysisUI:
             message+=self.text('；任务 {0}，关卡结算点 {1}，未关联 {2}。','; quests {0}, result sites {1}, unassociated {2}.').format(
                 len(c.report.quests),len(c.report.outcomes),len(c.report.unassociated))
             s=c.report.snapshot
+            if s.stamp and s.stamp[0]=='official-casc':
+                message+='\n'+self.text('当前为官方安装基础脚本分析；语言／模组覆盖层尚未核对，不开放原流程执行。',
+                    'Official installed base script analysis; effective locale/mod overlays remain unverified, so execution is disabled.')
             self.source.set(self.text('来源：','Source: ')+s.origin+'\n'+self.text('会话：','Session: ')+str(s.session_token)+
                 ' | '+self.text('检测时间：','Detected: ')+c.detected_at+'\nJASS SHA-256: '+s.script_sha256+'\nWTS SHA-256: '+s.strings_sha256)
         else:self.source.set('')
@@ -238,18 +242,31 @@ class QuestAnalysisUI:
         self.render_completion()
 
     def inspect_completion(self):self.completion.inspect();self.render_completion()
-    def execute_completion(self):self.completion.execute();self.render_completion()
+    def execute_completion(self):
+        if self._preview_complete:self.completion.execute()
+        self.render_completion()
     def observe_completion(self):self.completion.observe();self.render_completion()
 
     def render_completion(self):
         if self.panel is None:return
         c=self.completion
+        selected=self.tree.selection();selected=selected[0] if selected else None
+        preview_key=(selected,id(c.plan),self.language(),id(c.report))
+        if preview_key!=self._preview_key:
+            self._preview_key=preview_key;self._preview_complete=False
+            detail=self._rows.get(selected,'')
+            if c.plan is not None and c.plan.quest_key==selected:
+                preview,self._preview_complete=self.completion_details(c.plan)
+                detail+='\n\n'+preview
+            self._set_detail(detail)
         self.inspect_button.configure(state='normal' if c.can_inspect else 'disabled')
-        self.execute_button.configure(state='normal' if c.can_execute else 'disabled')
+        self.execute_button.configure(state='normal' if c.can_execute and self._preview_complete else 'disabled')
         self.observe_button.configure(state='normal' if c.can_observe else 'disabled')
         message=translate_ui_text(c.message,self.language())
         if c.plan and c.plan.entry_function:
             message=self.text('原入口：','Original entry: ')+str(c.plan.entry_trigger)+' → '+c.plan.entry_function+'\n'+message
+        if c.plan and not self._preview_complete:
+            message+='\n'+self.text('原流程证据未完整显示，暂不开放执行。','Original-flow evidence is not fully displayed; execution is disabled.')
         if c.result:
             statuses={'rejected-before-dispatch':('派发前拒绝','Rejected before dispatch'),
                 'dispatched':('原流程已派发，尚待核对','Dispatched; verification pending'),
@@ -257,6 +274,25 @@ class QuestAnalysisUI:
                 'unknown':('先前执行结果未知，禁止自动重试','Previous outcome unknown; no automatic retry')}
             message+='\n'+self.text('上次请求：','Previous request: ')+c.result.request_id+' | '+self.text(*statuses[c.result.status])
         self.execution_status.set(message)
+
+    def completion_details(self,plan):
+        lines=[self.text('原流程预览（静态识别的效果与证据）','Original-flow preview (statically identified effects and evidence)'),
+            self.text('来源：','Source: ')+plan.origin,
+            self.text('完整调用链：','Full call chain: ')+' → '.join(plan.chain_functions),
+            self.text('涉及的标准调用：','Recognized calls: ')+', '.join(plan.recognized_calls),
+            self.text('以下是将要运行的原脚本语句，奖励和后续仍需游戏内核对：',
+                'These are the original script statements to run; verify actual rewards and continuation in the game:')]
+        size=sum(len(line) for line in lines);complete=True
+        for n,e in enumerate(plan.evidence):
+            line=f'{e.function}:{e.line} [{translate_ui_text(e.role,self.language())}] {e.source}'
+            if n>=1000 or size+len(line)>200000:
+                complete=False;break
+            lines.append(line);size+=len(line)
+        if size>200000:complete=False;lines=lines[:2]
+        if not complete:lines.append(self.text('证据过长，预览已截断；暂不开放执行。',
+            'Evidence exceeds the preview limit; preview truncated and execution disabled.'))
+        if plan.reasons:lines.extend(translate_ui_text(reason,self.language()) for reason in plan.reasons)
+        return '\n'.join(lines),complete
 
     def rule_details(self,rule):
         label={'created':('创建定义','Creation definition'),'completed':('设置完成','Set completed'),
@@ -336,6 +372,7 @@ class QuestAnalysisUI:
 
     def show_selected(self):
         selected=self.tree.selection()
+        self._preview_key=None
         self._set_detail(self._rows.get(selected[0],'') if selected else '')
         self.completion.select(self.controller.report,selected[0] if selected else None)
         self.render_completion()

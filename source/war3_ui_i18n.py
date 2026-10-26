@@ -35,6 +35,12 @@ def detect_ui_language(locale_name: str | None = None) -> str:
 
 
 _EN_TRANSLATIONS = {
+    "原动作赋值": "Original action assignment",
+    "原动作局部变量": "Original action local variable",
+    "游戏来源设置返回操作不一致": "Game source policy response operation mismatch",
+    "游戏进程内的本地文件覆盖设置未通过校验": "The game process local-file override policy did not pass validation",
+    "官方基础资源的运行时语言／模组覆盖层尚未核对，本版仅提供基础脚本分析": "Effective locale/mod overlays for the official base resource remain unverified; this edition provides base script analysis only",
+    "原动作读取接口的上下文尚未核对：": "The native getter context has not been classified: ",
     "任务执行桥的请求边界无效": "Invalid quest execution request envelope",
     "任务运行时返回操作不一致": "Quest runtime response operation mismatch",
     "未知的任务运行时操作": "Unknown quest runtime operation",

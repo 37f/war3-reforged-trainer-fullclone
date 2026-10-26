@@ -3057,6 +3057,7 @@ class War3Trainer:
     NATIVE_HELPER_OP_EXT_QUEST_INSPECT = 320
     NATIVE_HELPER_OP_EXT_QUEST_EXECUTE = 321
     NATIVE_HELPER_OP_EXT_QUEST_STATUS = 322
+    NATIVE_HELPER_OP_EXT_QUERY_SOURCE_POLICY = 323
     PERSISTENT_NATIVE_SNAPSHOT_QWORDS = 154
     NATIVE_BASIC_FIELD_ARGUMENTS = {
         "hp_current": ("target_hp", "hp"),
@@ -4636,7 +4637,13 @@ class War3Trainer:
         # metadata reads use a separate short-lived read-only memory handle.
         from war3_current_map_script import create_current_map_script_client
         return create_current_map_script_client(
-            self.pid,self.current_map_catalog_client(),lambda:ProcessMemory(self.pid))
+            self.pid,self.current_map_catalog_client(),lambda:ProcessMemory(self.pid),source_policy=self.current_map_source_policy)
+
+    def current_map_source_policy(self):
+        from war3_current_map_script import parse_game_source_policy
+        result=self._run_native_helper_ops(0,((323,0,0,0,0),),timeout_ms=5000)
+        if len(result)!=1 or result[0].kind!=323:raise RuntimeError("游戏来源设置返回操作不一致")
+        return parse_game_source_policy(tuple(result[0].extra_results),int(self.pid))
 
     def current_map_quest_runtime_client(self):
         """R23: paired typed transport, with the existing connection/lock owner."""
@@ -5234,6 +5241,7 @@ class War3Trainer:
             self.NATIVE_HELPER_OP_EXT_QUEST_INSPECT,
             self.NATIVE_HELPER_OP_EXT_QUEST_EXECUTE,
             self.NATIVE_HELPER_OP_EXT_QUEST_STATUS,
+            self.NATIVE_HELPER_OP_EXT_QUERY_SOURCE_POLICY,
         }
         if any(kind not in allowed_kinds for kind, _rawcode, _handler, _arg0, _arg1 in op_list):
             raise RuntimeError("native helper 仅允许结构化验证后的白名单操作")

@@ -23,7 +23,7 @@ static DWORD war3_quest_transaction(const War3QuestWire *wire,uint64_t reply[32]
     War3QuestCollectFn collect,War3QuestDispatchFn dispatch) {
     if(!wire || !wire->header || !reply || !collect || !dispatch)return ERROR_INVALID_PARAMETER;
     const uint64_t *h=wire->header;War3QuestStore store={0};
-    War3QuestRecord *record=NULL;War3QuestView view={0};int reserved=0;
+    War3QuestRecord *record=NULL;War3QuestView view={0};int reserved=0,known_dispatched=0;
     ZeroMemory(reply,32*8u);reply[0]=WAR3_QUEST_MAGIC;reply[1]=1;reply[2]=h[2];reply[3]=h[3];
     memcpy(reply+4,h+10,32);memcpy(reply+25,h+34,16);reply[20]=h[5];reply[21]=h[6];
     reply[23]=1;reply[30]=7;
@@ -41,6 +41,7 @@ static DWORD war3_quest_transaction(const War3QuestWire *wire,uint64_t reply[32]
             }
             if(!record)record=war3_quest_find_instance(&state->ledger,&expected);
             if(record) {
+                known_dispatched=1;
                 /* Read-only observation, even across a catalog token refresh.
                    Any failure is unknown; the original dispatch stays recorded. */
                 uint32_t message=2;
@@ -102,9 +103,9 @@ static DWORD war3_quest_transaction(const War3QuestWire *wire,uint64_t reply[32]
         war3_quest_reply_record(reply,record,0);error=0;
     } __except(EXCEPTION_EXECUTE_HANDLER) {
         error=GetExceptionCode();reply[30]=10;
-        if(reserved && record) {
+        if((reserved || known_dispatched) && record) {
             record->status=WAR3_QUEST_UNKNOWN;record->error=error;
-            war3_quest_reply_record(reply,record,0);error=0;
+            war3_quest_reply_record(reply,record,known_dispatched && h[2]==1);error=0;
         }
     }
     if(error)reply[24]=error;
