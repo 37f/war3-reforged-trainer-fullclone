@@ -20,16 +20,18 @@ class QuestAnalysisController:
         self.provider=source_client_provider;self.analyzer=analyzer;self.clock=clock
         self.replies=queue.Queue();self.report=None;self.state='idle';self.error=''
         self.checked_at=0.;self.detected_at='';self.generation=0;self.busy=False
-        self._visible=False;self._closed=False;self._auto=True;self._next_poll=0.
+        self.started=False
+        self._visible=False;self._closed=False;self._auto=False;self._next_poll=0.
         self._stop=threading.Event();self._job=0;self._identity=None
 
     def invalidate(self,reason=''):
         self._stop.set();self.generation+=1;self.report=None;self.checked_at=0.
+        self._auto=False
         self.error=reason;self.state='changed' if reason else 'idle';self._next_poll=0.;self._identity=None
 
     def detect(self):
         if self._closed:return
-        self.invalidate();self._auto=True
+        self.invalidate();self.started=True;self._auto=True
 
     def cancel(self):
         self.invalidate();self._auto=False;self.state='cancelled'
@@ -50,7 +52,8 @@ class QuestAnalysisController:
         if self._closed:
             self._drain();return
         if visible!=self._visible:
-            self.invalidate();self._visible=visible;self._auto=True
+            if not visible:self.invalidate()
+            self._visible=visible
         if visible and self._identity is not None and self._identity_now()!=self._identity:
             self.invalidate('游戏连接已变化')
         self._drain()
@@ -58,14 +61,18 @@ class QuestAnalysisController:
         # check is pending; queue delivery is not the only way time advances.
         if visible and self.report is not None and self.clock()-self.checked_at>VALIDATION_SECONDS:
             self.report=None;self.checked_at=0.;self.state='changed'
-            self.error='会话验证已过期，正在重新检索';self._next_poll=self.clock()
-        if not visible or self.busy or not self._auto or self.clock()<self._next_poll:return
+            self.error='会话验证已过期，请点击重新检测';self._auto=False
+        if not visible or self.busy or (self.report is None and not self._auto) or self.clock()<self._next_poll:return
+        # A click permits one read. Later checks may invalidate its result,
+        # but neither a tab change nor a failed check starts another scan.
+        operation='check' if self.report is not None else 'read'
+        if operation=='read':self._auto=False
         try:client=self._client()
         except Exception as exc:
             self.error=str(exc);self.state='unavailable';self._next_poll=self.clock()+3;return
         if client is None:
             self.state='disconnected';self.error='';self._next_poll=self.clock()+2;return
-        self._launch(client,'check' if self.report is not None else 'read')
+        self._launch(client,operation)
 
     def _launch(self,client,operation):
         self._job+=1;job=self._job;generation=self.generation
@@ -104,12 +111,14 @@ class QuestAnalysisController:
             if phase=='analyzing':self.state='analyzing';continue
             if error:
                 self.report=None;self.checked_at=0.;self.error=error
+                self._auto=False
                 self.state='changed' if phase!='error' else 'unavailable'
                 self._next_poll=self.clock()+(3 if phase=='error' else 0);continue
             if self._identity_now()!=identity:
                 self.invalidate('游戏连接已变化');continue
             if self.clock()-checked>VALIDATION_SECONDS:
-                self.report=None;self.state='changed';self.error='会话验证已过期，正在重新检索'
+                self.report=None;self.state='changed';self.error='会话验证已过期，请点击重新检测'
+                self._auto=False
                 self._next_poll=self.clock()+.1;continue
             if phase=='result':
                 if value.snapshot.identity!=identity:
@@ -124,15 +133,15 @@ class QuestAnalysisController:
 
 
 _STATES={
-    'idle':('打开本页后自动只读检索当前地图。','Open this page to scan the active map (read only).'),
+    'idle':('请点击上方按钮，手动检测当前地图的任务信息。','Click the button above to scan the active map manually.'),
     'reading':('正在确认当前章节并读取脚本…','Confirming active chapter and reading script…'),
     'analyzing':('正在分析任务、完成与失败条件…','Analyzing quests and completion/failure rules…'),
     'disconnected':('未连接游戏，请先连接并进入地图。','Not connected. Connect and enter a map first.'),
     'ready':('脚本静态分析完成','Static script analysis complete'),
     'partial':('脚本部分解析：请查看覆盖缺口和条件证据','Static script analysis is partial: see coverage gaps and evidence'),
-    'changed':('地图会话、连接或来源已变化，旧报告已清除','Map session, connection or source changed; previous report cleared'),
+    'changed':('地图会话、连接或来源已变化，旧报告已清除，请点击重新检测','Map session, connection or source changed; previous report cleared. Click Scan again.'),
     'unavailable':('无法分析当前脚本','Current script analysis unavailable'),
-    'cancelled':('检索已取消，点击重新检索可继续。','Scan cancelled. Click Scan again to resume.'),
+    'cancelled':('检测已取消，点击重新检测可继续。','Scan cancelled. Click Scan again to resume.'),
     'closed':('任务页已关闭','Quest page closed'),
 }
 _KINDS={'main':('主线任务','Main quest'),'side':('支线任务','Side quest'),'unknown':('类型未确认','Unconfirmed type'),'coverage':('覆盖情况','Coverage'),
@@ -157,7 +166,7 @@ class QuestAnalysisUI:
     def add_controls(self,tab):
         self.panel=tab
         toolbar=ttk.Frame(tab);toolbar.pack(fill='x',pady=(0,6))
-        self.refresh_button=self._label(ttk.Button(toolbar,command=self.detect),'重新检索','Scan again')
+        self.refresh_button=self._label(ttk.Button(toolbar,command=self.detect),'开始检测','Start scan')
         self.refresh_button.pack(side='left')
         self.cancel_button=self._label(ttk.Button(toolbar,command=self.cancel),'取消检索','Cancel scan')
         self.cancel_button.pack(side='left',padx=6)
@@ -224,6 +233,7 @@ class QuestAnalysisUI:
         else:self.source.set('')
         self.status.set(message)
         if self.panel is None:return
+        self.refresh_button.configure(text=self.text('重新检测','Scan again') if c.started else self.text('开始检测','Start scan'))
         self.cancel_button.configure(state='normal' if c.busy else 'disabled')
         key=(id(c.report),self.language())
         if key!=self._render_key:self._render_key=key;self.render_rows()

@@ -40,7 +40,9 @@ endfunction
     controller=QuestAnalysisController(lambda:None)
     try:
         controller.tick(True)
-        controller_ok=controller.report is None and controller.state=='disconnected'
+        idle_ok=controller.report is None and controller.state=='idle' and not controller.started
+        controller.detect();controller.tick(True)
+        controller_ok=idle_ok and controller.report is None and controller.state=='disconnected' and controller.started
     finally:controller.close()
     return {'quest_source_model_ok':source_ok,'quest_analysis_ok':analysis_ok,'quest_controller_ok':controller_ok}
 
