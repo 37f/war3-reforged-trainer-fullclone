@@ -1,4 +1,4 @@
-"""R22 analysis plus explicit R23 completion. Workers never access Tk objects."""
+"""R24 read-only task information. Workers never access Tk objects."""
 from __future__ import annotations
 
 from datetime import datetime
@@ -9,7 +9,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from war3_quest_analysis import analyze_quests
-from war3_quest_completion_ui import QuestCompletionController
+from war3_quest_text import QuestText,quest_kind,clean_text
 from war3_ui_i18n import translate_ui_text
 
 VALIDATION_SECONDS=2.
@@ -135,18 +135,16 @@ _STATES={
     'cancelled':('检索已取消，点击重新检索可继续。','Scan cancelled. Click Scan again to resume.'),
     'closed':('任务页已关闭','Quest page closed'),
 }
-_KINDS={'quest':('任务定义','Quest definition'),'coverage':('覆盖情况','Coverage'),
-    'victory':('关卡直接胜利','Direct victory'),'defeat':('关卡直接失败','Direct defeat'),
+_KINDS={'main':('主线任务','Main quest'),'side':('支线任务','Side quest'),'unknown':('类型未确认','Unconfirmed type'),'coverage':('覆盖情况','Coverage'),
+    'victory':('整关胜利条件','Map victory'),'defeat':('整关失败条件','Map defeat'),
     'unknown-result':('未确认结算','Unresolved result'),'unassociated':('未关联条件','Unassociated rule')}
 
 
 class QuestAnalysisUI:
-    def __init__(self,root,language,source_client_provider,runtime_client_provider=lambda:None):
+    def __init__(self,root,language,source_client_provider):
         self.root,self.language=root,language
         self.controller=QuestAnalysisController(source_client_provider)
-        self.completion=QuestCompletionController(runtime_client_provider)
-        self.execution_status=tk.StringVar(root,'')
-        self._preview_key=None;self._preview_complete=False
+        self.evidence=tk.BooleanVar(root,False);self._reader_key=None;self._reader=None
         self.source=tk.StringVar(root,'');self.status=tk.StringVar(root,'');self.search=tk.StringVar(root,'')
         self.panel=None;self._labels=[];self._rows={};self._render_key=None;self._after=None;self._closed=False
         self._after=root.after(80,self._poll)
@@ -165,23 +163,13 @@ class QuestAnalysisUI:
         self.cancel_button.pack(side='left',padx=6)
         self._label(ttk.Label(toolbar),'搜索任务、变量或条件','Search quest, variable or condition').pack(side='left',padx=(12,4))
         ttk.Entry(toolbar,textvariable=self.search,width=38).pack(side='left',fill='x',expand=True)
+        self._label(ttk.Checkbutton(toolbar,variable=self.evidence,command=self.render_rows),'查看脚本依据','Show script evidence').pack(side='left',padx=8)
         self.notice=self._label(ttk.Label(tab,wraplength=1120),
-            '任务列表是脚本静态定义，并非任务当前进度。检查完成入口后，仅对已核对的运行中任务开放原流程执行；不支持的上下文明确拒绝。',
-            'The list contains static definitions, not live progress. Original-flow execution requires a verified live quest and entry; unsupported contexts are refused.')
+            '只读任务信息：按地图标记区分主线／支线，解释目标、完成与失败条件。这里不显示实时进度，也不会完成任务。',
+            'Read-only quest information: objectives and completion/failure rules, grouped by required/optional flags. No live progress or quest execution.')
         self.notice.pack(fill='x',pady=(0,5))
         ttk.Label(tab,textvariable=self.status,wraplength=1120).pack(fill='x',pady=(0,5))
         ttk.Label(tab,textvariable=self.source,wraplength=1120).pack(fill='x',pady=(0,8))
-        execution=ttk.Frame(tab);execution.pack(fill='x',pady=(0,5))
-        self.inspect_button=self._label(ttk.Button(execution,command=self.inspect_completion),
-            '检查完成入口','Check completion entry')
-        self.inspect_button.pack(side='left')
-        self.execute_button=self._label(ttk.Button(execution,command=self.execute_completion),
-            '完成此任务（原流程）','Complete quest (original flow)')
-        self.execute_button.pack(side='left',padx=6)
-        self.observe_button=self._label(ttk.Button(execution,command=self.observe_completion),
-            '读取执行状态','Read dispatch status')
-        self.observe_button.pack(side='left')
-        ttk.Label(tab,textvariable=self.execution_status,wraplength=1120).pack(fill='x',pady=(0,6))
         panes=ttk.Panedwindow(tab,orient='horizontal');panes.pack(fill='both',expand=True)
         left=ttk.Frame(panes);right=ttk.Frame(panes);panes.add(left,weight=1);panes.add(right,weight=3)
         self.tree=ttk.Treeview(left,columns=('kind','title'),show='headings',height=18,selectmode='browse')
@@ -202,7 +190,7 @@ class QuestAnalysisUI:
     def invalidate(self,reason=''):self.controller.invalidate(reason);self.render()
 
     def close(self):
-        self._closed=True;self.controller.close();self.completion.close()
+        self._closed=True;self.controller.close()
         if self._after is not None:
             try:self.root.after_cancel(self._after)
             except tk.TclError:pass
@@ -211,7 +199,7 @@ class QuestAnalysisUI:
     def _poll(self):
         if self._closed:return
         visible=bool(self.panel is not None and self.panel.winfo_ismapped())
-        self.controller.tick(visible);self.completion.tick();self.render()
+        self.controller.tick(visible);self.render()
         self._after=self.root.after(80,self._poll)
 
     def refresh_language(self):
@@ -229,8 +217,8 @@ class QuestAnalysisUI:
                 len(c.report.quests),len(c.report.outcomes),len(c.report.unassociated))
             s=c.report.snapshot
             if s.stamp and s.stamp[0]=='official-casc':
-                message+='\n'+self.text('当前为官方安装基础脚本分析；语言／模组覆盖层尚未核对，不开放原流程执行。',
-                    'Official installed base script analysis; effective locale/mod overlays remain unverified, so execution is disabled.')
+                message+='\n'+self.text('官方安装基础脚本：语言／模组覆盖层尚未核对，可能与实际显示文本不同。',
+                    'Official installed base script; unverified locale/mod overlays may change displayed text.')
             self.source.set(self.text('来源：','Source: ')+s.origin+'\n'+self.text('会话：','Session: ')+str(s.session_token)+
                 ' | '+self.text('检测时间：','Detected: ')+c.detected_at+'\nJASS SHA-256: '+s.script_sha256+'\nWTS SHA-256: '+s.strings_sha256)
         else:self.source.set('')
@@ -239,62 +227,7 @@ class QuestAnalysisUI:
         self.cancel_button.configure(state='normal' if c.busy else 'disabled')
         key=(id(c.report),self.language())
         if key!=self._render_key:self._render_key=key;self.render_rows()
-        self.render_completion()
-
-    def inspect_completion(self):self.completion.inspect();self.render_completion()
-    def execute_completion(self):
-        if self._preview_complete:self.completion.execute()
-        self.render_completion()
-    def observe_completion(self):self.completion.observe();self.render_completion()
-
-    def render_completion(self):
-        if self.panel is None:return
-        c=self.completion
-        selected=self.tree.selection();selected=selected[0] if selected else None
-        preview_key=(selected,id(c.plan),self.language(),id(c.report))
-        if preview_key!=self._preview_key:
-            self._preview_key=preview_key;self._preview_complete=False
-            detail=self._rows.get(selected,'')
-            if c.plan is not None and c.plan.quest_key==selected:
-                preview,self._preview_complete=self.completion_details(c.plan)
-                detail+='\n\n'+preview
-            self._set_detail(detail)
-        self.inspect_button.configure(state='normal' if c.can_inspect else 'disabled')
-        self.execute_button.configure(state='normal' if c.can_execute and self._preview_complete else 'disabled')
-        self.observe_button.configure(state='normal' if c.can_observe else 'disabled')
-        message=translate_ui_text(c.message,self.language())
-        if c.plan and c.plan.entry_function:
-            message=self.text('原入口：','Original entry: ')+str(c.plan.entry_trigger)+' → '+c.plan.entry_function+'\n'+message
-        if c.plan and not self._preview_complete:
-            message+='\n'+self.text('原流程证据未完整显示，暂不开放执行。','Original-flow evidence is not fully displayed; execution is disabled.')
-        if c.result:
-            statuses={'rejected-before-dispatch':('派发前拒绝','Rejected before dispatch'),
-                'dispatched':('原流程已派发，尚待核对','Dispatched; verification pending'),
-                'observed-completed':('已读回任务完成状态','Quest completion flag observed'),
-                'unknown':('先前执行结果未知，禁止自动重试','Previous outcome unknown; no automatic retry')}
-            message+='\n'+self.text('上次请求：','Previous request: ')+c.result.request_id+' | '+self.text(*statuses[c.result.status])
-        self.execution_status.set(message)
-
-    def completion_details(self,plan):
-        lines=[self.text('原流程预览（静态识别的效果与证据）','Original-flow preview (statically identified effects and evidence)'),
-            self.text('来源：','Source: ')+plan.origin,
-            self.text('完整调用链：','Full call chain: ')+' → '.join(plan.chain_functions),
-            self.text('涉及的标准调用：','Recognized calls: ')+', '.join(plan.recognized_calls),
-            self.text('以下是将要运行的原脚本语句，奖励和后续仍需游戏内核对：',
-                'These are the original script statements to run; verify actual rewards and continuation in the game:')]
-        size=sum(len(line) for line in lines);complete=True
-        for n,e in enumerate(plan.evidence):
-            line=f'{e.function}:{e.line} [{translate_ui_text(e.role,self.language())}] {e.source}'
-            if n>=1000 or size+len(line)>200000:
-                complete=False;break
-            lines.append(line);size+=len(line)
-        if size>200000:complete=False;lines=lines[:2]
-        if not complete:lines.append(self.text('证据过长，预览已截断；暂不开放执行。',
-            'Evidence exceeds the preview limit; preview truncated and execution disabled.'))
-        if plan.reasons:lines.extend(translate_ui_text(reason,self.language()) for reason in plan.reasons)
-        return '\n'.join(lines),complete
-
-    def rule_details(self,rule):
+    def rule_evidence(self,rule):
         label={'created':('创建定义','Creation definition'),'completed':('设置完成','Set completed'),
             'failed':('设置失败','Set failed'),'resets':('重置为未完成／未失败','Reset to incomplete / not failed'),
             **_KINDS}.get(rule.kind,(rule.kind,rule.kind))
@@ -312,20 +245,43 @@ class QuestAnalysisUI:
                 lines.append(f'  {e.function}:{e.line} [{translate_ui_text(e.role,self.language())}] {e.source}')
         return '\n'.join(lines)
 
-    def quest_details(self,q):
+    def quest_evidence(self,q):
         flag=lambda value:self.text('未知','Unknown') if value is None else str(value).lower()
         lines=[q.title,q.description,self.text('脚本标识：','Script key: ')+q.key,
             self.text('静态别名：','Static aliases: ')+', '.join(q.aliases),
             self.text('必需任务：','Required quest: ')+flag(q.required)+'; '+self.text('发现设置：','Discovery setting: ')+flag(q.discovered)]
         for kind in ('created','completed','failed','resets'):
             rules=getattr(q,kind)
-            for rule in rules:lines.extend(('',self.rule_details(rule)))
+            for rule in rules:lines.extend(('',self.rule_evidence(rule)))
         if not q.completed:lines.append(self.text('\n未识别到此任务的明确完成设置点。','\nNo explicit completion setter identified for this definition.'))
         if not q.failed:lines.append(self.text('未识别到此任务的明确失败设置点；关卡直接判负另列。','No explicit quest failure setter identified; direct game defeat is listed separately.'))
         for item in q.items:
             lines.extend(('',self.text('任务条目：','Quest item: ')+item.description+' ['+item.key+']'))
-            for rule in item.completed+item.resets:lines.append(self.rule_details(rule))
+            for rule in item.completed+item.resets:lines.append(self.rule_evidence(rule))
         return '\n'.join(lines)
+
+    def reader(self):
+        report=self.controller.report;key=(id(report),self.language())
+        if getattr(self,'_reader_key',None)!=key:
+            self._reader_key=key;self._reader=QuestText(report,self.language()=='en')
+        return self._reader
+
+    def quest_details(self,q):
+        text=self.reader().quest(q)
+        if getattr(self,'evidence',None) is not None and self.evidence.get():
+            text+='\n\n'+self.text('脚本依据（供核对）','Script evidence')+'\n'+self.quest_evidence(q)
+        return text
+
+    def rule_details(self,rule):
+        reader=self.reader();lines=[]
+        if rule.kind in ('victory','defeat'):
+            try:target=reader.expr(reader.parse(rule.target))
+            except ValueError:target=self.text('尚未确认的玩家','unconfirmed player')
+            lines.append(self.text('影响对象：','Affected player: ')+target)
+            lines.append(self.text('这是整关结算规则，不等同于某一个任务单独完成或失败。','This ends the map for the player; it is separate from an individual quest state.'))
+        text='\n'.join(lines+reader.rule(rule))
+        if self.evidence.get():text+='\n\n'+self.rule_evidence(rule)
+        return text
 
     def coverage_details(self,r):
         lines=[self.text('覆盖范围：当前 JASS 的静态任务定义、状态设置与关卡结算。','Scope: static JASS quest definitions, setters and game result calls.'),
@@ -351,10 +307,15 @@ class QuestAnalysisUI:
         self.tree.delete(*self.tree.get_children());self._rows={}
         r=self.controller.report
         if r is None:
-            self.completion.select(None,None);self._set_detail('');return
+            self._set_detail('');return
         rows=[]
-        for q in r.quests:rows.append((q.key,'quest',q.title,self.quest_details(q)))
-        for i,rule in enumerate(r.outcomes):rows.append((f'outcome:{i}',rule.kind,rule.target,self.rule_details(rule)))
+        for q in sorted(r.quests,key=lambda q:0 if q.required is True else 1 if q.required is False else 2):
+            kind='main' if q.required is True else 'side' if q.required is False else 'unknown'
+            rows.append((q.key,kind,clean_text(q.title),self.quest_details(q)))
+        for i,rule in enumerate(r.outcomes):
+            try:title=self.reader().expr(self.reader().parse(rule.target))
+            except ValueError:title=self.text('影响对象未确认','Unconfirmed player')
+            rows.append((f'outcome:{i}',rule.kind,title,self.rule_details(rule)))
         for i,rule in enumerate(r.unassociated):rows.append((f'unassociated:{i}','unassociated',rule.target,self.rule_details(rule)))
         rows.append(('coverage','coverage',self.text('解析缺口与来源证据','Coverage gaps and source proof'),self.coverage_details(r)))
         search=self.search.get().casefold().strip()
@@ -364,7 +325,6 @@ class QuestAnalysisUI:
         children=self.tree.get_children()
         if children:self.tree.selection_set(old if old in children else children[0]);self.show_selected()
         else:
-            self.completion.select(None,None);self.render_completion()
             self._set_detail(self.text('没有匹配结果。','No matching results.'))
 
     def _set_detail(self,value):
@@ -372,7 +332,4 @@ class QuestAnalysisUI:
 
     def show_selected(self):
         selected=self.tree.selection()
-        self._preview_key=None
         self._set_detail(self._rows.get(selected[0],'') if selected else '')
-        self.completion.select(self.controller.report,selected[0] if selected else None)
-        self.render_completion()

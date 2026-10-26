@@ -81,6 +81,7 @@ class QuestReport:
     unassociated:tuple[Rule,...]
     issues:tuple[str,...]
     functions:int
+    variable_types:tuple[tuple[str,str],...]=()
 
     @property
     def partial(self):
@@ -686,7 +687,8 @@ class _Analyzer:
             definitions.append(QuestDefinition(key,q['title'],q['description'],q['required'],q['discovered'],aliases,qi,
                 tuple(q['created']),tuple(q['completed']),tuple(q['failed']),tuple(q['resets'])))
         if not definitions:self.issue('未识别标准任务定义；地图可能使用自建任务系统，不能据此认定没有任务')
-        return QuestReport(self.snapshot,tuple(definitions),tuple(outcomes),tuple(unassociated),_unique(self.issues),len(self.program.functions))
+        return QuestReport(self.snapshot,tuple(definitions),tuple(outcomes),tuple(unassociated),_unique(self.issues),len(self.program.functions),
+            tuple((g.name,g.type_name) for g in self.program.globals))
 
 
 _QUEST_TYPES={'bj_QUESTTYPE_REQ_DISCOVERED':(True,True),'bj_QUESTTYPE_REQ_UNDISCOVERED':(True,False),

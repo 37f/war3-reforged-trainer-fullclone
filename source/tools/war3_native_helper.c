@@ -5,7 +5,7 @@
 #include <string.h>
 
 #define WAR3_NATIVE_MAGIC 0x33524757u
-#define WAR3_NATIVE_VERSION 79u
+#define WAR3_NATIVE_VERSION 80u
 #define WAR3_NATIVE_STATUS_PENDING 1u
 #define WAR3_NATIVE_STATUS_OK 2u
 #define WAR3_NATIVE_STATUS_FAILED 3u
@@ -138,9 +138,7 @@
 #define WAR3_NATIVE_OP_EXT_QUERY_SELECTED_OWNER_STATUS 317u
 #define WAR3_NATIVE_OP_EXT_QUERY_CATALOG_HEADER 318u
 #define WAR3_NATIVE_OP_EXT_QUERY_CATALOG_PAGE 319u
-#define WAR3_NATIVE_OP_EXT_QUEST_INSPECT 320u
-#define WAR3_NATIVE_OP_EXT_QUEST_EXECUTE 321u
-#define WAR3_NATIVE_OP_EXT_QUEST_STATUS 322u
+/* R24: operations320-322 retired; never reuse them for task execution. */
 #define WAR3_NATIVE_OP_EXT_QUERY_SOURCE_POLICY 323u
 
 #define WAR3_PLAYER_TEAM_MAX_PEERS 28u
@@ -1874,7 +1872,7 @@ static int war3_readable_span(uint64_t address, size_t length) {
    just as the selection snapshot does. Never execute scanned byte hits. */
 #include "war3_native_player_name.h"
 #include "war3_native_catalog.h" /* R21: independent read-only directory query. */
-#include "war3_native_quest.h" /* R23: typed original-task flow and persistent dedup. */
+#include "war3_source_policy.h" /* R24: target-process source proof only. */
 
 static const uint8_t war3_first_group_code[51]={
     0x48,0x83,0xec,0x28,0xe8,0x07,0x7a,0xdc,0xff,0x48,0x85,0xc0,0x74,0x1e,
@@ -4709,8 +4707,7 @@ static void run_command(void) {
     DWORD extra_wrote = 0;
     DWORD status = WAR3_NATIVE_STATUS_FAILED;
     DWORD last_error = 0;
-    uint64_t input_small[WAR3_PLAYER_TEAM_MAX_PEERS];
-    uint64_t *input_extra = input_small;
+    uint64_t input_extra[WAR3_PLAYER_TEAM_MAX_PEERS];
     uint32_t input_extra_count = 0;
     uint64_t *extra_results = NULL;
     uint32_t extra_result_count = 0;
@@ -4748,18 +4745,7 @@ static void run_command(void) {
         return;
     }
     input_extra_count = cmd.reserved;
-    /* Only a standalone typed quest operation gets the bounded larger input.
-       Preserve every existing operation's 28-word contract. */
-    int quest_input = cmd.op_count == 1u && cmd.ops[0].kind >= 320u && cmd.ops[0].kind <= 322u;
-    if (input_extra_count > (quest_input ? WAR3_QUEST_MAX_WORDS : WAR3_PLAYER_TEAM_MAX_PEERS)) {
-        last_error = ERROR_INVALID_DATA;
-        goto finish;
-    }
-    if (input_extra_count > WAR3_PLAYER_TEAM_MAX_PEERS) {
-        input_extra = (uint64_t *)HeapAlloc(GetProcessHeap(), 0, input_extra_count * sizeof(uint64_t));
-        if (!input_extra) {last_error=ERROR_OUTOFMEMORY;goto finish;}
-    }
-    if (
+    if (input_extra_count > WAR3_PLAYER_TEAM_MAX_PEERS ||
         (input_extra_count && (!ReadFile(file, input_extra,
             input_extra_count * (DWORD)sizeof(uint64_t), &got, NULL) ||
             got != input_extra_count * (DWORD)sizeof(uint64_t)))) {
@@ -4885,9 +4871,6 @@ static void run_command(void) {
             op->kind != WAR3_NATIVE_OP_QUERY_NATIVE_TABLE &&
             op->kind != WAR3_NATIVE_OP_EXT_QUERY_CATALOG_HEADER &&
             op->kind != WAR3_NATIVE_OP_EXT_QUERY_CATALOG_PAGE &&
-            op->kind != WAR3_NATIVE_OP_EXT_QUEST_INSPECT &&
-            op->kind != WAR3_NATIVE_OP_EXT_QUEST_EXECUTE &&
-            op->kind != WAR3_NATIVE_OP_EXT_QUEST_STATUS &&
             op->kind != WAR3_NATIVE_OP_EXT_QUERY_SOURCE_POLICY &&
             op->kind != WAR3_NATIVE_OP_BOUND_ABILITY_LIST &&
             op->kind != WAR3_NATIVE_OP_BOUND_UNIT_FIELDS &&
@@ -4906,15 +4889,12 @@ static void run_command(void) {
             last_error = ERROR_INVALID_DATA;
             goto finish;
         }
+        if(op->kind>=320u && op->kind<=322u) {
+            last_error=ERROR_NOT_SUPPORTED;op->last_error=last_error;goto finish;
+        }
         switch (op->kind) {
             case WAR3_NATIVE_OP_EXT_QUERY_SOURCE_POLICY:
                 last_error=war3_quest_source_policy_query(&cmd,op,&extra_results,&extra_result_count);
-                if(last_error) {op->last_error=last_error;goto finish;}
-                break;
-            case WAR3_NATIVE_OP_EXT_QUEST_INSPECT:
-            case WAR3_NATIVE_OP_EXT_QUEST_EXECUTE:
-            case WAR3_NATIVE_OP_EXT_QUEST_STATUS:
-                last_error = war3_quest_query(&cmd,op,input_extra,input_extra_count,&extra_results,&extra_result_count);
                 if(last_error) {op->last_error=last_error;goto finish;}
                 break;
             case WAR3_NATIVE_OP_EXT_VALIDATE_PLAYER_TARGET:
@@ -7810,7 +7790,6 @@ finish:
     if (extra_results) {
         HeapFree(GetProcessHeap(), 0, extra_results);
     }
-    if (input_extra && input_extra != input_small) HeapFree(GetProcessHeap(), 0, input_extra);
     CloseHandle(file);
 }
 
@@ -7858,7 +7837,6 @@ static DWORD war3_remove_item_handles(NativeCommand *cmd, uint32_t index) {
     return ERROR_SUCCESS;
 }
 
-/* R23 offline pairing check: no game state, hook or native call. */
 __declspec(dllexport) uint32_t War3NativeProtocol(void) {return WAR3_NATIVE_VERSION;}
 
 __declspec(dllexport) LRESULT CALLBACK War3HookProc(int code, WPARAM w_param, LPARAM l_param) {

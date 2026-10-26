@@ -236,24 +236,28 @@ def bind_owned_source(metadata,files,inspect_file)->BoundScriptFile:
     return BoundScriptFile(replace(local,handle=game.handle),metadata.map_path if metadata.is_campaign else '')
 
 
-def parse_game_source_policy(words,pid):
+def parse_game_source_policy(words,pid,*,base_analysis=False):
     """R23: a host registry view cannot prove a different process's settings."""
     if (not isinstance(words,tuple) or len(words)!=6 or
         any(type(n) is not int or not 0<=n<2**64 for n in words) or
         words[:3]!=(0x31505352,1,pid) or not words[3] or words[4]>0xffffffff or words[5]):
         raise ValueError('游戏进程来源设置证明格式或进程身份无效')
-    if words[4]:
+    # R24 only reads the explicitly labelled installed base script. A known
+    # override/stamp rejection does not prevent reading that base resource;
+    # malformed replies and actual query failures still cannot prove identity.
+    if words[4] and not (base_analysis and words[4] in (50,1237)):
         raise SourceUnavailable('游戏进程内的本地文件覆盖设置未通过校验（error='+str(words[4])+'）')
     return words[3]
 
 
 class RuntimeScriptSource:
     """Verified metadata + owned-file or exact installed-CASC source."""
-    def __init__(self,metadata,owned_files,inspect_file,identity,casc_root=None,casc_owned_files=None,source_policy=None):
+    def __init__(self,metadata,owned_files,inspect_file,identity,casc_root=None,casc_owned_files=None,source_policy=None,official_base_analysis=False):
         self.metadata,self.owned_files,self.inspect_file,self.identity=metadata,owned_files,inspect_file,identity
         self.casc_root=casc_root
         self.casc_owned_files=casc_owned_files
         self.source_policy=source_policy
+        self.official_base_analysis=official_base_analysis
 
     def _game_source_policy(self,created=0):
         if self.source_policy is None:raise SourceUnavailable('缺少游戏进程内的来源设置证明')
@@ -319,7 +323,7 @@ class RuntimeScriptSource:
             origin=f'CASC::{root}::{member}::{script_entry}'
             provenance=('active-map/profiled-config-and-session','official-member-from-live-map-path',
                 'local-casc-build-and-exact-resource-content','game-owned-casc-data-file',
-                'game-process-local-file-overrides-disabled','read-only-mpq-exact-script',
+                'official-base-analysis:effective-overrides-not-qualified' if self.official_base_analysis else 'game-process-local-file-overrides-disabled','read-only-mpq-exact-script',
                 'map-string-table:war3map.wts:base-resource-text')
             return ScriptSnapshot(identity,before.session_token,origin,language,script,strings,
                 hashlib.sha256(script).hexdigest(),hashlib.sha256(strings).hexdigest(),time.monotonic(),
@@ -579,5 +583,5 @@ def create_current_map_script_client(pid,catalog,memory_factory,*,source_policy=
         return find_casc_install_root(executable)
     source=RuntimeScriptSource(metadata,lambda:enumerate_game_files(pid),
         lambda path:inspect_windows_source_file(path,pid),catalog.identity,casc_root=casc_root,
-        casc_owned_files=lambda path,cancelled:enumerate_game_files(pid,cancelled,exact_paths=(path,)),source_policy=source_policy)
+        casc_owned_files=lambda path,cancelled:enumerate_game_files(pid,cancelled,exact_paths=(path,)),source_policy=source_policy,official_base_analysis=True)
     return CurrentMapScriptClient(source.query,catalog.identity)

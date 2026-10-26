@@ -6,6 +6,16 @@ def test_target_policy_reply_binds_pid_and_creation_time():
     from war3_current_map_script import parse_game_source_policy
     assert parse_game_source_policy((0x31505352,1,5,20,0,0),5)==20
 
+@pytest.mark.parametrize('status',[50,1237])
+def test_readonly_base_script_analysis_does_not_require_changing_game_override(status):
+    from war3_current_map_script import parse_game_source_policy
+    assert parse_game_source_policy((0x31505352,1,5,20,status,0),5,base_analysis=True)==20
+
+def test_base_analysis_still_rejects_foreign_process_and_read_failures():
+    from war3_current_map_script import parse_game_source_policy
+    with pytest.raises(ValueError):parse_game_source_policy((0x31505352,1,6,20,50,0),5,base_analysis=True)
+    with pytest.raises(SourceUnavailable):parse_game_source_policy((0x31505352,1,5,20,5,0),5,base_analysis=True)
+
 @pytest.mark.parametrize('words',[(0,1,5,20,0,0),(0x31505352,1,6,20,0,0),
     (0x31505352,1,5,0,0,0),(0x31505352,1,5,20,0,1),(0x31505352,1,5,20,0)])
 def test_malformed_or_other_process_policy_cannot_authorize_source(words):

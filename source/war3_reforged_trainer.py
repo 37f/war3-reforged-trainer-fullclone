@@ -2918,7 +2918,7 @@ class War3Trainer:
         )
     )
     NATIVE_HELPER_MAGIC = 0x33524757
-    NATIVE_HELPER_VERSION = 79
+    NATIVE_HELPER_VERSION = 80
     NATIVE_HELPER_CLONE_FLAG_HERO = 0x01
     NATIVE_HELPER_CLONE_FLAG_INVENTORY = 0x02
     NATIVE_HELPER_CLONE_FLAG_PRESERVE_OWNER = 0x04
@@ -3054,9 +3054,6 @@ class War3Trainer:
     NATIVE_HELPER_OP_EXT_QUERY_SELECTED_OWNER_STATUS = 317
     NATIVE_HELPER_OP_EXT_QUERY_CATALOG_HEADER = 318
     NATIVE_HELPER_OP_EXT_QUERY_CATALOG_PAGE = 319
-    NATIVE_HELPER_OP_EXT_QUEST_INSPECT = 320
-    NATIVE_HELPER_OP_EXT_QUEST_EXECUTE = 321
-    NATIVE_HELPER_OP_EXT_QUEST_STATUS = 322
     NATIVE_HELPER_OP_EXT_QUERY_SOURCE_POLICY = 323
     PERSISTENT_NATIVE_SNAPSHOT_QWORDS = 154
     NATIVE_BASIC_FIELD_ARGUMENTS = {
@@ -4637,30 +4634,13 @@ class War3Trainer:
         # metadata reads use a separate short-lived read-only memory handle.
         from war3_current_map_script import create_current_map_script_client
         return create_current_map_script_client(
-            self.pid,self.current_map_catalog_client(),lambda:ProcessMemory(self.pid),source_policy=self.current_map_source_policy)
+            self.pid,self.current_map_catalog_client(),lambda:ProcessMemory(self.pid),source_policy=lambda:self.current_map_source_policy(base_analysis=True))
 
-    def current_map_source_policy(self):
+    def current_map_source_policy(self,*,base_analysis=False):
         from war3_current_map_script import parse_game_source_policy
         result=self._run_native_helper_ops(0,((323,0,0,0,0),),timeout_ms=5000)
         if len(result)!=1 or result[0].kind!=323:raise RuntimeError("游戏来源设置返回操作不一致")
-        return parse_game_source_policy(tuple(result[0].extra_results),int(self.pid))
-
-    def current_map_quest_runtime_client(self):
-        """R23: paired typed transport, with the existing connection/lock owner."""
-        from war3_native_quest import QuestRuntimeClient,encode_quest_request,decode_quest_response
-        source=self.current_map_script_client()
-        def query(request):
-            operation={'inspect':320,'execute':321,'status':322}.get(request.operation)
-            if operation is None:raise ValueError("未知的任务运行时操作")
-            identity=source.identity()
-            if identity[-1]:raise RuntimeError("游戏连接已关闭，请重新连接")
-            with self._native_helper_lock:
-                if source.identity()!=identity:raise RuntimeError("游戏连接已变化")
-                result=self._run_native_helper_ops(0,((operation,0,0,0,0),),timeout_ms=10000,
-                    extra_values=encode_quest_request(request))
-            if len(result)!=1 or result[0].kind!=operation:raise RuntimeError("任务运行时返回操作不一致")
-            return decode_quest_response(request,tuple(result[0].extra_results))
-        return QuestRuntimeClient(query,source.identity,lambda plan:source.check(plan.source_snapshot))
+        return parse_game_source_policy(tuple(result[0].extra_results),int(self.pid),base_analysis=base_analysis)
 
     @staticmethod
     def _write_native_helper_command(path: Path, payload: bytes) -> None:
@@ -4698,14 +4678,9 @@ class War3Trainer:
         extras = tuple(int(value) & 0xFFFFFFFFFFFFFFFF for value in extra_values)
         if not 0 < len(op_list) <= self.NATIVE_HELPER_MAX_OPS:
             raise RuntimeError("native helper 操作数量无效")
-        quest_ops = [op for op in op_list if 320 <= op[0] <= 322]
-        if quest_ops:
-            from war3_native_quest import QUEST_WIRE_MAGIC, MAX_QUEST_WORDS
-            if (len(op_list) != 1 or unit_address or any(quest_ops[0][1:]) or
-                not 36 <= len(extras) <= MAX_QUEST_WORDS or
-                extras[:3] != (QUEST_WIRE_MAGIC, 1, quest_ops[0][0] - 320)):
-                raise RuntimeError("任务执行桥的请求边界无效")
-        elif len(extras) > 28:
+        if any(320 <= op[0] <= 322 for op in op_list):
+            raise RuntimeError("完成任务功能已移除，仅支持只读任务检索")
+        if len(extras) > 28:
             raise RuntimeError("native helper 附加参数数量无效")
         payload = bytearray(
             self.NATIVE_HELPER_HEADER_STRUCT.pack(
@@ -5238,9 +5213,6 @@ class War3Trainer:
             self.NATIVE_HELPER_OP_EXT_QUERY_SELECTED_OWNER_STATUS,
             self.NATIVE_HELPER_OP_EXT_QUERY_CATALOG_HEADER,
             self.NATIVE_HELPER_OP_EXT_QUERY_CATALOG_PAGE,
-            self.NATIVE_HELPER_OP_EXT_QUEST_INSPECT,
-            self.NATIVE_HELPER_OP_EXT_QUEST_EXECUTE,
-            self.NATIVE_HELPER_OP_EXT_QUEST_STATUS,
             self.NATIVE_HELPER_OP_EXT_QUERY_SOURCE_POLICY,
         }
         if any(kind not in allowed_kinds for kind, _rawcode, _handler, _arg0, _arg1 in op_list):
@@ -15613,7 +15585,6 @@ def run_gui() -> None:
     quest_analysis = QuestAnalysisUI(
         root,lambda: ui_language["code"],
         lambda: state["trainer"].current_map_script_client() if state.get("trainer") is not None else None,
-        runtime_client_provider=lambda: state["trainer"].current_map_quest_runtime_client() if state.get("trainer") is not None else None,
     )
     elephant_tech_rawcode = tk.StringVar(value="")
     elephant_tech_level = tk.StringVar(value="1")

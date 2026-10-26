@@ -167,8 +167,9 @@ def test_actual_task_widgets_search_details_unknowns_source_and_language(tk_root
         target=next(i for i in rows if 'Hidden relic' in str(ui.tree.item(i,'values')))
         ui.tree.selection_set(target);ui.show_selected()
         detail=ui.detail.get('1.0','end')
-        assert 'count >= 4' in detail and '不少于' in detail and 'main:' in detail
-        assert '脚本' in ui.status.get() and '任务当前进度' in ui.notice.cget('text')
+        assert '不少于 4' in detail and 'QuestSetCompleted' not in detail
+        assert '脚本' in ui.status.get() and '只读任务信息' in ui.notice.cget('text')
+        ui.evidence.set(True);ui.render_rows()
         ui.search.set('CustomDefeatBJ');ui.render_rows()
         assert ui.tree.get_children() and all('Hidden relic' not in str(ui.tree.item(i,'values')) for i in ui.tree.get_children())
         language[0]='en';ui.refresh_language()
@@ -214,56 +215,23 @@ def test_review_existing_report_expires_on_delayed_visible_tick():
     finally:c.close()
 
 
-def test_actual_completion_buttons_require_preflight_and_language_never_executes(tk_root):
-    from test_quest_completion_ui import report,settle
-    from test_native_quest import _inspection,_execution
-    from war3_native_quest import QuestRuntimeClient
-    operations=[];language=['zh']
-    def query(request):
-        operations.append(request.operation)
-        return _inspection(request) if request.operation=='inspect' else _execution(request)
-    runtime=QuestRuntimeClient(query,lambda:1,lambda plan:True)
-    ui=QuestAnalysisUI(tk_root,lambda:language[0],lambda:None,runtime_client_provider=lambda:runtime)
+def test_readonly_page_has_no_completion_controls_and_evidence_is_opt_in(tk_root):
+    ui=QuestAnalysisUI(tk_root,lambda:'zh',lambda:None)
     panel=ttk.Frame(tk_root);ui.add_controls(panel)
     try:
-        ui.controller.report=report();ui.controller.state='ready';ui.render()
-        assert str(ui.execute_button.cget('state'))=='disabled'
-        ui.inspect_button.invoke();settle(ui.completion);ui.render_completion()
-        assert str(ui.execute_button.cget('state'))=='normal' and operations==['inspect']
-        language[0]='en';ui.refresh_language()
-        assert ui.execute_button.cget('text')=='Complete quest (original flow)'
-        assert operations==['inspect']
-        ui.search.set('there_is_no_matching_quest')
-        assert str(ui.execute_button.cget('state'))=='disabled'
-        assert not ui.completion.can_inspect
-        ui.search.set('');ui.inspect_button.invoke();settle(ui.completion);ui.render_completion()
-        ui.execute_button.invoke();settle(ui.completion);ui.render_completion()
-        assert operations==['inspect','inspect','execute']
-        assert str(ui.execute_button.cget('state'))=='disabled'
-        ui.tree.selection_set('coverage');ui.show_selected()
-        assert str(ui.inspect_button.cget('state'))=='disabled'
-        ui.search.set('there_is_no_matching_quest')
-        assert str(ui.execute_button.cget('state'))=='disabled'
-        assert not ui.completion.can_inspect
-    finally:ui.close();panel.destroy()
-
-
-def test_review_outer_reward_and_complete_original_chain_visible_before_execution(tk_root):
-    from test_quest_execution import _report,_script
-    from test_quest_completion_ui import settle
-    from test_native_quest import _plan,_inspection
-    from war3_native_quest import QuestRuntimeClient
-    report=_report(_script(extra='call SetPlayerState(Player(0),PLAYER_STATE_RESOURCE_GOLD,100)'))
-    report=replace(report,snapshot=replace(report.snapshot,identity=1,stamp=_plan().source_snapshot.stamp))
-    runtime=QuestRuntimeClient(_inspection,lambda:1,lambda plan:True)
-    ui=QuestAnalysisUI(tk_root,lambda:'zh',lambda:None,runtime_client_provider=lambda:runtime)
-    panel=ttk.Frame(tk_root);ui.add_controls(panel)
-    try:
-        ui.controller.report=report;ui.controller.state='ready';ui.render()
-        ui.inspect_button.invoke();settle(ui.completion);ui.render_completion()
-        details=ui.detail.get('1.0','end')
-        assert 'SetPlayerState' in details and 'PLAYER_STATE_RESOURCE_GOLD' in details
-        assert '100' in details and 'FinishAction' in details
-        assert '原流程' in details and '证据' in details
-        assert str(ui.execute_button.cget('state'))=='normal'
+        ui.controller.report=analyze_quests(snapshot(SCRIPT));ui.controller.state='ready';ui.render()
+        buttons=[]
+        def collect(widget):
+            for child in widget.winfo_children():
+                if isinstance(child,ttk.Button):buttons.append(str(child.cget('text')))
+                collect(child)
+        collect(panel)
+        assert set(buttons)=={'重新检索','取消检索'}
+        text=ui.detail.get('1.0','end')
+        assert '完成条件' in text and '不少于 4' in text and 'QuestSetCompleted' not in text
+        ui.evidence.set(True);ui.render_rows()
+        text=ui.detail.get('1.0','end')
+        assert 'count >= 4' in text and 'QuestSetCompleted' in text
+        ui.evidence.set(False);ui.render_rows()
+        assert 'QuestSetCompleted' not in ui.detail.get('1.0','end')
     finally:ui.close();panel.destroy()

@@ -1,4 +1,4 @@
-/* R23 execution-only policy: do not change legacy custom-map reading. */
+/* Read-only official source proof; legacy custom-map reading is unchanged. */
 #ifndef WAR3_QUEST_POLICY_H
 #define WAR3_QUEST_POLICY_H
 #include <windows.h>

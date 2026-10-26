@@ -1195,7 +1195,8 @@ _EN_TRANSLATIONS.update(
     "请重新读取": "Please read again",
     "；写入时通过内部物品栏函数在本槽创建物品": "; Create items in this slot through the internal inventory function when writing",
     "没有匹配的运行时实例": "No matching runtime instance",
-    "同时出现在": "Also appeared in"
+    "同时出现在": "Also appeared in",
+    "完成任务功能已移除，仅支持只读任务检索": "Quest completion was removed; only read-only quest inspection is available"
 }
 )
 
