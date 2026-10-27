@@ -4,11 +4,32 @@
 
 本分支当前为 **v1.0.19 FullClone R24.1-Test 手动任务检测版**。打开“任务与条件”页时不会自动检测；首次按钮为“开始检测”，点击后改为“重新检测”，切回页面也不会自行重跑。按用户要求删除R23“完成任务”功能及执行通道；任务页仅检索主线/支线、目标和完成/失败条件，默认用易读说明，勾选后可查看原脚本依据。官方安装基础脚本、自定义战役章节和独立地图共用入口；未知条件明确提示，不把静态结果冒充实时进度。目标游戏保持2.0.4.23745 x64，其他原有功能保留。
 
-R24.1为本地独立成品，尚未上传GitHub。使用方法见 [R24.1说明](source/R24.1_任务信息使用说明.md)，证据与限制见 [R24.1验证记录](source/analysis/R24_1_VERIFICATION.md)。R23执行设计已撤销，仅保留在Git历史与旧版回退文件中；不要按其旧说明尝试新版本。
+R19.2 之后的七个独立测试版本已补发至 GitHub Releases，EXE 均沿用原交付文件，没有为上传重新编译。当前新功能测试版为 **R24.1-Test**，现有正式版仍为 R19.2。使用方法见 [R24.1说明](source/R24.1_任务信息使用说明.md)，证据与限制见 [R24.1验证记录](source/analysis/R24_1_VERIFICATION.md)。R23执行设计已撤销，其发布只作历史存档；R24 与 R24.1 不包含完成任务功能。
+
+## R19.2 之后的版本
+
+| 版本 | 主要变化 | 发布与下载 |
+| --- | --- | --- |
+| R19.3-Test | 原队伍为 -1 的玩家应用及恢复外交模板。 | [R19.3](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v1.0.19-fullclone-r19.3-test) |
+| R20-Test | 从战役文件和所选章节只读检索自定义单位、技能及物品 ID。 | [R20](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v1.0.19-fullclone-r20-test) |
+| R21-Test | 在修改器中直接检索当前地图的自定义 ID，换图后清理旧目录。 | [R21](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v1.0.19-fullclone-r21-test) |
+| R22-Test | 检索当前地图任务、JASS 完成及失败条件和脚本证据。 | [R22](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v1.0.19-fullclone-r22-test) |
+| R23-Test（历史存档） | 官方基础脚本来源适配及任务原流程执行实验；执行功能后来已撤销，不推荐使用本版。 | [R23 历史版](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v1.0.19-fullclone-r23-test) |
+| R24-Test | 删除任务执行；只读展示主线、支线、目标和易读完成／失败条件。 | [R24](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v1.0.19-fullclone-r24-test) |
+| **R24.1-Test** | 任务页改为手动检测，按钮首次为“开始检测”、此后为“重新检测”。 | **[R24.1](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v1.0.19-fullclone-r24.1-test)** |
+
+每版附件包含独立 EXE、对应源码、中文说明、原验证记录和 SHA-256 校验文件；发布标签对应各版原源码提交。R21 源码 ZIP 仅清理夹带的 30 个旧发布文件，保留的源码逐文件核对原提交、字节不变，本地旧包保留。历史文档中“尚未上传”描述生成时状态，公开发布以各版本页面及附件 `PUBLICATION_INTEGRITY.json` 为准。
 
 以下保留 **v1.0.19 FullClone R19.2** 的历史发布说明和下载链接。该版保留此前全部扩展及 R18 的四项修复；R19 在原队伍监视中加入所属玩家的实际名字，R19.1 精简中立名字提示，R19.2 修复自定义战役中原生队伍为 `-1` 时监视报错误13的问题。当时已连续三次成功读回，用户确认正式 EXE“显示正常，无原错误”；这不代表其他功能或所有地图均已实测。
 
 ## 下载
+
+- [R24.1-Test 新功能测试版](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v1.0.19-fullclone-r24.1-test)
+- [R24.1 Windows EXE](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v1.0.19-fullclone-r24.1-test/War3ReforgedTrainer-v1.0.19-FullClone-R24.1-Test.exe)
+- [R24.1 完整源码 ZIP](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v1.0.19-fullclone-r24.1-test/war3-reforged-trainer-v1.0.19-fullclone-r24.1-test-source.zip)
+- [R24.1 中文任务使用说明](source/R24.1_任务信息使用说明.md)
+
+以下为 R19.2 正式版及其历史文档：
 
 - [R19.2 发布与下载页面](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v1.0.19-fullclone-r19.2)
 - [Windows 单文件 EXE](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v1.0.19-fullclone-r19.2/War3ReforgedTrainer-v1.0.19-FullClone-R19.2.exe)
@@ -58,4 +79,4 @@ R16 另修复了大量复制和 `Ctrl+N` 调用批量方法时的 `preserve_owne
 
 R19.2 源码完整回归结果为 `1890 passed, 12 skipped, 113 subtests passed`。冻结包验证确认应用版本 `1.0.19`、helper 协议 `76`、内置 DLL 身份、源码一致性和离线自检。跳过的 12 项不算通过。当前战役原先出错单位的监视已连续三次成功读回“玩家7、队伍-1”，用户确认正式 R19.2 界面“显示正常，无原错误”。该玩家名字目前没有可读取内容，按原有普通玩家规则提示，不再让其阻断归属/队伍显示。受控测试和当前单位验收不等于所有地图验收，其他功能的跨地图效果仍需另测。
 
-本仓库的 `source/` 与 R19.2 源码提交 `dbb20d0cd19625f57b470a4e41f289be055732a3` 对应；发布附件中的完整源码 ZIP 是该提交 `source/` 的原始字节独立归档，258个文件全部核对提交对象并通过 ZIP CRC。程序、源码 ZIP、使用说明及验证报告使用已校验的原始文件，不因发布而重编译 EXE。源码中的本地交付记录描述上传前状态；这次公开发布另经用户授权。R19.2 保持协议76，但 helper 字节与 R19/R19.1 不同，升级仍须重开游戏；历史 R18 为协议75，R16为协议73，不要混用 DLL。
+R19.2 历史标签的 `source/` 与当时源码提交 `dbb20d0cd19625f57b470a4e41f289be055732a3` 对应；其发布附件中的完整源码 ZIP 是该提交 `source/` 的原始字节独立归档，258个文件全部核对提交对象并通过 ZIP CRC。程序、源码 ZIP、使用说明及验证报告使用已校验的原始文件，不因发布而重编译 EXE。源码中的本地交付记录描述上传前状态。当前主分支为 R24.1 源码及发布目录；各版协议、验证范围和限制请以对应说明为准。R19.2 保持协议76，R19.3／R20 为77，R21／R22 为78，R23 为79，R24／R24.1 为80；helper 字节可能不同，切换版本须完整重开游戏，不要混用 DLL。
