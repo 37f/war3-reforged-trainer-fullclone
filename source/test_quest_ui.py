@@ -50,12 +50,12 @@ def pump(controller,finished,visible=True):
     assert finished(),(controller.state,controller.error)
 
 
-def test_explicit_scan_analyzes_but_hidden_page_does_no_game_work():
+def test_first_visible_page_reads_and_analyzes_but_hidden_page_does_no_game_work():
     client=Client();c=QuestAnalysisController(lambda:client)
     try:
         for _ in range(3):c.tick(False)
         assert client.reads==0 and client.checks==0
-        c.detect();pump(c,lambda:c.report is not None)
+        pump(c,lambda:c.report is not None)
         assert c.report.quests[0].title=='Hidden relic' and client.reads==1
         c.tick(False)
         assert c.report is None
@@ -65,42 +65,14 @@ def test_explicit_scan_analyzes_but_hidden_page_does_no_game_work():
     finally:c.close()
 
 
-def test_opening_or_reopening_tab_waits_for_an_explicit_scan():
-    client=Client();c=QuestAnalysisController(lambda:client)
-    try:
-        for _ in range(4):c.tick(True)
-        assert client.reads==0 and client.checks==0 and not c.busy
-        c.detect();pump(c,lambda:c.report is not None)
-        assert client.reads==1
-        c.tick(False)
-        for _ in range(4):c.tick(True)
-        assert client.reads==1 and c.report is None and not c.busy
-        c.detect();pump(c,lambda:c.report is not None)
-        assert client.reads==2
-    finally:c.close()
-
-
-def test_map_change_invalidates_without_automatically_reading_another_map():
-    clock=[100.];client=Client();c=QuestAnalysisController(lambda:client,clock=lambda:clock[0])
-    try:
-        c.tick(True);c.detect();pump(c,lambda:c.report is not None)
-        client.token=2;clock[0]+=1.1
-        pump(c,lambda:c.report is None and not c.busy)
-        for _ in range(4):clock[0]+=3;c.tick(True)
-        assert client.reads==1 and c.report is None
-        c.detect();pump(c,lambda:c.report is not None)
-        assert client.reads==2 and c.report.snapshot.session_token==2
-    finally:c.close()
-
-
 def test_map_change_clears_report_and_requires_new_source():
     clock=[100.];client=Client();c=QuestAnalysisController(lambda:client,clock=lambda:clock[0])
     try:
-        c.detect();pump(c,lambda:c.report is not None)
+        pump(c,lambda:c.report is not None)
         client.token=2;clock[0]+=2
         pump(c,lambda:c.report is None)
         assert c.state in ('changed','reading','analyzing')
-        c.detect();pump(c,lambda:c.report is not None)
+        pump(c,lambda:c.report is not None)
         assert c.report.snapshot.session_token==2
     finally:c.close()
 
@@ -109,7 +81,7 @@ def test_map_change_clears_report_and_requires_new_source():
 def test_old_read_reply_never_publishes_after_invalidation(change):
     client=Client();client.reading=threading.Event();client.release=threading.Event()
     c=QuestAnalysisController(lambda:client)
-    c.detect();c.tick(True);assert client.reading.wait(1)
+    c.tick(True);assert client.reading.wait(1)
     if change=='hide':c.tick(False)
     elif change=='close':c.close()
     else:client.connection='other';c.invalidate('connection changed')
@@ -127,7 +99,7 @@ def test_delayed_queue_delivery_cannot_renew_worker_validation_time():
         def put(self,item):
             super().put(item)
             if item[2]=='result':ready.set()
-    c.replies=Replies();c.detect();c.tick(True);assert ready.wait(2)
+    c.replies=Replies();c.tick(True);assert ready.wait(2)
     clock[0]=120.;client.token=2
     c.tick(True)
     try:
@@ -141,7 +113,7 @@ def test_connection_change_is_rejected_before_publish_even_without_map_tick():
         def put(self,item):
             super().put(item)
             if item[2]=='result':ready.set()
-    c.replies=Replies();c.detect();c.tick(True);assert ready.wait(2)
+    c.replies=Replies();c.tick(True);assert ready.wait(2)
     client.connection='replaced'
     c.tick(True)
     try:assert c.report is None
@@ -154,7 +126,7 @@ def test_analysis_stage_is_visible_and_cancelled_without_touching_tk():
         worker_ids.append(threading.get_ident());entered.set();release.wait(2)
         return analyze_quests(s,cancelled)
     c=QuestAnalysisController(lambda:Client(),analyzer=delayed)
-    c.detect();c.tick(True);assert entered.wait(1);c.tick(True)
+    c.tick(True);assert entered.wait(1);c.tick(True)
     assert c.state=='analyzing' and worker_ids[0]!=main
     c.cancel();release.set()
     try:
@@ -164,14 +136,14 @@ def test_analysis_stage_is_visible_and_cancelled_without_touching_tk():
 
 
 def test_unconnected_and_unsupported_script_are_not_success_states():
-    c=QuestAnalysisController(lambda:None);c.detect();c.tick(True)
+    c=QuestAnalysisController(lambda:None);c.tick(True)
     try:assert c.report is None and c.state=='disconnected'
     finally:c.close()
     class LuaClient(Client):
         def read(self,cancelled):return replace(super().read(cancelled),language='lua')
     c=QuestAnalysisController(lambda:LuaClient())
     try:
-        c.detect();pump(c,lambda:c.state=='unavailable')
+        pump(c,lambda:c.state=='unavailable')
         assert c.report is None and 'lua' in c.error
     finally:c.close()
 
@@ -183,30 +155,11 @@ def tk_root():
     root.destroy()
 
 
-def test_scan_button_starts_as_start_then_stays_rescan_across_language_and_tab_changes(tk_root):
-    language=['zh'];client=Client();ui=QuestAnalysisUI(tk_root,lambda:language[0],lambda:client)
-    panel=ttk.Frame(tk_root);ui.add_controls(panel)
-    try:
-        assert ui.refresh_button.cget('text')=='开始检测'
-        ui.controller.tick(True);ui.render()
-        assert client.reads==0
-        ui.refresh_button.invoke()
-        assert ui.refresh_button.cget('text')=='重新检测'
-        pump(ui.controller,lambda:ui.controller.report is not None)
-        ui.controller.tick(False);ui.controller.tick(True);ui.render()
-        assert ui.refresh_button.cget('text')=='重新检测' and client.reads==1
-        language[0]='en';ui.refresh_language()
-        assert ui.refresh_button.cget('text')=='Scan again'
-        language[0]='zh';ui.refresh_language()
-        assert ui.refresh_button.cget('text')=='重新检测'
-    finally:ui.close();panel.destroy()
-
-
 def test_actual_task_widgets_search_details_unknowns_source_and_language(tk_root):
     language=['zh'];client=Client();ui=QuestAnalysisUI(tk_root,lambda:language[0],lambda:client)
     panel=ttk.Frame(tk_root);ui.add_controls(panel)
     try:
-        ui.detect();pump(ui.controller,lambda:ui.controller.report is not None)
+        pump(ui.controller,lambda:ui.controller.report is not None)
         ui.render()
         assert 'owned.w3n' in ui.source.get() and ui.controller.report.snapshot.script_sha256 in ui.source.get()
         rows=ui.tree.get_children()
@@ -242,7 +195,7 @@ def test_review_existing_report_expires_while_map_check_worker_is_blocked():
     clock=[100.];client=Client();entered=threading.Event();release=threading.Event()
     c=QuestAnalysisController(lambda:client,clock=lambda:clock[0])
     try:
-        c.detect();pump(c,lambda:c.report is not None)
+        pump(c,lambda:c.report is not None)
         original=client.check
         def blocked(s):entered.set();release.wait(2);return original(s)
         client.check=blocked;client.token=2;clock[0]=101.1
@@ -256,7 +209,7 @@ def test_review_existing_report_expires_while_map_check_worker_is_blocked():
 def test_review_existing_report_expires_on_delayed_visible_tick():
     clock=[100.];client=Client();c=QuestAnalysisController(lambda:client,clock=lambda:clock[0])
     try:
-        c.detect();pump(c,lambda:c.report is not None)
+        pump(c,lambda:c.report is not None)
         clock[0]=120.;c.tick(True)
         assert c.report is None and c.state not in ('ready','partial')
     finally:c.close()
@@ -273,7 +226,7 @@ def test_readonly_page_has_no_completion_controls_and_evidence_is_opt_in(tk_root
                 if isinstance(child,ttk.Button):buttons.append(str(child.cget('text')))
                 collect(child)
         collect(panel)
-        assert set(buttons)=={'开始检测','取消检索'}
+        assert set(buttons)=={'重新检索','取消检索'}
         text=ui.detail.get('1.0','end')
         assert '完成条件' in text and '不少于 4' in text and 'QuestSetCompleted' not in text
         ui.evidence.set(True);ui.render_rows()
