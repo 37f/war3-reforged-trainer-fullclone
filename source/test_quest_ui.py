@@ -297,3 +297,33 @@ def test_unresolved_item_row_is_gray_and_never_invokes_camera(tk_root):
         assert 'no-location' in ui.tree.item(leaf,'tags')
         assert ui.detail.tag_cget('location:0','foreground')=='#888888'
     finally:ui.close();panel.destroy()
+
+
+def test_entry_priority_unknown_rows_and_refresh_do_not_automatically_jump(tk_root):
+    from test_quest_pretrigger import entry
+    from war3_quest_status import QuestState
+    class EntryClient(Client):
+        def read(self,cancelled):return replace(snapshot(entry(action='call QuestSetDiscovered(q,true)\ncall QuestSetCompleted(q,true)')),identity=self.connection,session_token=self.token)
+    client=EntryClient();calls=[]
+    ui=QuestAnalysisUI(tk_root,lambda:'zh',lambda:client,location_navigator=lambda *args:calls.append(args))
+    panel=ttk.Frame(tk_root);ui.add_controls(panel)
+    try:
+        pump(ui.controller,lambda:ui.controller.location_data is not None and not ui.controller.busy)
+        ui.render();q=ui.controller.report.quests[0];key=q.key;pre=key+':pretrigger'
+        assert ui.tree.get_children(key)[0]==pre and ui.tree.item(pre,'open')
+        assert ui._row_locations[key]==ui.controller.location_data.before(q)
+        detail=ui.detail.get('1.0','end')
+        assert '接取／发现状态未读取' in detail and '触发前位置' in detail and not calls
+        leaf=pre+':place:0';ui.tree.selection_set(leaf);ui.show_selected()
+        assert ui.detail.tag_ranges('location:0')
+        ui.tree.item(pre,open=False);ui.render_rows()
+        assert ui.tree.selection()==(leaf,) and not ui.tree.item(pre,'open') and not calls
+        ui.controller.live_states[key]=QuestState(state='completed');ui.render_rows()
+        assert '已完成' in str(ui.tree.item(key,'values')) and not calls
+        assert ui.tree.get_children(key)[-1]==pre and len(ui.tree.get_children(key))>1
+        ui.controller.location_data.pretrigger.results[key]=()
+        ui.controller.live_states[key]=QuestState();ui.render_rows()
+        none=pre+':none';ui.tree.selection_set(none);ui.show_selected();ui._jump_row()
+        assert 'no-location' in ui.tree.item(none,'tags') and not calls
+        assert not ui.detail.tag_ranges('location:0') and not ui._row_locations[key]
+    finally:ui.close();panel.destroy()

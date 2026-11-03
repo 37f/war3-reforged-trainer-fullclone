@@ -47,6 +47,9 @@ class QuestLocation:
             'teleport':('脚本传送落点','script teleport destination'),'build':('脚本建造指令目标点','script build-order destination'),
             'order':('脚本移动／点目标指令位置（护送路径线索）','script move / point-order destination (escort route clue)'),
             'candidate':('类型匹配的脚本候选位置，非实时','type-matched script candidate, not live'),
+            'pre-region':('触发区域中心（脚本定义）','entry region center (script definition)'),
+            'pre-npc':('触发／接取单位或 NPC：脚本初始位置，非实时','entry / quest giver: script initial position, not live'),
+            'pre-point':('触发前脚本接取点／前置落点','script entry / predecessor destination'),
             'initial':('脚本初始位置，非实时','script initial position, not live')}
         origin=origins.get(self.source,('', ''))[bool(en)]
         extra=('；'+self.via if self.via else '')
@@ -82,6 +85,8 @@ class QuestLocations:
             self._walk(fn.body,fn.name)
         from war3_quest_location_links import QuestLocationLinks
         self.links=QuestLocationLinks(self)
+        from war3_quest_pretrigger import QuestPretriggerLocations
+        self.pretrigger=QuestPretriggerLocations(self)
 
     def _walk(self,body,fn,conditional=False,branches=()):
         for s in body:
@@ -237,3 +242,5 @@ class QuestLocations:
         key=id(rule)
         if key not in self.cache:self.cache[key]=self.paths(rule.paths)
         return self.cache[key]
+
+    def before(self,q):return self.pretrigger.for_quest(q)

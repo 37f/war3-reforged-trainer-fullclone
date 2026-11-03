@@ -210,8 +210,8 @@ class QuestAnalysisUI:
         ttk.Entry(toolbar,textvariable=self.search,width=38).pack(side='left',fill='x',expand=True)
         self._label(ttk.Checkbutton(toolbar,variable=self.evidence,command=self.render_rows),'查看脚本依据','Show script evidence').pack(side='left',padx=8)
         self.notice=self._label(ttk.Label(tab,wraplength=1120),
-            '只读任务信息：解释主线／支线的目标、完成与失败条件；每秒同步任务状态。地点是脚本关联线索，候选来源和初始位置会标明，未知地点灰显“无位置”。',
-            'Read-only quest rules and live state. Locations are script-reference clues; candidates and initial positions are labeled, unresolved locations are gray.')
+            '只读任务信息：每秒同步完成／失败状态；未完成或状态未确认时优先显示触发前位置。接取／发现状态未读取；地点是脚本线索，初始位置非实时，未知地点灰显“无位置”。',
+            'Read-only quest rules and completion/failure state. Entry locations appear first for unfinished/unconfirmed quests. Discovery is not read; locations are static clues, unresolved locations are gray.')
         self.notice.pack(fill='x',pady=(0,5))
         ttk.Label(tab,textvariable=self.status,wraplength=1120).pack(fill='x',pady=(0,5))
         ttk.Label(tab,textvariable=self.source,wraplength=1120).pack(fill='x',pady=(0,8))
@@ -329,10 +329,22 @@ class QuestAnalysisUI:
         text=self.text('当前状态：','Current state: ')+self.text(*_LIVE_STATES[state.state])
         if state.read_at:text+='\n'+self.text('最近读取：','Last read: ')+datetime.fromtimestamp(state.read_at).strftime('%Y-%m-%d %H:%M:%S')
         if state.reason:text+='\n'+translate_ui_text(state.reason,self.language())
-        text+='\n\n'+self.reader().quest(q)
+        before=self.before_details(q);conditions=self.reader().quest(q)
+        text+='\n\n'+(before+'\n\n'+conditions if state.state not in ('completed','failed') else conditions+'\n\n'+before)
         if getattr(self,'evidence',None) is not None and self.evidence.get():
             text+='\n\n'+self.text('脚本依据（供核对）','Script evidence')+'\n'+self.quest_evidence(q)
         return text
+
+    def before_places(self,q):
+        locations=getattr(self.controller,'location_data',None)
+        return locations.before(q) if locations and hasattr(locations,'before') else ()
+
+    def before_details(self,q):
+        places=self.before_places(q)
+        return self.text('触发前位置（脚本线索）','Before triggering (script clues)')+'\n'+self.text(
+            '接取／发现状态未读取；下列为创建／发现任务入口的关联线索，不代表当前已接取或未接取。',
+            'Discovery state is not read. Creation/discovery entry clues do not confirm whether the quest has been accepted.')+'\n'+(
+            '\n'.join(p.describe(self.language()=='en') for p in places) if places else self.text('关联地点：无位置','Locations: No location'))
 
     def quest_state(self,key):
         c=self.controller
@@ -372,6 +384,7 @@ class QuestAnalysisUI:
         if self.panel is None:return
         selection=self.tree.selection();old=selection[0] if selection else None
         tree_scroll=self.tree.yview();detail_scroll=self.detail.yview()
+        previous=set(self._rows)
         expanded={i for i in self._rows if self.tree.exists(i) and self.tree.item(i,'open')}
         self.tree.delete(*self.tree.get_children());self._rows={};self._row_locations={}
         r=self.controller.report
@@ -395,7 +408,20 @@ class QuestAnalysisUI:
             live=self.text(*_LIVE_STATES[self.quest_state(key).state]) if key in quest_keys else ''
             self._rows[key]=detail;self.tree.insert('', 'end',iid=key,values=(self.text(*_KINDS[kind]),title,live))
             if key in quests:
-                q=quests[key];all_places=[]
+                q=quests[key];all_places=[];before_places=self.before_places(q)
+                entry_key=f'{key}:pretrigger';unfinished=self.quest_state(key).state not in ('completed','failed')
+                self.tree.insert(key,'end',iid=entry_key,values=(self.text('触发前位置','Before triggering'),
+                    self.text('接取／发现状态未读取','Discovery state not read'),''),open=unfinished and entry_key not in previous)
+                self._rows[entry_key]=self.before_details(q);self._row_locations[entry_key]=before_places
+                for j,place in enumerate(before_places):
+                    leaf=f'{entry_key}:place:{j}';description=place.describe(self.language()=='en')
+                    self.tree.insert(entry_key,'end',iid=leaf,values=(self.text('位置','Location'),description,''),tags=() if place.locatable else ('no-location',))
+                    self._rows[leaf]=description;self._row_locations[leaf]=(place,)
+                if not before_places:
+                    leaf=f'{entry_key}:none';description=self.text('无位置','No location')
+                    self.tree.insert(entry_key,'end',iid=leaf,values=(self.text('位置','Location'),description,''),tags=('no-location',))
+                    self._rows[leaf]=self.before_details(q);self._row_locations[leaf]=()
+                if unfinished and key not in previous:self.tree.item(key,open=True)
                 rules=[(key,self.text('完成条件','Completion'),rule) for rule in q.completed]
                 rules += [(key,self.text('失败条件','Failure'),rule) for rule in q.failed]
                 for item_index,item in enumerate(q.items):
@@ -420,7 +446,10 @@ class QuestAnalysisUI:
                             self.tree.insert(child,'end',iid=leaf,values=(self.text('位置','Location'),description,''),tags=() if place.locatable else ('no-location',))
                             self._rows[leaf]=description;self._row_locations[leaf]=(place,)
                         all_places.extend(places)
-                self._row_locations[key]=tuple(dict.fromkeys(all_places))
+                if not unfinished:self.tree.move(entry_key,key,'end')
+                # A quest row must not silently fall back to a completion target
+                # when its entry location is unknown. Concrete child links stay available.
+                self._row_locations[key]=before_places if unfinished else tuple(dict.fromkeys(all_places+list(before_places)))
             elif locations:
                 rule=r.outcomes[int(key.split(':')[1])] if key.startswith('outcome:') else r.unassociated[int(key.split(':')[1])] if key.startswith('unassociated:') else None
                 if rule is not None:self._row_locations[key]=locations.rule(rule)
