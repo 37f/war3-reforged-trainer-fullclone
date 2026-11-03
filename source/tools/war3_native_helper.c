@@ -5,7 +5,7 @@
 #include <string.h>
 
 #define WAR3_NATIVE_MAGIC 0x33524757u
-#define WAR3_NATIVE_VERSION 80u
+#define WAR3_NATIVE_VERSION 81u
 #define WAR3_NATIVE_STATUS_PENDING 1u
 #define WAR3_NATIVE_STATUS_OK 2u
 #define WAR3_NATIVE_STATUS_FAILED 3u
@@ -140,6 +140,7 @@
 #define WAR3_NATIVE_OP_EXT_QUERY_CATALOG_PAGE 319u
 /* R24: operations320-322 retired; never reuse them for task execution. */
 #define WAR3_NATIVE_OP_EXT_QUERY_SOURCE_POLICY 323u
+#define WAR3_NATIVE_OP_EXT_QUERY_QUEST_STATUS 324u
 
 #define WAR3_PLAYER_TEAM_MAX_PEERS 28u
 #define WAR3_PLAYER_TEAM_ALLIANCE_TYPES 6u
@@ -1873,6 +1874,7 @@ static int war3_readable_span(uint64_t address, size_t length) {
 #include "war3_native_player_name.h"
 #include "war3_native_catalog.h" /* R21: independent read-only directory query. */
 #include "war3_source_policy.h" /* R24: target-process source proof only. */
+#include "war3_native_quest_status.h" /* R25: current-map quest getters only. */
 
 static const uint8_t war3_first_group_code[51]={
     0x48,0x83,0xec,0x28,0xe8,0x07,0x7a,0xdc,0xff,0x48,0x85,0xc0,0x74,0x1e,
@@ -4872,6 +4874,7 @@ static void run_command(void) {
             op->kind != WAR3_NATIVE_OP_EXT_QUERY_CATALOG_HEADER &&
             op->kind != WAR3_NATIVE_OP_EXT_QUERY_CATALOG_PAGE &&
             op->kind != WAR3_NATIVE_OP_EXT_QUERY_SOURCE_POLICY &&
+            op->kind != WAR3_NATIVE_OP_EXT_QUERY_QUEST_STATUS &&
             op->kind != WAR3_NATIVE_OP_BOUND_ABILITY_LIST &&
             op->kind != WAR3_NATIVE_OP_BOUND_UNIT_FIELDS &&
             op->kind != WAR3_NATIVE_OP_SET_UNIT_REGEN &&
@@ -4893,6 +4896,10 @@ static void run_command(void) {
             last_error=ERROR_NOT_SUPPORTED;op->last_error=last_error;goto finish;
         }
         switch (op->kind) {
+            case WAR3_NATIVE_OP_EXT_QUERY_QUEST_STATUS:
+                last_error=war3_quest_status_query(&cmd,op,input_extra,input_extra_count,&extra_results,&extra_result_count);
+                if(last_error) {op->last_error=last_error;goto finish;}
+                break;
             case WAR3_NATIVE_OP_EXT_QUERY_SOURCE_POLICY:
                 last_error=war3_quest_source_policy_query(&cmd,op,&extra_results,&extra_result_count);
                 if(last_error) {op->last_error=last_error;goto finish;}

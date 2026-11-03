@@ -2918,7 +2918,7 @@ class War3Trainer:
         )
     )
     NATIVE_HELPER_MAGIC = 0x33524757
-    NATIVE_HELPER_VERSION = 80
+    NATIVE_HELPER_VERSION = 81
     NATIVE_HELPER_CLONE_FLAG_HERO = 0x01
     NATIVE_HELPER_CLONE_FLAG_INVENTORY = 0x02
     NATIVE_HELPER_CLONE_FLAG_PRESERVE_OWNER = 0x04
@@ -3055,6 +3055,7 @@ class War3Trainer:
     NATIVE_HELPER_OP_EXT_QUERY_CATALOG_HEADER = 318
     NATIVE_HELPER_OP_EXT_QUERY_CATALOG_PAGE = 319
     NATIVE_HELPER_OP_EXT_QUERY_SOURCE_POLICY = 323
+    NATIVE_HELPER_OP_EXT_QUERY_QUEST_STATUS = 324
     PERSISTENT_NATIVE_SNAPSHOT_QWORDS = 154
     NATIVE_BASIC_FIELD_ARGUMENTS = {
         "hp_current": ("target_hp", "hp"),
@@ -4642,6 +4643,33 @@ class War3Trainer:
         if len(result)!=1 or result[0].kind!=323:raise RuntimeError("游戏来源设置返回操作不一致")
         return parse_game_source_policy(tuple(result[0].extra_results),int(self.pid),base_analysis=base_analysis)
 
+    def current_map_quest_states(self,report,plan,cancelled=lambda:False):
+        """R25: resolve named globals inside the serialized game-thread query."""
+        from war3_quest_status import read_states
+        client=self.current_map_script_client();identity=report.snapshot.identity
+        if client.identity()!=identity:raise RuntimeError("游戏连接已变化")
+        # A base installation script may differ from a locally overridden one.
+        # Keep its static report, but qualify its live bindings separately.
+        if report.snapshot.stamp and report.snapshot.stamp[0]=='official-casc':
+            self.current_map_source_policy()
+        def query(token,words):
+            if cancelled() or client.identity()!=identity:raise RuntimeError("游戏连接已变化")
+            # Short-lived workers must use the connection-owned hook; never
+            # reinstall it after close/reconnect won the serialization lock.
+            with self._native_helper_lock:
+                if cancelled() or client.identity()!=identity:raise RuntimeError("游戏连接已变化")
+                injector=getattr(self,"_persistent_bootstrap_thread",None)
+                if injector is not None and (not injector.is_alive() or
+                    not getattr(self,"_native_helper_persistent_hook",None)):
+                    raise RuntimeError("常驻 helper 尚未就绪，请连接游戏后重试")
+                result=self._run_native_helper_ops(0,((324,0,0,token,0),),
+                    extra_values=words,timeout_ms=5000)
+            if len(result)!=1 or result[0].kind!=324:raise RuntimeError("任务状态返回操作不一致")
+            return result[0].extra_results
+        states=read_states(plan,report.snapshot.session_token,query,cancelled)
+        if cancelled() or client.identity()!=identity:raise RuntimeError("游戏连接已变化")
+        return states
+
     @staticmethod
     def _write_native_helper_command(path: Path, payload: bytes) -> None:
         last_error: PermissionError | None = None
@@ -5214,6 +5242,7 @@ class War3Trainer:
             self.NATIVE_HELPER_OP_EXT_QUERY_CATALOG_HEADER,
             self.NATIVE_HELPER_OP_EXT_QUERY_CATALOG_PAGE,
             self.NATIVE_HELPER_OP_EXT_QUERY_SOURCE_POLICY,
+            self.NATIVE_HELPER_OP_EXT_QUERY_QUEST_STATUS,
         }
         if any(kind not in allowed_kinds for kind, _rawcode, _handler, _arg0, _arg1 in op_list):
             raise RuntimeError("native helper 仅允许结构化验证后的白名单操作")
@@ -15585,6 +15614,8 @@ def run_gui() -> None:
     quest_analysis = QuestAnalysisUI(
         root,lambda: ui_language["code"],
         lambda: state["trainer"].current_map_script_client() if state.get("trainer") is not None else None,
+        status_provider=lambda report,plan,cancelled: state["trainer"].current_map_quest_states(report,plan,cancelled)
+            if state.get("trainer") is not None else {},
     )
     elephant_tech_rawcode = tk.StringVar(value="")
     elephant_tech_level = tk.StringVar(value="1")

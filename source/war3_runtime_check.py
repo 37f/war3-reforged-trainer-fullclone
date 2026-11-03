@@ -79,7 +79,7 @@ def run(output_path):
         getattr(library, "War3HookProc")
         protocol=library.War3NativeProtocol;protocol.argtypes=[];protocol.restype=ctypes.c_uint32
         report['helper_protocol']=int(protocol())
-        if report['helper_protocol']!=80:raise RuntimeError('Packaged helper protocol mismatch')
+        if report['helper_protocol']!=81:raise RuntimeError('Packaged helper protocol mismatch')
         report["helper_sha256"] = hashlib.sha256(helper.read_bytes()).hexdigest()
         # R20: also verify offline archive dependency from the frozen bundle.
         from war3_campaign_catalog import _storm_library

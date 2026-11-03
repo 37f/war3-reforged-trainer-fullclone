@@ -37,6 +37,7 @@ EXTENSION_OPERATIONS = {
     "EXT_QUERY_CATALOG_HEADER": 318,
     "EXT_QUERY_CATALOG_PAGE": 319,
     "EXT_QUERY_SOURCE_POLICY": 323,
+    "EXT_QUERY_QUEST_STATUS": 324,
 }
 AUTHOR_PYTHON_OPERATIONS_SHA256 = (
     "13175af7125e57021cd919fa3d94bbdfe01a1fc3c89278569bfccd81ebaf071c"
@@ -58,16 +59,16 @@ def make_transport_trainer(tmp_path):
     return trainer
 
 
-@pytest.mark.parametrize("old_version", [75, 76, 77, 78, 79])
-def test_protocol_80_is_packed_and_old_protocols_are_rejected(old_version):
+@pytest.mark.parametrize("old_version", [75, 76, 77, 78, 79, 80])
+def test_protocol_81_is_packed_and_old_protocols_are_rejected(old_version):
     trainer = object.__new__(module.War3Trainer)
     operation = (module.War3Trainer.NATIVE_HELPER_OP_EXT_LOCAL_VICTORY, 0, 0, 0, 0)
 
     payload = trainer._pack_native_helper_command(0, (operation,))
 
     header = trainer.NATIVE_HELPER_HEADER_STRUCT.unpack_from(payload)
-    assert trainer.NATIVE_HELPER_VERSION == 80
-    assert header[1] == 80
+    assert trainer.NATIVE_HELPER_VERSION == 81
+    assert header[1] == 81
     protocol_69 = bytearray(payload)
     protocol_69[4:8] = old_version.to_bytes(4, "little")
     with pytest.raises(RuntimeError, match="协议不匹配"):
@@ -87,11 +88,11 @@ def test_extension_operations_reach_the_real_python_transport(tmp_path):
             ((kind, 0, 0, 0, 0),),
         )
 
-    assert trainer._write_native_helper_command.call_count == len(EXTENSION_OPERATIONS)-1
-    assert trainer._wait_native_helper_result.call_count == len(EXTENSION_OPERATIONS)-1
+    assert trainer._write_native_helper_command.call_count == len(EXTENSION_OPERATIONS)-2
+    assert trainer._wait_native_helper_result.call_count == len(EXTENSION_OPERATIONS)-2
 
 
-@pytest.mark.parametrize("kind", range(324, 325))
+@pytest.mark.parametrize("kind", range(325, 326))
 def test_reserved_extension_operations_are_rejected_before_transport(tmp_path, kind):
     trainer = make_transport_trainer(tmp_path)
 
@@ -134,7 +135,7 @@ def test_c_protocol_and_extension_declarations_match_python():
         re.findall(r"^#define WAR3_NATIVE_OP_(EXT_[A-Z0-9_]+) (\d+)u$", helper_source, re.MULTILINE)
     )
 
-    assert version and int(version.group(1)) == module.War3Trainer.NATIVE_HELPER_VERSION == 80
+    assert version and int(version.group(1)) == module.War3Trainer.NATIVE_HELPER_VERSION == 81
     assert {name: int(value) for name, value in declarations.items()} == EXTENSION_OPERATIONS
 
 
@@ -386,8 +387,8 @@ def c_dispatcher():
     source.write_text(C_HARNESS.replace("HELPER_SOURCE", helper.as_posix()), encoding="utf-8")
     library = root / "protocol.dll"
     subprocess.run(
-        [compiler, "-shared", "-O2", "-Wno-microsoft-goto", str(source), "-o", str(library),
-         "-luser32", "-lkernel32"],
+        [compiler, "-fms-extensions", "-fseh-exceptions", "-shared", "-O2", "-Wno-microsoft-goto", str(source), "-o", str(library),
+         "-luser32", "-lkernel32", "-ladvapi32"],
         check=True,
         capture_output=True,
         timeout=60,
@@ -442,27 +443,27 @@ def test_special_extension_operations_are_no_longer_placeholder_cases():
 
 @pytest.mark.parametrize("kind", range(300, 304))
 def test_real_c_dispatcher_accepts_valid_implemented_transactions(c_dispatcher, kind):
-    assert dispatch(c_dispatcher, 80, kind, valid=True) == (2, 0, 0)
+    assert dispatch(c_dispatcher, 81, kind, valid=True) == (2, 0, 0)
 
 
 @pytest.mark.parametrize("kind", (304, 307, 308, 309, 310, 316, 317))
 def test_real_c_dispatcher_accepts_valid_relation_and_color_transactions(c_dispatcher, kind):
-    assert dispatch(c_dispatcher, 80, kind, valid=True) == (2, 0, 0)
+    assert dispatch(c_dispatcher, 81, kind, valid=True) == (2, 0, 0)
 
 
 @pytest.mark.parametrize("kind", (301, 302, 303, 304, 307, 308, 309, 310, 316, 317))
 def test_real_c_dispatcher_rejects_invalid_implemented_transactions_without_placeholder_error(
     c_dispatcher, kind
 ):
-    status, last_error, operation_error = dispatch(c_dispatcher, 80, kind)
+    status, last_error, operation_error = dispatch(c_dispatcher, 81, kind)
     assert status == 3
     assert last_error == operation_error != 0
     assert operation_error != module.ERROR_NOT_SUPPORTED
 
 
 def test_real_c_dispatcher_keeps_reserved_extension_range_unsupported(c_dispatcher):
-    for kind in range(324, 325):
-        status, last_error, operation_error = dispatch(c_dispatcher, 80, kind)
+    for kind in range(325, 326):
+        status, last_error, operation_error = dispatch(c_dispatcher, 81, kind)
         assert status == 3
         assert last_error == operation_error != 0
 
@@ -471,11 +472,11 @@ def test_real_c_dispatcher_keeps_reserved_extension_range_unsupported(c_dispatch
 def test_catalog_operations_reach_profile_validation_without_native_handler(c_dispatcher,kind):
     # Synthetic host is intentionally not Warcraft. It must reach profile
     # validation rather than the old blanket zero-handler rejection (13).
-    status,error,operation_error=dispatch(c_dispatcher,80,kind)
+    status,error,operation_error=dispatch(c_dispatcher,81,kind)
     assert status==3 and error==operation_error and error not in (0,13,module.ERROR_NOT_SUPPORTED)
 
 
 @pytest.mark.parametrize('kind',(320,321,322))
 def test_removed_quest_operations_are_rejected_in_the_real_c_dispatcher(c_dispatcher,kind):
-    status,error,operation_error=dispatch(c_dispatcher,80,kind)
+    status,error,operation_error=dispatch(c_dispatcher,81,kind)
     assert status==3 and error==operation_error!=0

@@ -1,4 +1,4 @@
-"""R24 read-only task information. Workers never access Tk objects."""
+"""R25 read-only task information and live state. Workers never access Tk objects."""
 from __future__ import annotations
 
 from datetime import datetime
@@ -11,21 +11,28 @@ from tkinter import ttk
 from war3_quest_analysis import analyze_quests
 from war3_quest_text import QuestText,quest_kind,clean_text
 from war3_ui_i18n import translate_ui_text
+from war3_quest_status import QuestState,status_plan
 
 VALIDATION_SECONDS=2.
 
 
 class QuestAnalysisController:
-    def __init__(self,source_client_provider,analyzer=analyze_quests,clock=time.monotonic):
+    def __init__(self,source_client_provider,analyzer=analyze_quests,clock=time.monotonic,status_provider=None):
         self.provider=source_client_provider;self.analyzer=analyzer;self.clock=clock
         self.replies=queue.Queue();self.report=None;self.state='idle';self.error=''
         self.checked_at=0.;self.detected_at='';self.generation=0;self.busy=False
         self._visible=False;self._closed=False;self._auto=True;self._next_poll=0.
         self._stop=threading.Event();self._job=0;self._identity=None
+        self.status_provider=status_provider;self.live_states={};self.live_error='';self.live_revision=0
+        self._status_plan=None
+
+    def _clear_live(self):
+        self.live_states={};self.live_error='';self._status_plan=None;self.live_revision+=1
 
     def invalidate(self,reason=''):
         self._stop.set();self.generation+=1;self.report=None;self.checked_at=0.
         self.error=reason;self.state='changed' if reason else 'idle';self._next_poll=0.;self._identity=None
+        self._clear_live()
 
     def detect(self):
         if self._closed:return
@@ -58,6 +65,7 @@ class QuestAnalysisController:
         # check is pending; queue delivery is not the only way time advances.
         if visible and self.report is not None and self.clock()-self.checked_at>VALIDATION_SECONDS:
             self.report=None;self.checked_at=0.;self.state='changed'
+            self._clear_live()
             self.error='会话验证已过期，正在重新检索';self._next_poll=self.clock()
         if not visible or self.busy or not self._auto or self.clock()<self._next_poll:return
         try:client=self._client()
@@ -70,7 +78,8 @@ class QuestAnalysisController:
     def _launch(self,client,operation):
         self._job+=1;job=self._job;generation=self.generation
         self._stop=threading.Event();stop=self._stop
-        self._identity=client.identity();identity=self._identity;snapshot=self.report.snapshot if self.report else None
+        self._identity=client.identity();identity=self._identity;report=self.report;plan=self._status_plan
+        snapshot=report.snapshot if report else None
         self.busy=True;self._next_poll=self.clock()+1
         if operation=='read':self.state='reading';self.error=''
         def work():
@@ -84,10 +93,23 @@ class QuestAnalysisController:
                     valid=client.check(source)
                 else:
                     value=None;valid=client.check(snapshot)
+                # R25: query live flags only after source qualification. A getter
+                # error preserves the static report and marks its state unknown.
+                states={};live_error='';live_plan=plan
+                if valid and self.status_provider is not None:
+                    current=value if operation=='read' else report
+                    try:
+                        if live_plan is None:live_plan=status_plan(current,stop.is_set)
+                        states=self.status_provider(current,live_plan,stop.is_set)
+                    except Exception as exc:live_error=str(exc)
+                    if stop.is_set():return
+                    valid=client.check(current.snapshot)
                 # This is the actual worker validation time, never the Tk dequeue time.
                 checked=self.clock()
                 self.replies.put((job,generation,'result' if operation=='read' else 'checked',
                     value,'' if valid else '地图会话或来源已变化',checked,identity))
+                if valid and self.status_provider is not None:
+                    self.replies.put((job,generation,'live',(states,live_plan),live_error,checked,identity))
             except Exception as exc:
                 self.replies.put((job,generation,'error',None,str(exc),0.,identity))
             finally:self.replies.put((job,generation,'finished',None,'',0.,identity))
@@ -102,14 +124,20 @@ class QuestAnalysisController:
                 continue
             if self._closed or not self._visible or generation!=self.generation or job!=self._job:continue
             if phase=='analyzing':self.state='analyzing';continue
+            if phase=='live':
+                if self.report is not None and self._identity_now()==identity and self.clock()-checked<=VALIDATION_SECONDS:
+                    self.live_states,self._status_plan=value;self.live_error=error;self.live_revision+=1
+                continue
             if error:
                 self.report=None;self.checked_at=0.;self.error=error
+                self._clear_live()
                 self.state='changed' if phase!='error' else 'unavailable'
                 self._next_poll=self.clock()+(3 if phase=='error' else 0);continue
             if self._identity_now()!=identity:
                 self.invalidate('游戏连接已变化');continue
             if self.clock()-checked>VALIDATION_SECONDS:
                 self.report=None;self.state='changed';self.error='会话验证已过期，正在重新检索'
+                self._clear_live()
                 self._next_poll=self.clock()+.1;continue
             if phase=='result':
                 if value.snapshot.identity!=identity:
@@ -138,12 +166,14 @@ _STATES={
 _KINDS={'main':('主线任务','Main quest'),'side':('支线任务','Side quest'),'unknown':('类型未确认','Unconfirmed type'),'coverage':('覆盖情况','Coverage'),
     'victory':('整关胜利条件','Map victory'),'defeat':('整关失败条件','Map defeat'),
     'unknown-result':('未确认结算','Unresolved result'),'unassociated':('未关联条件','Unassociated rule')}
+_LIVE_STATES={'active':('进行中','In progress'),'completed':('已完成','Completed'),
+    'failed':('已失败','Failed'),'unconfirmed':('状态未确认','Unconfirmed')}
 
 
 class QuestAnalysisUI:
-    def __init__(self,root,language,source_client_provider):
+    def __init__(self,root,language,source_client_provider,status_provider=None):
         self.root,self.language=root,language
-        self.controller=QuestAnalysisController(source_client_provider)
+        self.controller=QuestAnalysisController(source_client_provider,status_provider=status_provider)
         self.evidence=tk.BooleanVar(root,False);self._reader_key=None;self._reader=None
         self.source=tk.StringVar(root,'');self.status=tk.StringVar(root,'');self.search=tk.StringVar(root,'')
         self.panel=None;self._labels=[];self._rows={};self._render_key=None;self._after=None;self._closed=False
@@ -165,15 +195,16 @@ class QuestAnalysisUI:
         ttk.Entry(toolbar,textvariable=self.search,width=38).pack(side='left',fill='x',expand=True)
         self._label(ttk.Checkbutton(toolbar,variable=self.evidence,command=self.render_rows),'查看脚本依据','Show script evidence').pack(side='left',padx=8)
         self.notice=self._label(ttk.Label(tab,wraplength=1120),
-            '只读任务信息：按地图标记区分主线／支线，解释目标、完成与失败条件。这里不显示实时进度，也不会完成任务。',
-            'Read-only quest information: objectives and completion/failure rules, grouped by required/optional flags. No live progress or quest execution.')
+            '只读任务信息：解释主线／支线的目标、完成与失败条件；本页打开时每秒同步任务状态，无法唯一匹配时显示“状态未确认”。',
+            'Read-only main/side quest rules. Refreshes live state every second while visible; ambiguous matches remain Unconfirmed.')
         self.notice.pack(fill='x',pady=(0,5))
         ttk.Label(tab,textvariable=self.status,wraplength=1120).pack(fill='x',pady=(0,5))
         ttk.Label(tab,textvariable=self.source,wraplength=1120).pack(fill='x',pady=(0,8))
         panes=ttk.Panedwindow(tab,orient='horizontal');panes.pack(fill='both',expand=True)
         left=ttk.Frame(panes);right=ttk.Frame(panes);panes.add(left,weight=1);panes.add(right,weight=3)
-        self.tree=ttk.Treeview(left,columns=('kind','title'),show='headings',height=18,selectmode='browse')
+        self.tree=ttk.Treeview(left,columns=('kind','title','live'),show='headings',height=18,selectmode='browse')
         self.tree.column('kind',width=110,stretch=False);self.tree.column('title',width=240)
+        self.tree.column('live',width=100,stretch=False)
         self.tree.grid(row=0,column=0,sticky='nsew')
         scroll=ttk.Scrollbar(left,orient='vertical',command=self.tree.yview);scroll.grid(row=0,column=1,sticky='ns')
         self.tree.configure(yscrollcommand=scroll.set);left.rowconfigure(0,weight=1);left.columnconfigure(0,weight=1)
@@ -206,6 +237,7 @@ class QuestAnalysisUI:
         for widget,zh,en in self._labels:widget.configure(text=self.text(zh,en))
         if self.panel is not None:
             self.tree.heading('kind',text=self.text('类别','Type'));self.tree.heading('title',text=self.text('任务／条件','Quest / rule'))
+            self.tree.heading('live',text=self.text('当前状态','Current state'))
         self._render_key=None;self.render()
 
     def render(self):
@@ -225,7 +257,7 @@ class QuestAnalysisUI:
         self.status.set(message)
         if self.panel is None:return
         self.cancel_button.configure(state='normal' if c.busy else 'disabled')
-        key=(id(c.report),self.language())
+        key=(id(c.report),self.language(),c.live_revision)
         if key!=self._render_key:self._render_key=key;self.render_rows()
     def rule_evidence(self,rule):
         label={'created':('创建定义','Creation definition'),'completed':('设置完成','Set completed'),
@@ -267,10 +299,19 @@ class QuestAnalysisUI:
         return self._reader
 
     def quest_details(self,q):
-        text=self.reader().quest(q)
+        state=self.quest_state(q.key)
+        text=self.text('当前状态：','Current state: ')+self.text(*_LIVE_STATES[state.state])
+        if state.read_at:text+='\n'+self.text('最近读取：','Last read: ')+datetime.fromtimestamp(state.read_at).strftime('%Y-%m-%d %H:%M:%S')
+        if state.reason:text+='\n'+translate_ui_text(state.reason,self.language())
+        text+='\n\n'+self.reader().quest(q)
         if getattr(self,'evidence',None) is not None and self.evidence.get():
             text+='\n\n'+self.text('脚本依据（供核对）','Script evidence')+'\n'+self.quest_evidence(q)
         return text
+
+    def quest_state(self,key):
+        c=self.controller
+        if c.live_error:return QuestState(reason=c.live_error)
+        return c.live_states.get(key,QuestState())
 
     def rule_details(self,rule):
         reader=self.reader();lines=[]
@@ -304,6 +345,7 @@ class QuestAnalysisUI:
     def render_rows(self):
         if self.panel is None:return
         selection=self.tree.selection();old=selection[0] if selection else None
+        tree_scroll=self.tree.yview();detail_scroll=self.detail.yview()
         self.tree.delete(*self.tree.get_children());self._rows={}
         r=self.controller.report
         if r is None:
@@ -319,11 +361,17 @@ class QuestAnalysisUI:
         for i,rule in enumerate(r.unassociated):rows.append((f'unassociated:{i}','unassociated',rule.target,self.rule_details(rule)))
         rows.append(('coverage','coverage',self.text('解析缺口与来源证据','Coverage gaps and source proof'),self.coverage_details(r)))
         search=self.search.get().casefold().strip()
+        quest_keys={q.key for q in r.quests}
         for key,kind,title,detail in rows:
             if search and search not in (title+' '+detail).casefold():continue
-            self._rows[key]=detail;self.tree.insert('', 'end',iid=key,values=(self.text(*_KINDS[kind]),title))
+            live=self.text(*_LIVE_STATES[self.quest_state(key).state]) if key in quest_keys else ''
+            self._rows[key]=detail;self.tree.insert('', 'end',iid=key,values=(self.text(*_KINDS[kind]),title,live))
         children=self.tree.get_children()
-        if children:self.tree.selection_set(old if old in children else children[0]);self.show_selected()
+        if children:
+            self.tree.selection_set(old if old in children else children[0]);self.show_selected()
+            if old in children:
+                if tree_scroll:self.tree.yview_moveto(tree_scroll[0])
+                if detail_scroll:self.detail.yview_moveto(detail_scroll[0])
         else:
             self._set_detail(self.text('没有匹配结果。','No matching results.'))
 

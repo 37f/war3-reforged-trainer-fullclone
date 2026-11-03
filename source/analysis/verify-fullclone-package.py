@@ -19,6 +19,7 @@ from PyInstaller.archive.readers import CArchiveReader
 ROOT = Path(__file__).resolve().parents[1]
 EXE = ROOT / "dist" / "War3ReforgedTrainer-v1.0.19-FullClone-R19.3-Test.exe"
 EXPECTED_PROTOCOL = 77  # Historical default; R21 wrapper explicitly selects 78.
+EXPECTED_FILE_VERSION = (65536, 19 << 16)
 EXPECTED_OPERATIONS = {
     "NATIVE_HELPER_OP_EXT_VALIDATE_PLAYER_TARGET": 300,
     "NATIVE_HELPER_OP_EXT_SET_UNIT_OWNER_PLAYER": 301,
@@ -129,8 +130,8 @@ def main() -> int:
 
     pe = pefile.PE(str(EXE))
     info = pe.VS_FIXEDFILEINFO[0]
-    require((info.FileVersionMS, info.FileVersionLS) == (65536, 19 << 16),
-            "file version is not 1.0.19.0")
+    require((info.FileVersionMS, info.FileVersionLS) == EXPECTED_FILE_VERSION,
+            "file version does not match the selected package")
     require(pe.FILE_HEADER.Machine == 0x8664, "EXE is not x86-64")
     require(pe.OPTIONAL_HEADER.Subsystem == 2, "EXE is not a GUI application")
     pe.close()
