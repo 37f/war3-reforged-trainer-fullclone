@@ -247,7 +247,7 @@ def test_location_rows_links_and_refresh_never_move_camera_without_user_action(t
     panel=ttk.Frame(tk_root);ui.add_controls(panel)
     try:
         pump(ui.controller,lambda:ui.controller.location_data is not None and not ui.controller.busy)
-        ui.render()
+        ui.show_locations.set(True);ui.toggle_locations()
         condition=next(k for k in ui._row_locations if ':condition:' in k and ':place:' not in k)
         assert len(ui._row_locations[condition])==2
         ui.tree.selection_set(condition);ui.show_selected()
@@ -274,7 +274,7 @@ def test_condition_with_no_location_has_no_link_and_click_is_harmless(tk_root):
     panel=ttk.Frame(tk_root);ui.add_controls(panel)
     try:
         pump(ui.controller,lambda:ui.controller.location_data is not None and not ui.controller.busy)
-        ui.render();row=next(k for k in ui._row_locations if ':condition:' in k)
+        ui.show_locations.set(True);ui.toggle_locations();row=next(k for k in ui._row_locations if ':condition:' in k)
         ui.tree.selection_set(row);ui.show_selected();ui._jump_row()
         assert '无位置' in ui.detail.get('1.0','end') and not calls
         assert not ui.detail.tag_ranges('location:0')
@@ -290,7 +290,7 @@ def test_unresolved_item_row_is_gray_and_never_invokes_camera(tk_root):
     panel=ttk.Frame(tk_root);ui.add_controls(panel)
     try:
         pump(ui.controller,lambda:ui.controller.location_data is not None and not ui.controller.busy)
-        ui.render();leaf=next(k for k in ui._row_locations if ':place:' in k)
+        ui.show_locations.set(True);ui.toggle_locations();leaf=next(k for k in ui._row_locations if ':place:' in k)
         ui.tree.selection_set(leaf);ui.show_selected();ui._jump_row()
         point=ui._row_locations[leaf][0];ui.jump_to(point)
         assert not point.locatable and not calls and '无位置' in ui.detail.get('1.0','end')
@@ -309,7 +309,7 @@ def test_entry_priority_unknown_rows_and_refresh_do_not_automatically_jump(tk_ro
     panel=ttk.Frame(tk_root);ui.add_controls(panel)
     try:
         pump(ui.controller,lambda:ui.controller.location_data is not None and not ui.controller.busy)
-        ui.render();q=ui.controller.report.quests[0];key=q.key;pre=key+':pretrigger'
+        ui.show_locations.set(True);ui.toggle_locations();q=ui.controller.report.quests[0];key=q.key;pre=key+':pretrigger'
         assert ui.tree.get_children(key)[0]==pre and ui.tree.item(pre,'open')
         assert ui._row_locations[key]==ui.controller.location_data.before(q)
         detail=ui.detail.get('1.0','end')
@@ -326,4 +326,40 @@ def test_entry_priority_unknown_rows_and_refresh_do_not_automatically_jump(tk_ro
         none=pre+':none';ui.tree.selection_set(none);ui.show_selected();ui._jump_row()
         assert 'no-location' in ui.tree.item(none,'tags') and not calls
         assert not ui.detail.tag_ranges('location:0') and not ui._row_locations[key]
+    finally:ui.close();panel.destroy()
+
+
+def test_locations_are_opt_in_and_original_description_survives_toggle_and_refresh(tk_root):
+    from test_quest_pretrigger import entry
+    class EntryClient(Client):
+        def read(self,cancelled):
+            script=entry(action='call QuestSetDiscovered(q,true)\ncall QuestSetCompleted(q,true)').replace(
+                'call QuestSetTitle(q,"Entry quest")','call QuestSetTitle(q,"Entry quest")\ncall QuestSetDescription(q,"寻找入口并交付物品。")')
+            return replace(snapshot(script),identity=self.connection,session_token=self.token)
+    client=EntryClient();calls=[]
+    ui=QuestAnalysisUI(tk_root,lambda:'zh',lambda:client,location_navigator=lambda *args:calls.append(args))
+    panel=ttk.Frame(tk_root);ui.add_controls(panel)
+    try:
+        pump(ui.controller,lambda:ui.controller.location_data is not None and not ui.controller.busy)
+        ui.render();q=ui.controller.report.quests[0];pre=q.key+':pretrigger'
+        original=ui.detail.get('1.0','end')
+        assert not ui.show_locations.get() and '寻找入口并交付物品。' in original
+        assert '完成条件' in original and '失败条件' in original
+        assert '触发前位置' not in original and '关联地点' not in original and 'X=' not in original
+        assert not ui.tree.exists(pre) and not any(':place:' in key for key in ui._rows)
+        ui._jump_row();ui.jump_to(ui.controller.location_data.before(q)[0]);assert not calls
+        toggle=next(w for w,_zh,_en in ui._labels if _zh=='触发位置')
+        toggle.invoke()
+        assert ui.show_locations.get() and ui.tree.exists(pre)
+        text=ui.detail.get('1.0','end')
+        assert '寻找入口并交付物品。' in text and 'X=200' in text
+        assert text.index('寻找入口并交付物品。')<text.index('触发前位置')
+        leaf=pre+':place:0';ui.tree.selection_set(leaf);ui.show_selected()
+        assert ui.detail.tag_ranges('location:0')
+        toggle.invoke()
+        assert not ui.show_locations.get() and not ui.tree.exists(pre) and not calls
+        assert not ui.detail.tag_ranges('location:0') and not ui.location_status.get()
+        ui.render_rows()
+        assert ui.detail.get('1.0','end')==original and not calls
+        assert 'X=' not in '\n'.join(ui._rows.values())
     finally:ui.close();panel.destroy()

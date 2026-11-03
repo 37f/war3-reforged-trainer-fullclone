@@ -7,7 +7,7 @@ from war3_quest_ui import QuestAnalysisUI
 
 def details(script):
     report=analyze(script)
-    ui=object.__new__(QuestAnalysisUI);ui.language=lambda:'zh'
+    ui=object.__new__(QuestAnalysisUI);ui.language=lambda:'zh';ui.show_locations=SimpleNamespace(get=lambda:False)
     ui.controller=SimpleNamespace(report=report,live_error='',live_states={})
     return ui,report,ui.quest_details(report.quests[0])
 

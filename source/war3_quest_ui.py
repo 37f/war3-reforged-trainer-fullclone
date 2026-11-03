@@ -190,6 +190,7 @@ class QuestAnalysisUI:
         self.location_navigator=location_navigator;self._navigation=queue.Queue();self._nav_busy=False
         self._row_locations={};self.location_status=tk.StringVar(root,'')
         self.evidence=tk.BooleanVar(root,False);self._reader_key=None;self._reader=None
+        self.show_locations=tk.BooleanVar(root,False)
         self.source=tk.StringVar(root,'');self.status=tk.StringVar(root,'');self.search=tk.StringVar(root,'')
         self.panel=None;self._labels=[];self._rows={};self._render_key=None;self._after=None;self._closed=False
         self._after=root.after(80,self._poll)
@@ -208,10 +209,11 @@ class QuestAnalysisUI:
         self.cancel_button.pack(side='left',padx=6)
         self._label(ttk.Label(toolbar),'搜索任务、变量或条件','Search quest, variable or condition').pack(side='left',padx=(12,4))
         ttk.Entry(toolbar,textvariable=self.search,width=38).pack(side='left',fill='x',expand=True)
+        self._label(ttk.Checkbutton(toolbar,variable=self.show_locations,command=self.toggle_locations),'触发位置','Trigger locations').pack(side='left',padx=8)
         self._label(ttk.Checkbutton(toolbar,variable=self.evidence,command=self.render_rows),'查看脚本依据','Show script evidence').pack(side='left',padx=8)
         self.notice=self._label(ttk.Label(tab,wraplength=1120),
-            '只读任务信息：每秒同步完成／失败状态；未完成或状态未确认时优先显示触发前位置。接取／发现状态未读取；地点是脚本线索，初始位置非实时，未知地点灰显“无位置”。',
-            'Read-only quest rules and completion/failure state. Entry locations appear first for unfinished/unconfirmed quests. Discovery is not read; locations are static clues, unresolved locations are gray.')
+            '只读任务信息：保留任务说明、完成／失败条件及状态同步。勾选“触发位置”后显示区域和位置线索，可点击定位本地视角；初始位置非实时，接取／发现状态未读取。',
+            'Read-only quest descriptions, rules and live state. Enable Trigger locations to show and navigate script locations; initial positions are not live, discovery state is not read.')
         self.notice.pack(fill='x',pady=(0,5))
         ttk.Label(tab,textvariable=self.status,wraplength=1120).pack(fill='x',pady=(0,5))
         ttk.Label(tab,textvariable=self.source,wraplength=1120).pack(fill='x',pady=(0,8))
@@ -240,6 +242,9 @@ class QuestAnalysisUI:
     def cancel(self):self.controller.cancel();self.render()
     def invalidate(self,reason=''):self.controller.invalidate(reason);self.render()
 
+    def toggle_locations(self):
+        self.location_status.set('');self.render_rows()
+
     def close(self):
         self._closed=True;self.controller.close()
         if self._after is not None:
@@ -255,7 +260,7 @@ class QuestAnalysisUI:
             try:generation,report,error=self._navigation.get_nowait()
             except queue.Empty:break
             self._nav_busy=False
-            if visible and generation==self.controller.generation and report is self.controller.report:
+            if visible and self.show_locations.get() and generation==self.controller.generation and report is self.controller.report:
                 self.location_status.set(error or self.text('视角已定位。','Camera positioned.'))
         self._after=self.root.after(80,self._poll)
 
@@ -319,7 +324,9 @@ class QuestAnalysisUI:
         return '\n'.join(lines)
 
     def reader(self):
-        report=self.controller.report;locations=getattr(self.controller,'location_data',None);key=(id(report),self.language(),id(locations))
+        report=self.controller.report
+        locations=getattr(self.controller,'location_data',None) if self.show_locations.get() else None
+        key=(id(report),self.language(),id(locations))
         if getattr(self,'_reader_key',None)!=key:
             self._reader_key=key;self._reader=QuestText(report,self.language()=='en',locations)
         return self._reader
@@ -329,13 +336,15 @@ class QuestAnalysisUI:
         text=self.text('当前状态：','Current state: ')+self.text(*_LIVE_STATES[state.state])
         if state.read_at:text+='\n'+self.text('最近读取：','Last read: ')+datetime.fromtimestamp(state.read_at).strftime('%Y-%m-%d %H:%M:%S')
         if state.reason:text+='\n'+translate_ui_text(state.reason,self.language())
-        before=self.before_details(q);conditions=self.reader().quest(q)
-        text+='\n\n'+(before+'\n\n'+conditions if state.state not in ('completed','failed') else conditions+'\n\n'+before)
+        # Keep the original quest description/rules first in either display mode.
+        text+='\n\n'+self.reader().quest(q)
+        if self.show_locations.get():text+='\n\n'+self.before_details(q)
         if getattr(self,'evidence',None) is not None and self.evidence.get():
             text+='\n\n'+self.text('脚本依据（供核对）','Script evidence')+'\n'+self.quest_evidence(q)
         return text
 
     def before_places(self,q):
+        if not self.show_locations.get():return ()
         locations=getattr(self.controller,'location_data',None)
         return locations.before(q) if locations and hasattr(locations,'before') else ()
 
@@ -402,7 +411,8 @@ class QuestAnalysisUI:
         rows.append(('coverage','coverage',self.text('解析缺口与来源证据','Coverage gaps and source proof'),self.coverage_details(r)))
         search=self.search.get().casefold().strip()
         quest_keys={q.key for q in r.quests}
-        quests={q.key:q for q in r.quests};locations=self.controller.location_data
+        quests={q.key:q for q in r.quests};show_locations=self.show_locations.get()
+        locations=self.controller.location_data if show_locations else None
         for key,kind,title,detail in rows:
             if search and search not in (title+' '+detail).casefold():continue
             live=self.text(*_LIVE_STATES[self.quest_state(key).state]) if key in quest_keys else ''
@@ -410,25 +420,27 @@ class QuestAnalysisUI:
             if key in quests:
                 q=quests[key];all_places=[];before_places=self.before_places(q)
                 entry_key=f'{key}:pretrigger';unfinished=self.quest_state(key).state not in ('completed','failed')
-                self.tree.insert(key,'end',iid=entry_key,values=(self.text('触发前位置','Before triggering'),
-                    self.text('接取／发现状态未读取','Discovery state not read'),''),open=unfinished and entry_key not in previous)
-                self._rows[entry_key]=self.before_details(q);self._row_locations[entry_key]=before_places
-                for j,place in enumerate(before_places):
-                    leaf=f'{entry_key}:place:{j}';description=place.describe(self.language()=='en')
-                    self.tree.insert(entry_key,'end',iid=leaf,values=(self.text('位置','Location'),description,''),tags=() if place.locatable else ('no-location',))
-                    self._rows[leaf]=description;self._row_locations[leaf]=(place,)
-                if not before_places:
-                    leaf=f'{entry_key}:none';description=self.text('无位置','No location')
-                    self.tree.insert(entry_key,'end',iid=leaf,values=(self.text('位置','Location'),description,''),tags=('no-location',))
-                    self._rows[leaf]=self.before_details(q);self._row_locations[leaf]=()
-                if unfinished and key not in previous:self.tree.item(key,open=True)
+                if show_locations:
+                    self.tree.insert(key,'end',iid=entry_key,values=(self.text('触发前位置','Before triggering'),
+                        self.text('接取／发现状态未读取','Discovery state not read'),''),open=unfinished and entry_key not in previous)
+                    self._rows[entry_key]=self.before_details(q);self._row_locations[entry_key]=before_places
+                    for j,place in enumerate(before_places):
+                        leaf=f'{entry_key}:place:{j}';description=place.describe(self.language()=='en')
+                        self.tree.insert(entry_key,'end',iid=leaf,values=(self.text('位置','Location'),description,''),tags=() if place.locatable else ('no-location',))
+                        self._rows[leaf]=description;self._row_locations[leaf]=(place,)
+                    if not before_places:
+                        leaf=f'{entry_key}:none';description=self.text('无位置','No location')
+                        self.tree.insert(entry_key,'end',iid=leaf,values=(self.text('位置','Location'),description,''),tags=('no-location',))
+                        self._rows[leaf]=self.before_details(q);self._row_locations[leaf]=()
+                    if unfinished and key not in previous:self.tree.item(key,open=True)
                 rules=[(key,self.text('完成条件','Completion'),rule) for rule in q.completed]
                 rules += [(key,self.text('失败条件','Failure'),rule) for rule in q.failed]
                 for item_index,item in enumerate(q.items):
                     item_key=f'{key}:objective:{item_index}'
                     places=tuple(dict.fromkeys(p for rule in item.completed for p in locations.rule(rule))) if locations else ()
                     self.tree.insert(key,'end',iid=item_key,values=(self.text('子目标','Objective'),clean_text(item.description),''))
-                    detail=clean_text(item.description)+'\n'+('\n'.join(p.describe(self.language()=='en') for p in places)
+                    detail=clean_text(item.description)
+                    if show_locations:detail+='\n'+('\n'.join(p.describe(self.language()=='en') for p in places)
                         if places else self.text('关联地点：无位置','Locations: No location'))
                     self._rows[item_key]=detail;self._row_locations[item_key]=places
                     rules += [(item_key,self.text('完成条件','Completion'),rule) for rule in item.completed]
@@ -440,13 +452,13 @@ class QuestAnalysisUI:
                         summary=self.reader().event(p.events[0]) if p is not None and p.events else self.text('条件详情','Condition details')
                         self.tree.insert(parent,'end',iid=child,values=(label,summary,''))
                         self._rows[child]='\n'.join(self.reader().rule(shown));self._row_locations[child]=places
-                        if not places and '无位置' not in self._rows[child]:self._rows[child]+='\n'+self.text('关联地点：无位置','Locations: No location')
+                        if show_locations and not places and '无位置' not in self._rows[child]:self._rows[child]+='\n'+self.text('关联地点：无位置','Locations: No location')
                         for j,place in enumerate(places):
                             leaf=f'{child}:place:{j}';description=place.describe(self.language()=='en')
                             self.tree.insert(child,'end',iid=leaf,values=(self.text('位置','Location'),description,''),tags=() if place.locatable else ('no-location',))
                             self._rows[leaf]=description;self._row_locations[leaf]=(place,)
                         all_places.extend(places)
-                if not unfinished:self.tree.move(entry_key,key,'end')
+                if show_locations and not unfinished:self.tree.move(entry_key,key,'end')
                 # A quest row must not silently fall back to a completion target
                 # when its entry location is unknown. Concrete child links stay available.
                 self._row_locations[key]=before_places if unfinished else tuple(dict.fromkeys(all_places+list(before_places)))
@@ -492,12 +504,14 @@ class QuestAnalysisUI:
             self._jump_row()
 
     def _jump_row(self):
+        if not self.show_locations.get():return
         selected=self.tree.selection();places=tuple(p for p in self._row_locations.get(selected[0],()) if p.locatable) if selected else ()
         if len(places)==1:self.jump_to(places[0])
         elif places:self.location_status.set(self.text('该条件关联多个地点，请点击具体位置行或详情中的蓝色地点。','Multiple locations: click a location row or a blue location in the details.'))
         else:self.location_status.set(self.text('无位置','No location'))
 
     def jump_to(self,place):
+        if not self.show_locations.get():return
         c=self.controller;report=c.report
         if not place.locatable:
             self.location_status.set(self.text('无位置','No location'));return
