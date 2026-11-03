@@ -2918,7 +2918,7 @@ class War3Trainer:
         )
     )
     NATIVE_HELPER_MAGIC = 0x33524757
-    NATIVE_HELPER_VERSION = 81
+    NATIVE_HELPER_VERSION = 82
     NATIVE_HELPER_CLONE_FLAG_HERO = 0x01
     NATIVE_HELPER_CLONE_FLAG_INVENTORY = 0x02
     NATIVE_HELPER_CLONE_FLAG_PRESERVE_OWNER = 0x04
@@ -3056,6 +3056,7 @@ class War3Trainer:
     NATIVE_HELPER_OP_EXT_QUERY_CATALOG_PAGE = 319
     NATIVE_HELPER_OP_EXT_QUERY_SOURCE_POLICY = 323
     NATIVE_HELPER_OP_EXT_QUERY_QUEST_STATUS = 324
+    NATIVE_HELPER_OP_EXT_QUEST_CAMERA = 325
     PERSISTENT_NATIVE_SNAPSHOT_QWORDS = 154
     NATIVE_BASIC_FIELD_ARGUMENTS = {
         "hp_current": ("target_hp", "hp"),
@@ -4670,6 +4671,27 @@ class War3Trainer:
         if cancelled() or client.identity()!=identity:raise RuntimeError("游戏连接已变化")
         return states
 
+    def show_quest_location(self,report,location):
+        """R26: explicit user click, same source/session, local camera only."""
+        x,y=float(location.x),float(location.y)
+        if not all(math.isfinite(v) and abs(v)<=1000000 for v in (x,y)):
+            raise ValueError("无位置")
+        client=self.current_map_script_client();identity=report.snapshot.identity
+        if client.identity()!=identity or not client.check(report.snapshot):
+            raise RuntimeError("地图会话或来源已变化，请重新检索")
+        stamp=getattr(report.snapshot,'stamp',())
+        if stamp and stamp[0]=='official-casc':self.current_map_source_policy()
+        packed=struct.unpack('<Q',struct.pack('<ff',x,y))[0]
+        with self._native_helper_lock:
+            if client.identity()!=identity:raise RuntimeError("游戏连接已变化")
+            injector=getattr(self,"_persistent_bootstrap_thread",None)
+            if injector is not None and (not injector.is_alive() or not getattr(self,"_native_helper_persistent_hook",None)):
+                raise RuntimeError("常驻 helper 尚未就绪，请连接游戏后重试")
+            result=self._run_native_helper_ops(0,((325,0,0,packed,report.snapshot.session_token),),timeout_ms=5000)
+        if len(result)!=1 or result[0].kind!=325 or result[0].result!=packed:
+            raise RuntimeError("相机定位返回数据不一致")
+        if client.identity()==identity:self.focus()
+
     @staticmethod
     def _write_native_helper_command(path: Path, payload: bytes) -> None:
         last_error: PermissionError | None = None
@@ -5243,6 +5265,7 @@ class War3Trainer:
             self.NATIVE_HELPER_OP_EXT_QUERY_CATALOG_PAGE,
             self.NATIVE_HELPER_OP_EXT_QUERY_SOURCE_POLICY,
             self.NATIVE_HELPER_OP_EXT_QUERY_QUEST_STATUS,
+            self.NATIVE_HELPER_OP_EXT_QUEST_CAMERA,
         }
         if any(kind not in allowed_kinds for kind, _rawcode, _handler, _arg0, _arg1 in op_list):
             raise RuntimeError("native helper 仅允许结构化验证后的白名单操作")
@@ -15611,11 +15634,17 @@ def run_gui() -> None:
         lambda: ui_language["code"],
         runtime_client=lambda: state["trainer"].current_map_catalog_client() if state.get("trainer") is not None else None,
     )
+    def navigate_quest_location(report,place):
+        trainer=state.get("trainer")
+        if trainer is None:raise RuntimeError("游戏连接已关闭")
+        return trainer.show_quest_location(report,place)
+
     quest_analysis = QuestAnalysisUI(
         root,lambda: ui_language["code"],
         lambda: state["trainer"].current_map_script_client() if state.get("trainer") is not None else None,
         status_provider=lambda report,plan,cancelled: state["trainer"].current_map_quest_states(report,plan,cancelled)
             if state.get("trainer") is not None else {},
+        location_navigator=navigate_quest_location,
     )
     elephant_tech_rawcode = tk.StringVar(value="")
     elephant_tech_level = tk.StringVar(value="1")

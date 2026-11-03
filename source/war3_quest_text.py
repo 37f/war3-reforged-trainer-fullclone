@@ -25,8 +25,9 @@ def _parse(value):
 
 
 class QuestText:
-    def __init__(self,report,en=False):
+    def __init__(self,report,en=False,locations=None):
         self.report,self.en=report,en;self.labels={};self.types={};self.handles={}
+        self.locations=locations
         if report is not None:
             for q in report.quests:
                 title='“'+clean_text(q.title)+'”'
@@ -166,9 +167,10 @@ class QuestText:
             events=tuple(self.event(x) for x in p.events)
             known=events and not any('尚未' in x or '尚无法' in x or 'unconfirmed' in x or 'Unexplained' in x for x in events)
             key=(p.guard,events if known else p.events)
-            if key not in groups:groups[key]=[p,0,False]
+            if key not in groups:groups[key]=[p,0,False,[]]
             groups[key][1]+=1;groups[key][2]|=bool(p.issues)
-        for i,(p,count,has_issues) in enumerate(groups.values(),1):
+            groups[key][3].append(p)
+        for i,(p,count,has_issues,members) in enumerate(groups.values(),1):
             if len(groups)>1:lines.append(self.text('方式 {0}（满足任一方式即可到达此设置点）：','Alternative {0}:').format(i))
             if count>1:lines.append(self.text('{0} 条脚本路径共用以下条件，对应事件任一触发时检查：','{0} script paths share these requirements; check on any corresponding event:').format(count))
             lines.append(self.text('触发时机：','When: ')+('；'.join(self.event(x) for x in p.events) if p.events else self.text('尚未确认','unconfirmed')))
@@ -178,6 +180,12 @@ class QuestText:
                 except ValueError:meaning=self.text('尚无法解释此脚本条件，可查看脚本依据。','Condition unavailable; see script evidence.')
                 lines.append(self.text('还需要：','Requires: ')+meaning)
             if has_issues:lines.append(self.text('注意：这条路径仍有未确认部分，不能据此保证游戏里一定触发。','Note: this path has unresolved parts; triggering is not guaranteed.'))
+            if self.locations is not None:
+                positions=self.locations.paths(members)
+                if positions:
+                    lines.append(self.text('关联地点：','Locations:'))
+                    lines.extend('• '+p.describe(self.en) for p in positions)
+                else:lines.append(self.text('关联地点：无位置','Locations: No location'))
         return lines
 
     def quest(self,q):

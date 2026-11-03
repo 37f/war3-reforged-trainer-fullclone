@@ -235,3 +235,47 @@ def test_readonly_page_has_no_completion_controls_and_evidence_is_opt_in(tk_root
         ui.evidence.set(False);ui.render_rows()
         assert 'QuestSetCompleted' not in ui.detail.get('1.0','end')
     finally:ui.close();panel.destroy()
+
+
+def test_location_rows_links_and_refresh_never_move_camera_without_user_action(tk_root):
+    from test_quest_locations import SCRIPT as located_script
+    class LocatedClient(Client):
+        def read(self,cancelled):return replace(snapshot(located_script),identity=self.connection,session_token=self.token)
+    client=LocatedClient();called=threading.Event();calls=[]
+    def navigate(report,place):calls.append((report,place));called.set()
+    ui=QuestAnalysisUI(tk_root,lambda:'zh',lambda:client,location_navigator=navigate)
+    panel=ttk.Frame(tk_root);ui.add_controls(panel)
+    try:
+        pump(ui.controller,lambda:ui.controller.location_data is not None and not ui.controller.busy)
+        ui.render()
+        condition=next(k for k in ui._row_locations if ':condition:' in k and ':place:' not in k)
+        assert len(ui._row_locations[condition])==2
+        ui.tree.selection_set(condition);ui.show_selected()
+        assert '中心' in ui.detail.get('1.0','end') and '初始位置' in ui.detail.get('1.0','end')
+        ui._jump_row()
+        assert not calls and '多个地点' in ui.location_status.get()
+        leaf=next(k for k in ui._row_locations if ':place:' in k)
+        ui.tree.item(ui.tree.parent(leaf),open=True)
+        ui.tree.selection_set(leaf);ui.show_selected();ui.render_rows()
+        assert ui.tree.selection()==(leaf,) and not calls
+        assert ui.detail.tag_ranges('location:0')
+        # Header/empty-space clicks must not reuse the last selected location.
+        from types import SimpleNamespace
+        ui._click_row(SimpleNamespace(x=5,y=1))
+        assert not calls
+        ui._jump_row();assert called.wait(1)
+        assert len(calls)==1 and calls[0][0] is ui.controller.report
+    finally:ui.close();panel.destroy()
+
+
+def test_condition_with_no_location_has_no_link_and_click_is_harmless(tk_root):
+    client=Client();calls=[]
+    ui=QuestAnalysisUI(tk_root,lambda:'zh',lambda:client,location_navigator=lambda *args:calls.append(args))
+    panel=ttk.Frame(tk_root);ui.add_controls(panel)
+    try:
+        pump(ui.controller,lambda:ui.controller.location_data is not None and not ui.controller.busy)
+        ui.render();row=next(k for k in ui._row_locations if ':condition:' in k)
+        ui.tree.selection_set(row);ui.show_selected();ui._jump_row()
+        assert '无位置' in ui.detail.get('1.0','end') and not calls
+        assert not ui.detail.tag_ranges('location:0')
+    finally:ui.close();panel.destroy()
