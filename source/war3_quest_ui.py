@@ -210,8 +210,8 @@ class QuestAnalysisUI:
         ttk.Entry(toolbar,textvariable=self.search,width=38).pack(side='left',fill='x',expand=True)
         self._label(ttk.Checkbutton(toolbar,variable=self.evidence,command=self.render_rows),'查看脚本依据','Show script evidence').pack(side='left',padx=8)
         self.notice=self._label(ttk.Label(tab,wraplength=1120),
-            '只读任务信息：解释主线／支线的目标、完成与失败条件；本页打开时每秒同步任务状态，无法唯一匹配时显示“状态未确认”。',
-            'Read-only main/side quest rules. Refreshes live state every second while visible; ambiguous matches remain Unconfirmed.')
+            '只读任务信息：解释主线／支线的目标、完成与失败条件；每秒同步任务状态。地点是脚本关联线索，候选来源和初始位置会标明，未知地点灰显“无位置”。',
+            'Read-only quest rules and live state. Locations are script-reference clues; candidates and initial positions are labeled, unresolved locations are gray.')
         self.notice.pack(fill='x',pady=(0,5))
         ttk.Label(tab,textvariable=self.status,wraplength=1120).pack(fill='x',pady=(0,5))
         ttk.Label(tab,textvariable=self.source,wraplength=1120).pack(fill='x',pady=(0,8))
@@ -220,6 +220,7 @@ class QuestAnalysisUI:
         left=ttk.Frame(panes);right=ttk.Frame(panes);panes.add(left,weight=1);panes.add(right,weight=3)
         self.tree=ttk.Treeview(left,columns=('kind','title','live'),show='tree headings',height=18,selectmode='browse')
         self.tree.column('#0',width=26,stretch=False)
+        self.tree.tag_configure('no-location',foreground='#888888')
         self.tree.column('kind',width=110,stretch=False);self.tree.column('title',width=240)
         self.tree.column('live',width=100,stretch=False)
         self.tree.grid(row=0,column=0,sticky='nsew')
@@ -416,7 +417,7 @@ class QuestAnalysisUI:
                         if not places and '无位置' not in self._rows[child]:self._rows[child]+='\n'+self.text('关联地点：无位置','Locations: No location')
                         for j,place in enumerate(places):
                             leaf=f'{child}:place:{j}';description=place.describe(self.language()=='en')
-                            self.tree.insert(child,'end',iid=leaf,values=(self.text('位置','Location'),description,''))
+                            self.tree.insert(child,'end',iid=leaf,values=(self.text('位置','Location'),description,''),tags=() if place.locatable else ('no-location',))
                             self._rows[leaf]=description;self._row_locations[leaf]=(place,)
                         all_places.extend(places)
                 self._row_locations[key]=tuple(dict.fromkeys(all_places))
@@ -452,8 +453,9 @@ class QuestAnalysisUI:
                 at=self.detail.search(text,start,stopindex='end')
                 if not at:break
                 self.detail.tag_add(tag,at,f'{at}+{len(text)}c');start=f'{at}+{len(text)}c'
-            self.detail.tag_configure(tag,foreground='#1669b2' if self.location_navigator else '#888888',underline=bool(self.location_navigator))
-            if self.location_navigator:self.detail.tag_bind(tag,'<Button-1>',lambda _event,p=place:self.jump_to(p))
+            enabled=bool(self.location_navigator and place.locatable)
+            self.detail.tag_configure(tag,foreground='#1669b2' if enabled else '#888888',underline=enabled)
+            self.detail.tag_bind(tag,'<Button-1>',lambda _event,p=place:self.jump_to(p) if p.locatable else 'break')
 
     def _click_row(self,event):
         row=self.tree.identify_row(event.y)
@@ -461,13 +463,15 @@ class QuestAnalysisUI:
             self._jump_row()
 
     def _jump_row(self):
-        selected=self.tree.selection();places=self._row_locations.get(selected[0],()) if selected else ()
+        selected=self.tree.selection();places=tuple(p for p in self._row_locations.get(selected[0],()) if p.locatable) if selected else ()
         if len(places)==1:self.jump_to(places[0])
         elif places:self.location_status.set(self.text('该条件关联多个地点，请点击具体位置行或详情中的蓝色地点。','Multiple locations: click a location row or a blue location in the details.'))
         else:self.location_status.set(self.text('无位置','No location'))
 
     def jump_to(self,place):
         c=self.controller;report=c.report
+        if not place.locatable:
+            self.location_status.set(self.text('无位置','No location'));return
         if report is None or c.clock()-c.checked_at>VALIDATION_SECONDS:
             self.location_status.set(self.text('地图信息已变化，请等待重新检索。','Map information changed; wait for a fresh scan.'));return
         if self.location_navigator is None:

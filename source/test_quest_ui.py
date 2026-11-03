@@ -279,3 +279,21 @@ def test_condition_with_no_location_has_no_link_and_click_is_harmless(tk_root):
         assert '无位置' in ui.detail.get('1.0','end') and not calls
         assert not ui.detail.tag_ranges('location:0')
     finally:ui.close();panel.destroy()
+
+
+def test_unresolved_item_row_is_gray_and_never_invokes_camera(tk_root):
+    from test_quest_location_types import task
+    class ItemClient(Client):
+        def read(self,cancelled):return replace(snapshot(task("GetItemTypeId(GetManipulatedItem())=='I999'")),identity=self.connection,session_token=self.token)
+    client=ItemClient();calls=[]
+    ui=QuestAnalysisUI(tk_root,lambda:'zh',lambda:client,location_navigator=lambda *args:calls.append(args))
+    panel=ttk.Frame(tk_root);ui.add_controls(panel)
+    try:
+        pump(ui.controller,lambda:ui.controller.location_data is not None and not ui.controller.busy)
+        ui.render();leaf=next(k for k in ui._row_locations if ':place:' in k)
+        ui.tree.selection_set(leaf);ui.show_selected();ui._jump_row()
+        point=ui._row_locations[leaf][0];ui.jump_to(point)
+        assert not point.locatable and not calls and '无位置' in ui.detail.get('1.0','end')
+        assert 'no-location' in ui.tree.item(leaf,'tags')
+        assert ui.detail.tag_cget('location:0','foreground')=='#888888'
+    finally:ui.close();panel.destroy()

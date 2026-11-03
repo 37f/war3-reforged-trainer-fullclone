@@ -122,6 +122,7 @@ class QuestText:
                 'IsQuestCompleted':('已完成','is completed'),'IsQuestFailed':('已失败','has failed'),
                 'IsQuestItemCompleted':('目标已完成','objective is completed'),'IsQuestDiscovered':('已被发现','is discovered'),
                 'GetHeroLevel':('的英雄等级',' hero level'),'GetUnitTypeId':('的单位ID',' unit ID'),
+                'GetItemTypeId':('的物品ID',' item ID'),'GetDestructableLife':('的生命值',' life'),
                 'GetOwningPlayer':('的所属玩家',' owning player'),'GetWidgetLife':('的生命值',' life')}
             if value in unary and len(a)==1:return self.expr(a[0])+' '+self.text(*unary[value])
             if value in ('IsUnitEnemy','IsUnitAlly') and len(a)==2:
@@ -142,6 +143,12 @@ class QuestText:
         name=str(e.value);a=e.args
         events={'EVENT_PLAYER_UNIT_DEATH':('有单位死亡时','when a unit dies'),
                 'EVENT_UNIT_DEATH':('指定单位死亡时','when the specified unit dies'),
+                'EVENT_UNIT_RESCUED':('指定单位获救时','when the specified unit is rescued'),
+                'EVENT_UNIT_PICKUP_ITEM':('指定单位拾取物品时','when the specified unit picks up an item'),
+                'EVENT_UNIT_DROP_ITEM':('指定单位放下／交出物品时','when the specified unit drops an item'),
+                'EVENT_UNIT_USE_ITEM':('指定单位使用物品时','when the specified unit uses an item'),
+                'EVENT_UNIT_SELL_ITEM':('指定商店出售物品时','when the specified shop sells an item'),
+                'EVENT_UNIT_CHANGE_OWNER':('指定单位／建筑改变归属时','when the specified unit or building changes owner'),
                 'EVENT_PLAYER_UNIT_PICKUP_ITEM':('有单位拾取物品时','when a unit picks up an item'),
                 'EVENT_PLAYER_UNIT_CONSTRUCT_FINISH':('建筑完成建造时','when construction finishes'),
                 'EVENT_PLAYER_UNIT_RESCUED':('有单位获救时','when a unit is rescued'),
@@ -150,6 +157,11 @@ class QuestText:
             if arg.kind=='variable' and arg.value in events:return self.text(*events[arg.value])
         if name in ('TriggerRegisterEnterRectSimple','TriggerRegisterEnterRegion') and len(a)>1:
             return self.text('有单位进入','When a unit enters ')+self.expr(a[1])+self.text('时','')
+        if name in ('TriggerRegisterLeaveRectSimple','TriggerRegisterLeaveRegion') and len(a)>1:
+            return self.text('有单位离开','When a unit leaves ')+self.expr(a[1])+self.text('时','')
+        if name=='TriggerRegisterUnitInRange' and len(a)>2:
+            return self.text('有单位进入','When a unit enters ')+self.expr(a[1])+self.text('的触发范围时',' range')
+        if name=='TriggerRegisterTimerExpireEvent':return self.text('指定计时器到期时','When the specified timer expires')
         if name=='TriggerRegisterDeathEvent' and len(a)>1:return self.expr(a[1])+self.text('死亡时',' dies')
         if name in ('TriggerRegisterTimerEvent','TriggerRegisterTimerEventSingle','TriggerRegisterTimerEventPeriodic') and len(a)>1:
             periodic=name.endswith('Periodic') or (len(a)>2 and a[2].kind=='bool' and a[2].value)
