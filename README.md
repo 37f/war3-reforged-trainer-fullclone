@@ -2,11 +2,13 @@
 
 这是基于[原作者的 v1.0.19 源码提交](https://github.com/dc114154qq/war3-reforged-trainer/tree/4124cd582ed624eeb85d665484755fa8cae65697)制作的非官方扩展版。本仓库不代表原作者发布；原项目的功能与本扩展的改动请分别参看源码和[迁移审计](releases/v1.0.19-R16/FULLCLONE_MIGRATION_AUDIT.md)。
 
-本分支当前为 **v1.0.19 FullClone R24-Test 只读任务信息版**。按用户要求删除R23“完成任务”功能及执行通道；任务页仅检索主线/支线、目标和完成/失败条件，默认用易读说明，勾选后可查看原脚本依据。官方安装基础脚本、自定义战役章节和独立地图共用入口；未知条件明确提示，不把静态结果冒充实时进度。目标游戏保持2.0.4.23745 x64，其他原有功能保留。
+本分支当前为 **v1.0.19 FullClone R29-Test 任务位置显示开关版**。默认保留原任务说明、目标、完成／失败条件及状态同步；只有勾选“触发位置”才显示区域、坐标、触发前入口和点击定位链接。原任务说明始终保留在详情前面，取消勾选即隐藏位置并停用新的跳转点击。官方安装基础脚本、自定义战役章节和独立地图共用任务检索入口；目标游戏保持 2.0.4.23745 x64。
 
-R19.2 之后现保留六个独立测试版本，EXE 均沿用原交付文件，没有为上传重新编译。当前新功能测试版为 **R24-Test**，现有正式版仍为 R19.2。使用方法见 [R24说明](source/R24_任务信息使用说明.md)，证据与限制见 [R24验证记录](source/analysis/R24_VERIFICATION.md)。R23执行设计已撤销，其发布只作历史存档；R24 不包含完成任务功能。
+当前新功能测试版为 **R29-Test**，现有正式版仍为 R19.2。R29 沿用本地已交付的 EXE，没有为上传重新编译；源码标签对应 `ea44436`。使用方法见 [R29说明](source/R29_任务位置显示开关使用说明.md)，证据与限制见 [R29验证记录](source/R29_VERIFICATION.md)。R23“完成任务”执行设计已撤销，R29 继续只读检索任务，不恢复执行功能。
 
-2026-10-27 按用户要求撤销 R24.1，删除独立发布、标签及本地成品，当前源码恢复为 R24。相关改动和验证只作为 [R24 版本记录](source/R24_VERSION_HISTORY.md) 保留；R24 原程序和源码包不变，任务页保留原自动检测行为。
+R29 同时包含 R25 的每秒任务完成／失败状态同步、R26 的独立本地相机定位、R27 的区域／单位／物品／建筑／镜头等地点关联、R28 的创建／发现任务入口线索。现有接口没有读取接取／发现状态；动态位置、复杂间接入口和无法确认的来源明确提示。191 项检查及冻结包校验通过；新增位置未逐项进行游戏内验收，具体边界见验证记录。R29 显示调整没有改动读取、单位参数、native 或相机入口。
+
+2026-10-27 曾按用户要求撤销 R24.1，删除独立发布、标签及本地成品，当时源码恢复为 R24。相关改动和验证只作为 [R24 版本记录](source/R24_VERSION_HISTORY.md) 保留；R24 原程序和源码包不变。本次不重新发布已撤销的 R24.1。
 
 ## R19.2 之后的版本
 
@@ -17,7 +19,8 @@ R19.2 之后现保留六个独立测试版本，EXE 均沿用原交付文件，�
 | R21-Test | 在修改器中直接检索当前地图的自定义 ID，换图后清理旧目录。 | [R21](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v1.0.19-fullclone-r21-test) |
 | R22-Test | 检索当前地图任务、JASS 完成及失败条件和脚本证据。 | [R22](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v1.0.19-fullclone-r22-test) |
 | R23-Test（历史存档） | 官方基础脚本来源适配及任务原流程执行实验；执行功能后来已撤销，不推荐使用本版。 | [R23 历史版](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v1.0.19-fullclone-r23-test) |
-| **R24-Test** | 删除任务执行；只读展示主线、支线、目标和易读完成／失败条件。 | **[R24](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v1.0.19-fullclone-r24-test)** |
+| R24-Test | 删除任务执行；只读展示主线、支线、目标和易读完成／失败条件。 | [R24](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v1.0.19-fullclone-r24-test) |
+| **R29-Test** | 保留 R25～R28 的任务状态同步、多类型条件与触发前定位；默认显示原任务说明，勾选“触发位置”后显示坐标并可定位本地视角。 | **[R29](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v1.0.19-fullclone-r29-test)** |
 
 每版附件包含独立 EXE、对应源码、中文说明、原验证记录和 SHA-256 校验文件；发布标签对应各版原源码提交。R21 源码 ZIP 仅清理夹带的 30 个旧发布文件，保留的源码逐文件核对原提交、字节不变，本地旧包保留。历史文档中“尚未上传”描述生成时状态，公开发布以各版本页面及附件 `PUBLICATION_INTEGRITY.json` 为准。
 
@@ -25,10 +28,11 @@ R19.2 之后现保留六个独立测试版本，EXE 均沿用原交付文件，�
 
 ## 下载
 
-- [R24-Test 新功能测试版](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v1.0.19-fullclone-r24-test)
-- [R24 Windows EXE](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v1.0.19-fullclone-r24-test/War3ReforgedTrainer-v1.0.19-FullClone-R24-Test.exe)
-- [R24 完整源码 ZIP](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v1.0.19-fullclone-r24-test/war3-reforged-trainer-v1.0.19-fullclone-r24-test-source.zip)
-- [R24 中文任务使用说明](source/R24_任务信息使用说明.md)
+- [R29-Test 新功能测试版](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v1.0.19-fullclone-r29-test)
+- [R29 Windows EXE](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v1.0.19-fullclone-r29-test/War3ReforgedTrainer-v1.0.19-FullClone-R29-Test.exe)
+- [R29 完整源码 ZIP](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v1.0.19-fullclone-r29-test/war3-reforged-trainer-v1.0.19-fullclone-r29-test-source.zip)
+- [R29 中文任务使用说明](source/R29_任务位置显示开关使用说明.md)
+- [R24 历史测试版](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v1.0.19-fullclone-r24-test)
 
 以下为 R19.2 正式版及其历史文档：
 
