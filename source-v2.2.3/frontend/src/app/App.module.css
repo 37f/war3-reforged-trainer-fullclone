@@ -1,0 +1,9 @@
+.app {
+  display: grid;
+  grid-template-rows: var(--band-h) minmax(0, 1fr) var(--console-h);
+  height: 100vh;
+  min-width: 800px;
+  min-height: 480px;
+  overflow: hidden;
+}
+.classic { grid-template-rows: auto auto minmax(0, 1fr) var(--console-h); }

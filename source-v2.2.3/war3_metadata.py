@@ -1,0 +1,10 @@
+"""Product metadata, shared without loading UI or game backends."""
+APP_VERSION = "2.2.3"
+APP_RELEASE_CHANNEL = "stable"
+GAME_BUILD = "3.0.0.24268"
+PRODUCT_READ_MODE = "normal"
+PRODUCT_EDITION_LABEL = "普通读取版"
+WIN10_COMPAT_REVISION = "2.2.3-huolong-optional-catalogue-20261106"
+
+# FullClone additions retain the upstream application/game version fields.
+FULLCLONE_EDITION = 'R31-Test'

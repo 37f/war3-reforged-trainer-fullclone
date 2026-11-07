@@ -1,0 +1,47 @@
+{
+  "edition": "v2.2.3 FullClone R31.5-Test",
+  "date": "2026-11-07",
+  "source_commit": "65f3215b155122618ca1e66844396265c5a7a70d",
+  "exe": {
+    "name": "War3ReforgedTrainer-v2.2.3-FullClone-R31.5-Test.exe",
+    "bytes": 27378337,
+    "sha256": "2d6e631ae7174c74011b7b8f261876d242acd0824b1343ea4c3f0e3790085230",
+    "file_version": "2.2.3.315"
+  },
+  "source": {
+    "name": "War3ReforgedTrainer-v2.2.3-FullClone-R31.5-Test-source.zip",
+    "files": 608,
+    "sha256": "7ee7fa420badffdc1742dd3505e4cc57cc0bd35388ebb614832b112554890e8f",
+    "all_members_re_read": true
+  },
+  "tests": {
+    "passed": 150,
+    "native_executable_fixtures": true,
+    "real_desktop_composition": true
+  },
+  "frozen_ui": {
+    "ok": true,
+    "pages": 17,
+    "classic_pages": 17,
+    "legacy19_tabs": 18,
+    "legacy19_six_groups": true,
+    "hotkeys": 77,
+    "offline": true
+  },
+  "embedded_modules_verified": 218,
+  "game": {
+    "gameplay_mutation_tests": false,
+    "previous_r31_read_only_checks_retained": true,
+    "team_live_effect_not_retested": true
+  },
+  "quest_wheel_scroll_fixed": true,
+  "quest_scroll_validated_all_three_layouts": true,
+  "legacy19_layout": true,
+  "classic_layout_switch": true,
+  "ui_preference_saved": true,
+  "native_bridge_unchanged_from_r31_2": true,
+  "removed_player_victory": true,
+  "alt_b_author_cheat_only": true,
+  "original_and_prior_versions_preserved": true,
+  "published": false
+}

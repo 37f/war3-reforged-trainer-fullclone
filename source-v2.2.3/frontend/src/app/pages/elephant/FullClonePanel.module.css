@@ -1,0 +1,8 @@
+.panel { display: grid; gap: var(--space-3, 12px); margin-block: 20px; color: var(--text-primary); }
+.panel h2 { font-size: 18px; }
+.panel fieldset { border: 1px solid var(--border-muted, #76603f); padding: 14px; min-width: 0; display: grid; gap: 12px; }
+.panel legend { padding-inline: 8px; }
+.panel p { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; line-height: 1.65; }
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.row > input { max-width: 150px; }
+.row label { display: inline-flex; align-items: center; gap: 4px; }

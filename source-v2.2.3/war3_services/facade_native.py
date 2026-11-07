@@ -1,0 +1,521 @@
+"""native compatibility API; host primitives are explicitly bound once at composition."""
+from __future__ import annotations
+from contextlib import contextmanager
+
+class NativeFacade:
+    def toggle_game_speed(self, factor=2):
+        from war3_services.speed import toggle_scaled_speed
+        return toggle_scaled_speed(self,factor)
+
+    def toggle_native_game_speed(self, target=2):
+        if type(target) is not int or target not in range(5):
+            raise ValueError('Game speed must be a native tier in 0..4')
+        engine = self._engine_instance_24268()
+        with engine.session.lock:
+            current = engine.game_speed()
+            cache = engine.session.cache
+            original = cache.get('game_speed_original')
+            if original is None:
+                if current['after']==target:
+                    return dict(current,accelerated=False,unchanged=True)
+                result = engine.game_speed(1, target, expected_epoch=engine.session.epoch)
+                cache['game_speed_original'] = result['before']
+                return dict(result, accelerated=True)
+            result = engine.game_speed(1, original, expected_epoch=engine.session.epoch)
+            cache.pop('game_speed_original', None)
+            return dict(result, accelerated=False)
+
+    def _engine_instance_24268(self):
+        from war3_engine_24268 import Engine24268
+        engine = getattr(self, "_engine24268", None)
+        if engine is None or (engine.pid, engine.hwnd) != (self.pid, self.hwnd):
+            if engine is not None:
+                try:
+                    engine.close()
+                except Exception:
+                    pass
+            engine = Engine24268(self.pid, self.hwnd, ProcessMemory,
+                                 report_sink=lambda report: record_engine_recovery(self.pid, report),
+                                 session=getattr(self,"_game_session",None))
+            self._engine24268 = engine
+        return engine
+
+
+    def hero_progress_24268(self, target: int = 0) -> dict:
+        return self._engine_instance_24268().hero_progress(target)
+
+
+    def hero_attributes_24268(self, target: int) -> dict:
+        return self._engine_instance_24268().hero_attributes(target)
+
+
+    def _unit_stats_for_candidate_24268(self, candidate: UnitCandidate) -> dict:
+        from war3_services.batch_edit import active_field_target
+        target = active_field_target()
+        if target is not None:
+            if (target.handle.value, target.address.value, target.rawcode) != (
+                candidate.handle, candidate.unit_address, candidate.unit_type_id
+            ):
+                raise RuntimeError("批量属性目标与单位身份不一致")
+            _candidate, native_handle = self._stat_target_24268(candidate)
+            result = self._engine_instance_24268().unit_stats(target_unit=native_handle)
+            matches = [row for row in result.get("rows", ())
+                       if int(row.get("status", 0)) == 1
+                       and int(row.get("unit", 0)) == native_handle
+                       and int(row.get("rawcode", 0)) == target.rawcode]
+            if len(matches) != 1:
+                raise RuntimeError("批量单位原生属性读回身份不一致")
+            return matches[0]
+        result = self._engine_instance_24268().unit_stats()
+        rows = [row for row in result.get("rows", ()) if int(row.get("status", 0)) == 1]
+        typed = [row for row in rows if int(row.get("rawcode", 0)) == int(candidate.unit_type_id)]
+        matches = typed if len(typed) == 1 else rows if len(rows) == 1 else ()
+        if len(matches) != 1:
+            raise RuntimeError("当前单位原生属性身份不唯一，请只选择一个单位后重试")
+        return matches[0]
+
+
+    def _write_unit_stat_field_24268(
+        self, candidate: UnitCandidate, field: UnitMemoryField, value: int | float | str,
+    ) -> UnitMemoryField:
+        if field.key in ('attack1_type','attack2_type'):
+            from war3_services.unit_fields import set_attack_type
+            return set_attack_type(self,candidate,field,value)
+        if field.key in ('attack1_range','attack2_range'):
+            from war3_services.unit_fields import set_weapon_range
+            return set_weapon_range(self,candidate,field,value)
+        from war3_unit_stats_protocol import (
+            ACTION_SET_ARMOR, ACTION_SET_DEFENSE_TYPE, ACTION_SET_INTELLIGENCE,
+        )
+        action = {
+            "armor": ACTION_SET_ARMOR,
+            "armor_type": ACTION_SET_DEFENSE_TYPE,
+            "intelligence_total": ACTION_SET_INTELLIGENCE,
+        }[field.key]
+        if field.key == "armor":
+            target = coerce_finite_float32(value)
+        else:
+            target = int(self._coerce_memory_value("i32", value))
+        unit, expected_rawcode = field.native_component_identity
+        result = self._engine_instance_24268().unit_stats(action, target, int(unit))
+        rows = [row for row in result.get("rows", ())
+                if int(row.get("status", 0)) == 1 and int(row.get("unit", 0)) == int(unit)]
+        if len(rows) != 1 or int(rows[0].get("rawcode", 0)) != int(expected_rawcode):
+            raise RuntimeError("单位原生属性写入后的身份读回不一致")
+        row = rows[0]
+        actual = {
+            "armor": row["armor_after"],
+            "armor_type": row["defense_after"],
+            "intelligence_total": row["intelligence_total_after"],
+        }[field.key]
+        return replace(field, value=actual, address=0, write_address=0,
+                       write_type="", native_write=True)
+
+
+    def attack_speed_24268(
+        self,
+        candidate: UnitCandidate,
+        attack: int,
+        target_aps: float = 0.0,
+        weapon: int = 0,
+    ) -> dict:
+        if not candidate.handle or not candidate.unit_address or not candidate.unit_type_id or not attack:
+            raise RuntimeError("3.0 攻速事务缺少完整单位身份")
+        return self._engine_instance_24268().attack_speed(
+            candidate.unit_address,
+            int(attack),
+            candidate.handle,
+            candidate.unit_type_id,
+            float(target_aps),
+            int(weapon),
+        )
+
+
+    def ability_batch_24268(self, rawcode: int | str, action: int = 0, level: int = 0, *, target_unit: int = 0) -> dict:
+        ability = int(self._coerce_memory_value("rawcode", rawcode)) & 0xFFFFFFFF
+        if not ability:
+            raise ValueError("技能 ID 无效")
+        if target_unit:
+            return self._engine_instance_24268().ability_batch(ability, action, level, target_unit=target_unit)
+        return self._engine_instance_24268().ability_batch(ability, action, level)
+
+
+    def ability_field_batch_24268(
+        self,
+        rawcode: int | str,
+        level: int,
+        action: int,
+        fields: Iterable[tuple[int, int, int, int]],
+        target_unit: int = 0,
+    ) -> dict:
+        ability = int(self._coerce_memory_value("rawcode", rawcode)) & 0xFFFFFFFF
+        if not ability:
+            raise ValueError("技能 ID 无效")
+        return self._engine_instance_24268().ability_field_batch(
+            ability, int(level), int(action), tuple(fields), int(target_unit),
+        )
+
+
+    def item_batch_24268(self, action: int = 0, rawcode: int | str = 0, charges: int = -1,
+                         target_unit_rawcode: int = 0, target_unit: int = 0,
+                         expected_item: int = 0, *, creation_route: int = 0) -> dict:
+        code = int(self._coerce_memory_value("rawcode", rawcode)) & 0xFFFFFFFF if rawcode else 0
+        args=(
+            action, code, charges, int(target_unit_rawcode) & 0xFFFFFFFF,
+            int(target_unit), int(expected_item),
+        )
+        engine=self._engine_instance_24268()
+        return engine.item_batch(*args,creation_route=int(creation_route)) if creation_route else engine.item_batch(*args)
+
+
+    def _stat_target_24268(self, candidate: UnitCandidate | None = None) -> tuple:
+        from war3_game_session import GameSession, NativeHandle, UnitRef
+
+        engine = self._engine_instance_24268()
+        session = getattr(engine, 'session', None)
+        if isinstance(session, GameSession):
+            with session.lock:
+                if candidate is None:
+                    candidate, _full_handle = self._direct_selected_context()
+                from war3_services.batch_edit import active_field_bindings, active_field_target
+                cache, target = active_field_bindings(), active_field_target()
+                if cache is not None and target is not None:
+                    if (candidate.handle,candidate.unit_address,candidate.unit_type_id) != (
+                            target.handle.value,target.address.value,target.rawcode):
+                        raise RuntimeError('批量属性目标与完整单位身份不一致')
+                    with self._process_memory() as memory:
+                        registry,_,_=session.prepare(memory)
+                        session.resolve(memory,registry,target)
+                    if target in cache:
+                        return candidate,cache[target].value
+                refs = self._capture_unit_refs_24268((candidate,))
+                bindings = engine.bind_unit_refs(refs, strict_selection=False)
+                if (type(bindings) is not tuple or len(bindings) != 1
+                        or type(bindings[0]) is not tuple or len(bindings[0]) != 2
+                        or type(bindings[0][0]) is not NativeHandle
+                        or type(bindings[0][1]) is not UnitRef
+                        or bindings[0][1] != refs[0]):
+                    raise RuntimeError("属性目标的原生绑定与完整单位身份不一致")
+                if cache is not None and target is not None:
+                    if refs[0] != target:
+                        raise RuntimeError('批量属性目标在原生绑定期间变化')
+                    cache[target]=bindings[0][0]
+                return candidate, bindings[0][0].value
+        # Preserve the compatibility path used by hosts without GameSession.
+        if candidate is None:
+            candidate, unit_handle = self._direct_selected_context()
+        else:
+            identity = (candidate.handle, candidate.owner_address, candidate.unit_address, candidate.unit_type_id)
+            matches = [
+                (current, handle) for current, handle in self._selected_candidates_snapshot(None)
+                if (current.handle, current.owner_address, current.unit_address, current.unit_type_id) == identity
+            ]
+            if len(matches) != 1:
+                raise RuntimeError("属性目标单位已变化或身份不唯一，请重新读取")
+            candidate, unit_handle = matches[0]
+        if not candidate.handle or not candidate.unit_type_id:
+            raise RuntimeError("3.0 属性读取缺少完整单位身份")
+        native = engine.ability_batch(int.from_bytes(b"AIxr", "big"))
+        rows = [row for row in native["rows"] if int(row["rawcode"]) == int(candidate.unit_type_id)]
+        if len(rows) != 1:
+            raise RuntimeError("属性目标的原生身份不唯一，请单选该单位后重试")
+        return candidate, int(rows[0]["handle"])
+
+
+    def item_field_batch_24268(self, slot: int, action: int, fields,
+                             target_unit: int = 0) -> dict:
+        return self._engine_instance_24268().item_field_batch(
+            int(slot), int(action), tuple(fields), int(target_unit),
+        )
+
+
+    def world_batch_24268(self, action: int, rawcode: int | str = 0, value: int = 0) -> dict:
+        code = int(self._coerce_memory_value("rawcode", rawcode)) & 0xFFFFFFFF if rawcode else 0
+        return self._engine_instance_24268().world_batch(action, code, int(value))
+
+
+    def bulk_batch_24268(self, action: int, value: int = 0) -> dict:
+        return self._engine_instance_24268().bulk_batch(int(action), int(value))
+
+
+    def effect_batch_24268(
+        self, rawcode: int | str, action: int, x_bits: int = 0, y_bits: int = 0,
+        *, area: float | None = None, passes: int = 1, use_unit_position: bool = False,
+    ) -> dict:
+        code = int(self._coerce_memory_value("rawcode", rawcode)) & 0xFFFFFFFF
+        if not code:
+            raise ValueError("技能 ID 无效")
+        if isinstance(passes, bool) or not 1 <= int(passes) <= 255:
+            raise ValueError("技能效果执行次数必须在 1 到 255 之间")
+        area_bits = 0
+        if area is not None:
+            area_value = float(area)
+            if not math.isfinite(area_value) or not 0 <= area_value <= 1_000_000:
+                raise ValueError("技能效果范围必须是 0 到 1000000 之间的有限数值")
+            area_bits = self._float_bits(area_value)
+        return self._engine_instance_24268().effect_batch(
+            code, int(action), int(x_bits), int(y_bits),
+            area_bits=area_bits, passes=int(passes), use_unit_position=bool(use_unit_position),
+        )
+
+
+    def world_effect_batch_24268(
+        self, rawcode: int | str, action: int, success_limit: int = 0,
+    ) -> dict:
+        code = int(self._coerce_memory_value("rawcode", rawcode)) & 0xFFFFFFFF
+        limit = int(success_limit)
+        if not code:
+            raise ValueError("技能 ID 无效")
+        if not 0 <= limit <= 65535:
+            raise ValueError("全屏效果上限必须在 0 到 65535 之间")
+        return self._engine_instance_24268().world_effect_batch(code, int(action), limit)
+
+
+    def cast_native_area_24268(self, rawcode: int | str, order_id: int,
+                               *, cast_kind: int = 1, area: float = 100000.0,
+                               source: int = 0, hold_seconds: float = 2.0) -> dict:
+        code = int(self._coerce_memory_value("rawcode", rawcode)) & 0xFFFFFFFF
+        if not code or not 1 <= float(area) <= 100000 or not math.isfinite(float(area)):
+            raise ValueError("Invalid native area cast")
+        engine = self._engine_instance_24268()
+        started = None
+        primary_error = None
+        try:
+            started = engine.world_cast(code, 1, order_id=int(order_id),
+                                        cast_kind=int(cast_kind), area=float(area),
+                                        source=int(source))
+            time.sleep(float(hold_seconds))
+            identity = dict(source=started["source"],
+                            ability_handle=started["ability_handle"],
+                            target=started["target"], cast_kind=started["cast_kind"],
+                            prior_area=started["prior_area"], added=started["added"])
+            state = engine.world_cast(code, 3, **identity)
+            if (state["source"] != started["source"] or
+                    (state["cooldown_after"] <= 0.01 and
+                     state["mana_after"] >= started["mana_before"] - 0.01)):
+                raise RuntimeError("施法命令已接收，但法力和冷却未变化；请确认游戏未暂停或停在结算界面")
+            return dict(start=started, state=state)
+        except Exception as exc:
+            primary_error = exc
+            raise
+        finally:
+            if started is not None:
+                try:
+                    engine.world_cast(code, 2, source=started["source"],
+                                      ability_handle=started["ability_handle"],
+                                      target=started["target"],
+                                      cast_kind=started["cast_kind"],
+                                      prior_area=started["prior_area"],
+                                      added=started["added"])
+                except Exception as cleanup_error:
+                    raise RuntimeError(
+                        f"Native area cast cleanup failed; original={primary_error}; "
+                        f"cleanup={cleanup_error}"
+                    ) from cleanup_error
+
+
+    def spawn_unit_24268(
+        self, rawcode: int | str, x: float, y: float, facing: float = 0.0,
+    ) -> dict:
+        code = int(self._coerce_memory_value("rawcode", rawcode)) & 0xFFFFFFFF
+        if not code:
+            raise ValueError("单位 ID 无效")
+        return self._engine_instance_24268().spawn_batch(
+            code,
+            self._float_bits(float(x)),
+            self._float_bits(float(y)),
+            self._float_bits(float(facing)),
+        )
+
+
+    def mouse_world_point_24268(self) -> tuple[float, float]:
+        result = self._engine_instance_24268().mouse_world_point()
+        return float(result["x"]), float(result["y"])
+
+
+    def mouse_screen_point_24268(self) -> tuple[int, int]:
+        result = self._engine_instance_24268().mouse_screen_point()
+        return int(result["x"]), int(result["y"])
+
+
+    def camera_snapshot_24268(self) -> dict:
+        return self._engine_instance_24268().camera_snapshot()
+
+
+    def terrain_height_24268(self, x: float, y: float) -> float:
+        result = self._engine_instance_24268().terrain_height(
+            self._float_bits(float(x)), self._float_bits(float(y)),
+        )
+        height = float(result["z"])
+        if not math.isfinite(height) or abs(height) > 1_000_000.0:
+            raise RuntimeError("3.0 地形高度返回无效")
+        return height
+
+
+    def map_bounds_24268(self) -> dict[str, float]:
+        return self._engine_instance_24268().map_bounds()
+
+
+    def _clamp_mouse_world_point_24268(self, point: tuple[float, float]) -> tuple[float, float]:
+        bounds = self.map_bounds_24268()
+        margin = 32.0
+        min_x = float(bounds["min_x"]) + margin
+        max_x = float(bounds["max_x"]) - margin
+        min_y = float(bounds["min_y"]) + margin
+        max_y = float(bounds["max_y"]) - margin
+        if not min_x < max_x or not min_y < max_y:
+            raise RuntimeError("当前地图可用范围无效")
+        x, y = (float(point[0]), float(point[1]))
+        if not all(math.isfinite(value) for value in (x, y)):
+            raise RuntimeError("鼠标目标点不是有限坐标")
+        return min(max(x, min_x), max_x), min(max(y, min_y), max_y)
+
+
+    @staticmethod
+    def _mouse_world_from_camera_24268(
+        snapshot: dict, client_width: int, client_height: int, screen_scale: float = 1.0,
+        plane_z: float | None = None,
+    ) -> tuple[float, float]:
+        from war3_services.camera_projection import mouse_plane_point
+        return mouse_plane_point(snapshot,client_width,client_height,screen_scale,plane_z)
+
+
+    def _client_size_24268(self) -> tuple[int, int]:
+        class Rect(ctypes.Structure):
+            _fields_ = [("left", ctypes.c_long), ("top", ctypes.c_long),
+                        ("right", ctypes.c_long), ("bottom", ctypes.c_long)]
+        get_client_rect = user32.GetClientRect
+        get_client_rect.argtypes = (ctypes.c_void_p, ctypes.POINTER(Rect))
+        get_client_rect.restype = ctypes.c_bool
+        rect = Rect()
+        if not get_client_rect(ctypes.c_void_p(self.hwnd), ctypes.byref(rect)):
+            raise ctypes.WinError(ctypes.get_last_error())
+        width, height = int(rect.right - rect.left), int(rect.bottom - rect.top)
+        if width > 0 and height > 0:
+            return width, height
+
+        # Some 3.0 render states expose a visible OsWindow with a zero-sized
+        # client area while the camera natives still report normalized 16-bit
+        # screen coordinates. Do not use its title-bar dimensions as the
+        # projection aspect ratio; use a real window size or desktop metrics.
+        get_window_rect = user32.GetWindowRect
+        get_window_rect.argtypes = (ctypes.c_void_p, ctypes.POINTER(Rect))
+        get_window_rect.restype = ctypes.c_bool
+        window_rect = Rect()
+        if get_window_rect(ctypes.c_void_p(self.hwnd), ctypes.byref(window_rect)):
+            width = int(window_rect.right - window_rect.left)
+            height = int(window_rect.bottom - window_rect.top)
+            if width >= 320 and height >= 200:
+                return width, height
+
+        get_system_metrics = user32.GetSystemMetrics
+        get_system_metrics.argtypes = (ctypes.c_int,)
+        get_system_metrics.restype = ctypes.c_int
+        width = int(get_system_metrics(0))
+        height = int(get_system_metrics(1))
+        if width > 0 and height > 0:
+            return width, height
+        raise RuntimeError("3.0 游戏客户区尺寸无效")
+
+
+    def _screen_scale_24268(self) -> float:
+        get_dpi_for_window = user32.GetDpiForWindow
+        get_dpi_for_window.argtypes = (ctypes.c_void_p,)
+        get_dpi_for_window.restype = ctypes.c_uint
+        dpi = int(get_dpi_for_window(ctypes.c_void_p(self.hwnd)))
+        return (dpi or 96) / 96.0
+
+
+    def clone_batch_24268(self, *, keep: bool = True,
+                          preserve_owner: bool = False,
+                          copy_abilities: bool = True,
+                          copy_items: bool = True,
+                          spawn: bool = False,
+                          spawn_x_bits: int = 0,
+                          spawn_y_bits: int = 0,
+                          expected_sources=None,
+                          allow_partial_abilities: bool = True,
+                          copy_runtime_state: bool = True) -> dict:
+        options = dict(
+            keep=keep,
+            preserve_owner=preserve_owner,
+            copy_abilities=copy_abilities,
+            copy_items=copy_items,
+            spawn=spawn,
+            spawn_x_bits=spawn_x_bits,
+            spawn_y_bits=spawn_y_bits,
+            allow_partial_abilities=allow_partial_abilities,
+        )
+        if expected_sources is not None:
+            options['expected_sources'] = expected_sources
+        if copy_runtime_state and copy_abilities and copy_items:
+            options['expected_sources'] = expected_sources if expected_sources is not None else self._capture_clone_sources_24268()
+            return self._engine_instance_24268().clone_state(**options)
+        return self._engine_instance_24268().clone_batch(**options)
+
+
+    def _capture_unit_refs_24268(self, candidates=None) -> tuple:
+        """Capture classic identities once; Native binding is a separate query."""
+        from war3_game_session import ObjectAddress, session_scope
+
+        engine = self._engine_instance_24268()
+        session = engine.session
+        with session.lock:
+            with engine.memory_factory(engine.pid) as memory:
+                registry, _, _ = session.prepare(memory)
+                with session_scope(session):
+                    if candidates is None:
+                        candidates = tuple(candidate for candidate, _full_handle
+                                           in self._selected_candidates_snapshot(memory))
+                    else:
+                        candidates = tuple(candidates)
+                    if not 1 <= len(candidates) <= 24:
+                        raise RuntimeError("原生绑定需要 1 到 24 个稳定的单位身份")
+                    refs = tuple(session.bind_unit(memory, registry, ObjectAddress(candidate.unit_address))
+                                 for candidate in candidates)
+                    if any((ref.handle.value, ref.rawcode) != (candidate.handle, candidate.unit_type_id)
+                           for ref, candidate in zip(refs, candidates)):
+                        raise RuntimeError("原生绑定源单位的完整身份已变化，未执行后续操作")
+                    return refs
+
+
+    def _capture_clone_sources_24268(self) -> tuple:
+        from war3_clone_bound_protocol import validate_expected_sources
+
+        engine = self._engine_instance_24268()
+        with engine.session.lock:
+            refs = self._capture_unit_refs_24268()
+            bindings = engine.bind_unit_refs(refs, strict_selection=True)
+            validate_expected_sources(bindings)
+            if tuple(ref for _native, ref in bindings) != refs:
+                raise RuntimeError("复制源单位的原生绑定与捕获身份不一致，未开始复制")
+            return bindings
+
+
+    def unit_action_batch_24268(self, action: int, *, value: int = 0,
+                                x_bits: int = 0, y_bits: int = 0,
+                                scale_x_bits: int = 0, scale_y_bits: int = 0,
+                                scale_z_bits: int = 0) -> dict:
+        return self._engine_instance_24268().unit_action_batch(
+            action, value=value, x_bits=x_bits, y_bits=y_bits,
+            scale_x_bits=scale_x_bits, scale_y_bits=scale_y_bits,
+            scale_z_bits=scale_z_bits,
+        )
+
+
+    def position_batch_24268(self, x_bits: int, y_bits: int) -> dict:
+        return self._engine_instance_24268().position_batch(x_bits, y_bits)
+
+
+    def _unit_action_result_24268(self, action: int, *, value: int = 0,
+                                   x_bits: int = 0, y_bits: int = 0,
+                                   scale_x_bits: int = 0, scale_y_bits: int = 0,
+                                   scale_z_bits: int = 0) -> dict:
+        result = self.unit_action_batch_24268(
+            action, value=value, x_bits=x_bits, y_bits=y_bits,
+            scale_x_bits=scale_x_bits, scale_y_bits=scale_y_bits,
+            scale_z_bits=scale_z_bits,
+        )
+        if not result.get("rows"):
+            raise RuntimeError("当前选择没有可操作单位")
+        return result
