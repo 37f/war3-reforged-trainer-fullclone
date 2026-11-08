@@ -7,6 +7,7 @@ import type { PageId } from '../routes'
  */
 export const PAGES: Record<PageId, LazyExoticComponent<ComponentType>> = {
   resources: lazy(() => import('./battle/ResourcesPage')),
+  players: lazy(() => import('./battle/PlayerDirectoryPage')),
   unit: lazy(() => import('./battle/UnitPage')),
   batch: lazy(() => import('./battle/BatchPage')),
   locks: lazy(() => import('./battle/LocksPage')),

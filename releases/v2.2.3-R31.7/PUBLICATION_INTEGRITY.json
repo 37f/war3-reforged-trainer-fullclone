@@ -1,0 +1,21 @@
+{
+  "tag": "v2.2.3-fullclone-r31.7-test",
+  "source_path": "source-v2.2.3",
+  "build_source_commit": "020e46088356d47a7c7dbd0765f282067c4016f7",
+  "source_files": 628,
+  "rebuilt": false,
+  "exe_sha256": "95a2c5d67ca60c19472d0afc88c0bdcd98e759fbfe4a966872ef8f46f8b5e6e7",
+  "source_zip_sha256": "a2422af9b9e1c16efa45dba77d7f0cad835bb6b68b7265302e66e2e8e73d865b",
+  "local_to_published_names": {
+    "R31_7_使用说明.md": "R31_7_USAGE_ZH.md",
+    "R31_7_更新说明.md": "R31_7_CHANGELOG_ZH.md",
+    "R31_7_界面预览.png": "R31_7_UI_PREVIEW.png",
+    "SHA256SUMS-R31.7.txt": "SHA256SUMS-R31.7-LOCAL.txt"
+  },
+  "original_bytes_preserved": true,
+  "tests_passed": 201,
+  "embedded_modules_verified": 221,
+  "read_only_players_verified": true,
+  "player_name_initial_fallback_explicit": true,
+  "prior_releases_to_preserve": 12
+}

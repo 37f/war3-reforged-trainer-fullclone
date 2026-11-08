@@ -2,7 +2,7 @@
 // Ids are a contract: the Python --ui-check and saved navigation state refer to them.
 
 export type PageId =
-  | 'resources' | 'unit' | 'batch' | 'locks'
+  | 'resources' | 'players' | 'unit' | 'batch' | 'locks'
   | 'unit_fields' | 'ability_fields' | 'item_fields' | 'extensions'
   | 'elephant' | 'hotkeys'
   | 'catalogs' | 'map_catalog' | 'equipment3' | 'hero_skills'
@@ -25,6 +25,7 @@ export const CHAPTERS: Chapter[] = [
   {
     id: 'battle', label: '战况', pages: [
       { id: 'resources', label: '玩家资源' },
+      { id: 'players', label: '队伍与玩家' },
       { id: 'unit', label: '选中单位' },
       { id: 'batch', label: '批量修改' },
       { id: 'locks', label: '锁定列表' },

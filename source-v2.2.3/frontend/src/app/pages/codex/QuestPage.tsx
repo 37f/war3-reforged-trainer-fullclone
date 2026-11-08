@@ -61,6 +61,7 @@ export default function QuestPage() {
       <p>文件读取不执行地图脚本；未确认与当前地图一致时不开放视角跳转或运行状态匹配。</p>
     </details>
     {data.source && <p className={s.source}>来源：{data.source}</p>}
+    {data.notice && <p className={s.source} role="note">{data.notice}</p>}
     <div className={s.body}>
       <nav aria-label="主线与支线任务"><ul>{quests.map(r => <li key={r.key}>
         <button type="button" aria-current={q?.key === r.key ? 'true' : undefined} onClick={() => selectQuest(r)}>

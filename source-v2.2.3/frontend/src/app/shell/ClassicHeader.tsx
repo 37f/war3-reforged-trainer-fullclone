@@ -55,7 +55,7 @@ export function Legacy19Tabs() {
     return () => window.removeEventListener('war3-catalog-kind', sync)
   }, [])
   const first: { id: PageId; label: string; kind?: string }[] = [
-    { id: 'resources', label: '玩家资源' }, { id: 'unit', label: '选中单位' },
+    { id: 'resources', label: '玩家资源' }, { id: 'players', label: '队伍与玩家' }, { id: 'unit', label: '选中单位' },
     { id: 'locks', label: '锁定列表' }, { id: 'ability_fields', label: '技能字段' },
     { id: 'item_fields', label: '物品字段' }, { id: 'elephant', label: '大象功能' },
     { id: 'catalogs', label: '物品 ID', kind: 'item' }, { id: 'catalogs', label: '技能 ID', kind: 'ability' },

@@ -76,7 +76,10 @@ class QuestLocations:
     def __init__(self,report,cancelled=lambda:False):
         self.reader=QuestText(report);self.assignments={};self.locals={};self.regions={};self.types=dict(report.variable_types)
         self.cache={};self.cancelled=cancelled;self.calls=[];self.blocks={}
-        program=parse_jass(report.snapshot.script.decode('utf-8-sig'),cancelled)
+        if report.snapshot.language=='lua':
+            from war3_lua_quests import parse_lua
+            program=parse_lua(report.snapshot.script.decode('utf-8-sig'),cancelled)
+        else:program=parse_jass(report.snapshot.script.decode('utf-8-sig'),cancelled)
         self.program=program
         for g in program.globals:
             if g.exprs and g.exprs[0].kind!='null':self.assignments.setdefault(g.name,[]).append((g.exprs[0],'',g.line,False))

@@ -1,0 +1,60 @@
+{
+  "verified": 15,
+  "retained_elsewhere": [
+    {
+      "previous": "E:\\Games\\Warcraft III\\FullClone-R31\\War3ReforgedTrainer-v2.2.3-FullClone-R31-Test-source.zip",
+      "retained": "C:\\Users\\22824\\Documents\\Codex\\2026-11-07\\war3-v223-fullclone\\outputs\\R31-Test\\War3ReforgedTrainer-v2.2.3-FullClone-R31-Test-source.zip",
+      "sha256": "7bd59d01235a4f4d4e96385cc3b59ef4553efc78c0d15c8f4d8f28e73b5c3d3a"
+    },
+    {
+      "previous": "E:\\Games\\Warcraft III\\War3ReforgedTrainer-v2.2.3-FullClone-R31.1-Test.exe",
+      "retained": "C:\\Users\\22824\\Documents\\Codex\\2026-11-07\\war3-v223-fullclone\\outputs\\R31.1-Test\\War3ReforgedTrainer-v2.2.3-FullClone-R31.1-Test.exe",
+      "sha256": "c249584705a7cb2dea86b801ae3f3e31687025333410a0e61613a905c9bceb16"
+    },
+    {
+      "previous": "E:\\Games\\Warcraft III\\FullClone-R31.1\\War3ReforgedTrainer-v2.2.3-FullClone-R31.1-Test-source.zip",
+      "retained": "C:\\Users\\22824\\Documents\\Codex\\2026-11-07\\war3-v223-fullclone\\outputs\\R31.1-Test\\War3ReforgedTrainer-v2.2.3-FullClone-R31.1-Test-source.zip",
+      "sha256": "d9ad828eee7227f76abca47309652ce7d230890beb913e0722084933a78bb0ad"
+    },
+    {
+      "previous": "E:\\Games\\Warcraft III\\War3ReforgedTrainer-v2.2.3-FullClone-R31.2-Test.exe",
+      "retained": "C:\\Users\\22824\\Documents\\Codex\\2026-11-07\\war3-v223-fullclone\\outputs\\R31.2-Test\\War3ReforgedTrainer-v2.2.3-FullClone-R31.2-Test.exe",
+      "sha256": "6fe8a3f2ed0e8224afeca740c82ca18ec4b5fb6f3963390ab1520d54d52806d2"
+    },
+    {
+      "previous": "E:\\Games\\Warcraft III\\FullClone-R31.2\\War3ReforgedTrainer-v2.2.3-FullClone-R31.2-Test-source.zip",
+      "retained": "C:\\Users\\22824\\Documents\\Codex\\2026-11-07\\war3-v223-fullclone\\outputs\\R31.2-Test\\War3ReforgedTrainer-v2.2.3-FullClone-R31.2-Test-source.zip",
+      "sha256": "5ca652f9c1429c44f52ff69a077d877af68e2b009467a2cc5b80d8a1bf884388"
+    },
+    {
+      "previous": "E:\\Games\\Warcraft III\\War3ReforgedTrainer-v2.2.3-FullClone-R31.3-Test.exe",
+      "retained": "C:\\Users\\22824\\Documents\\Codex\\2026-11-07\\war3-v223-fullclone\\outputs\\R31.3-Test\\War3ReforgedTrainer-v2.2.3-FullClone-R31.3-Test.exe",
+      "sha256": "3002f3032f8a4e3d832c071ee649275a4e2aa7a746468cf25f4e8acafe0df594"
+    },
+    {
+      "previous": "E:\\Games\\Warcraft III\\FullClone-R31.3\\War3ReforgedTrainer-v2.2.3-FullClone-R31.3-Test-source.zip",
+      "retained": "C:\\Users\\22824\\Documents\\Codex\\2026-11-07\\war3-v223-fullclone\\outputs\\R31.3-Test\\War3ReforgedTrainer-v2.2.3-FullClone-R31.3-Test-source.zip",
+      "sha256": "5bec71634e3a9420cf14f60ca9917289aaacb1ff1b5f459bd430a63636dabf8b"
+    },
+    {
+      "previous": "E:\\Games\\Warcraft III\\War3ReforgedTrainer-v2.2.3-FullClone-R31.4-Test.exe",
+      "retained": "C:\\Users\\22824\\Documents\\Codex\\2026-11-07\\war3-v223-fullclone\\outputs\\R31.4-Test\\War3ReforgedTrainer-v2.2.3-FullClone-R31.4-Test.exe",
+      "sha256": "107ba895bfb89fbb0249a5d4072cbdf0cca8d247322c10629cc3591fbc8104b2"
+    },
+    {
+      "previous": "E:\\Games\\Warcraft III\\FullClone-R31.4\\War3ReforgedTrainer-v2.2.3-FullClone-R31.4-Test-source.zip",
+      "retained": "C:\\Users\\22824\\Documents\\Codex\\2026-11-07\\war3-v223-fullclone\\outputs\\R31.4-Test\\War3ReforgedTrainer-v2.2.3-FullClone-R31.4-Test-source.zip",
+      "sha256": "f8ae09c39aadd7757b3732fd4c898fa281937b47750dea2580ea2df0af9b7745"
+    },
+    {
+      "previous": "E:\\Games\\Warcraft III\\War3ReforgedTrainer-v2.2.3-FullClone-R31.5-Test.exe",
+      "retained": "C:\\Users\\22824\\Documents\\Codex\\2026-11-07\\war3-v223-fullclone\\outputs\\R31.5-Test\\War3ReforgedTrainer-v2.2.3-FullClone-R31.5-Test.exe",
+      "sha256": "2d6e631ae7174c74011b7b8f261876d242acd0824b1343ea4c3f0e3790085230"
+    },
+    {
+      "previous": "E:\\Games\\Warcraft III\\FullClone-R31.5\\War3ReforgedTrainer-v2.2.3-FullClone-R31.5-Test-source.zip",
+      "retained": "C:\\Users\\22824\\Documents\\Codex\\2026-11-07\\war3-v223-fullclone\\outputs\\R31.5-Test\\War3ReforgedTrainer-v2.2.3-FullClone-R31.5-Test-source.zip",
+      "sha256": "7ee7fa420badffdc1742dd3505e4cc57cc0bd35388ebb614832b112554890e8f"
+    }
+  ]
+}

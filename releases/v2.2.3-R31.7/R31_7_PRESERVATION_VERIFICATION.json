@@ -1,0 +1,11 @@
+{
+  "base": "3c7e99a083890e329a257cf8411d1d79f647ddde",
+  "head": "020e46088356d47a7c7dbd0765f282067c4016f7",
+  "unchanged_files": 227,
+  "changed_existing_backend": [
+    "war3_desktop_bridge.py",
+    "war3_web_gui.py"
+  ],
+  "bridge_sha256": "b3b404ee4680b17c2e4def22da28f5d7d05aad664635f836299d80c2e144047b",
+  "core_readers_and_native_protocols_unchanged": true
+}

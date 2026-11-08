@@ -52,7 +52,7 @@ const server = http.createServer(async (req, res) => {
     await page.locator('[data-testid="classic-tabs"]').waitFor()
     assert.equal(await page.evaluate(() => window.__interfaceSentinel === document.querySelector('input[aria-label="替换单位ID"]')), true)
     assert.equal(await input.inputValue(), 'hfoo'); assert.equal(await monitor.isChecked(), true)
-    assert.equal(await page.locator('[data-classic-page]').count(), 17)
+    assert.equal(await page.locator('[data-classic-page]').count(), 18)
     await page.screenshot({ path: resolve(out, 'classic-elephant.png') })
     const ids = await page.locator('[data-classic-page]').evaluateAll(xs => xs.map(x => x.dataset.classicPage))
     for (const id of ids) {
@@ -106,10 +106,11 @@ const server = http.createServer(async (req, res) => {
         description: '滚轮验证数据', text: Array.from({ length: 140 }, (_, n) => `条件 ${n + 1}：任务说明与完成要求。`).join('\n') + '\n滚轮正文末尾',
         entries: [], conditions: [], state: '进行中', stateReason: '仅界面测试',
       }))
-      window.pywebview.api = new Proxy({}, { get: (_, key) => key === 'fullclone_quest_status' ? () => ({ success: true, status: 'ready', started: true, rows, source: '界面滚轮验证数据' }) : old[key] })
+      window.pywebview.api = new Proxy({}, { get: (_, key) => key === 'fullclone_quest_status' ? () => ({ success: true, status: 'ready', started: true, rows, notice: 'Lua 静态解析：实时状态尚未绑定；文字可能为基础字符串表候选。', source: '界面滚轮验证数据' }) : old[key] })
     })
     await page.locator('[data-classic-page="quests"]').click()
     await page.getByText('主线任务 · 滚轮测试任务 1', { exact: true }).waitFor()
+    assert.ok((await page.getByRole('note').textContent()).includes('基础字符串表候选'))
     const scrollResults = []
     for (const mode of ['classic', 'legacy19', 'modern']) {
       if (mode === 'legacy19') {

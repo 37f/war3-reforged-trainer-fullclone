@@ -1,0 +1,56 @@
+{
+  "edition": "v2.2.3 FullClone R31.7-Test",
+  "date": "2026-11-08",
+  "source_commit": "020e46088356d47a7c7dbd0765f282067c4016f7",
+  "exe": {
+    "name": "War3ReforgedTrainer-v2.2.3-FullClone-R31.7-Test.exe",
+    "bytes": 27426874,
+    "sha256": "95a2c5d67ca60c19472d0afc88c0bdcd98e759fbfe4a966872ef8f46f8b5e6e7",
+    "file_version": "2.2.3.317"
+  },
+  "source": {
+    "name": "War3ReforgedTrainer-v2.2.3-FullClone-R31.7-Test-source.zip",
+    "files": 628,
+    "sha256": "a2422af9b9e1c16efa45dba77d7f0cad835bb6b68b7265302e66e2e8e73d865b",
+    "all_members_re_read": true
+  },
+  "tests": {
+    "passed": 201,
+    "native_executable_fixtures": true,
+    "real_desktop_composition": true
+  },
+  "frozen_ui": {
+    "ok": true,
+    "pages": 18,
+    "classic_pages": 18,
+    "legacy19_tabs": 19,
+    "legacy19_six_groups": true,
+    "hotkeys": 77,
+    "offline": true
+  },
+  "embedded_modules_verified": 221,
+  "player_directory": {
+    "read_only_verified": true,
+    "slots": 28,
+    "initial_force_members_verified": true,
+    "live_scalar_fields_verified": true,
+    "live_names_confirmed": false,
+    "initial_name_fallback_explicit": true,
+    "native_team_requires_selection": true
+  },
+  "game": {
+    "gameplay_mutation_tests": false,
+    "previous_r31_read_only_checks_retained": true,
+    "team_live_effect_not_retested": true
+  },
+  "quest_wheel_scroll_fixed": true,
+  "quest_scroll_validated_all_three_layouts": true,
+  "legacy19_layout": true,
+  "classic_layout_switch": true,
+  "ui_preference_saved": true,
+  "native_bridge_unchanged_from_r31_2": true,
+  "removed_player_victory": true,
+  "alt_b_author_cheat_only": true,
+  "original_and_prior_versions_preserved": true,
+  "published": false
+}

@@ -106,7 +106,7 @@ def expression(e):
     if e.kind=='call':return str(e.value)+'('+', '.join(expression(a) for a in e.args)+')'
     if e.kind=='index':return expression(e.args[0])+'['+expression(e.args[1])+']'
     if e.kind=='unary':return str(e.value)+(' ' if e.value=='not' else '')+expression(e.args[0])
-    if e.kind=='binary':return '('+expression(e.args[0])+' '+str(e.value)+' '+expression(e.args[1])+')'
+    if e.kind=='binary':return '('+expression(e.args[0])+' '+{'lua_equal':'==','lua_not_equal':'~='}.get(e.value,str(e.value))+' '+expression(e.args[1])+')'
     return str(e.value)
 
 
@@ -166,6 +166,7 @@ def _description(e,en=False):
             return '('+_description(e.args[0],en)+op+_description(e.args[1],en)+')'
         words={'==':('等于','equals'),'!=':('不等于','differs from'),'>=':('不少于','is at least'),
             '<=':('不多于','is at most'),'>':('大于','is greater than'),'<':('小于','is less than')}
+        words.update(lua_equal=words['=='],lua_not_equal=words['!='])
         if e.value in words:return expression(e.args[0])+' '+words[e.value][int(en)]+' '+expression(e.args[1])
     if e.kind=='unary' and e.value=='not':return ('NOT ' if en else '不满足：')+_description(e.args[0],en)
     if e.kind=='call':
@@ -204,11 +205,16 @@ class _Analyzer:
         self.issues=[];self.points=[];self.assignments=[];self.aliases={};self.returns={}
         self.created={};self.items={};self.triggers={};self.incoming={};self.lines=[]
         self.check()
-        if snapshot.language!='jass':raise AnalysisUnavailable('不支持的脚本语言：'+snapshot.language)
+        if snapshot.language not in ('jass','lua'):raise AnalysisUnavailable('不支持的脚本语言：'+snapshot.language)
         try:
             self.text=snapshot.script.decode('utf-8-sig');self.lines=self.text.splitlines()
-            self.program=parse_jass(self.text,cancelled)
             self.strings=parse_wts(snapshot.strings_data) if snapshot.strings_data else {}
+            if snapshot.language=='lua':
+                from war3_lua_quests import parse_lua,LuaStaticText
+                self.program=parse_lua(self.text,cancelled);self.lua_text=LuaStaticText(self.program,self.strings)
+                self.issues.extend(self.program.issues)
+                self.issue('Lua 静态任务线索：未执行脚本，未绑定实时任务变量；复杂函数、动态调用及自建框架可能未展开，不能视为完整判定。初始化空文字不作为有效说明。')
+            else:self.program=parse_jass(self.text,cancelled)
         except (ValueError,UnicodeError) as exc:raise AnalysisUnavailable(str(exc)) from exc
         self.globals={g.name:g for g in self.program.globals}
         # Pratt parsing can produce very deep left-associated trees without nested
@@ -437,7 +443,9 @@ class _Analyzer:
         e=Expr(e.kind,e.value,tuple(args),e.line,e.column)
         if e.kind=='call' and e.value in self.program.functions:
             fn=self.program.functions[e.value]
-            if fn.return_type!='boolean':return e,tuple(issues),tuple(evidence)
+            if fn.return_type!='boolean':
+                if self.snapshot.language=='lua':issues.append('Lua 条件函数的完整函数体或布尔返回类型未确认：'+str(e.value))
+                return e,tuple(issues),tuple(evidence)
             if e.value in seen:return e,tuple(issues)+('递归条件未展开：'+str(e.value),),tuple(evidence)
             env={name:value for (_,name),value in zip(fn.params,e.args)}
             formula=_FALSE
@@ -610,6 +618,11 @@ class _Analyzer:
         return Rule(kind,expression(target),tuple(paths),self.evidence(point.function,point.call.line,kind)),targets
 
     def string(self,e):
+        if self.snapshot.language=='lua' and e.kind!='string':
+            value=self.lua_text.resolve(e)
+            if value is not None:
+                if self.lua_text.base_candidates:self.issue('Lua StringIdentity 已由地图改写；文字含基础字符串表候选，不保证等于包装或本地化后的游戏文本')
+                return value
         if e.kind=='string':
             match=re.fullmatch(r'TRIGSTR_(\d+)',str(e.value),re.I)
             if match:

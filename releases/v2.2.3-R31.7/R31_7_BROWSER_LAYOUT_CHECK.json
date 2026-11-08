@@ -1,0 +1,146 @@
+{
+  "ok": true,
+  "demo_only": true,
+  "classic_pages": [
+    "resources",
+    "players",
+    "unit",
+    "batch",
+    "locks",
+    "unit_fields",
+    "ability_fields",
+    "item_fields",
+    "extensions",
+    "elephant",
+    "hotkeys",
+    "catalogs",
+    "map_catalog",
+    "quests",
+    "equipment3",
+    "hero_skills",
+    "map_scripts",
+    "archive"
+  ],
+  "legacy19_tabs": [
+    {
+      "id": "resources"
+    },
+    {
+      "id": "players"
+    },
+    {
+      "id": "unit"
+    },
+    {
+      "id": "locks"
+    },
+    {
+      "id": "ability_fields"
+    },
+    {
+      "id": "item_fields"
+    },
+    {
+      "id": "elephant"
+    },
+    {
+      "id": "catalogs",
+      "kind": "item"
+    },
+    {
+      "id": "catalogs",
+      "kind": "ability"
+    },
+    {
+      "id": "catalogs",
+      "kind": "unit"
+    },
+    {
+      "id": "map_catalog"
+    },
+    {
+      "id": "quests"
+    },
+    {
+      "id": "batch"
+    },
+    {
+      "id": "unit_fields"
+    },
+    {
+      "id": "extensions"
+    },
+    {
+      "id": "equipment3"
+    },
+    {
+      "id": "hero_skills"
+    },
+    {
+      "id": "map_scripts"
+    },
+    {
+      "id": "archive"
+    }
+  ],
+  "legacy19_six_groups": [
+    {
+      "x": 0,
+      "y": 54,
+      "width": 407
+    },
+    {
+      "x": 421,
+      "y": 54,
+      "width": 407
+    },
+    {
+      "x": 841,
+      "y": 54,
+      "width": 407
+    },
+    {
+      "x": 0,
+      "y": 536,
+      "width": 407
+    },
+    {
+      "x": 421,
+      "y": 536,
+      "width": 407
+    },
+    {
+      "x": 841,
+      "y": 536,
+      "width": 407
+    }
+  ],
+  "shared_dispatch_checked": true,
+  "quest_scroll": [
+    {
+      "mode": "classic",
+      "left_wheel": true,
+      "right_wheel": true,
+      "reached_bottom": true,
+      "poll_preserved_position": true
+    },
+    {
+      "mode": "legacy19",
+      "left_wheel": true,
+      "right_wheel": true,
+      "reached_bottom": true,
+      "poll_preserved_position": true
+    },
+    {
+      "mode": "modern",
+      "left_wheel": true,
+      "right_wheel": true,
+      "reached_bottom": true,
+      "poll_preserved_position": true
+    }
+  ],
+  "settings_preserved": true,
+  "page_not_remounted": true,
+  "preference_survived_reload": true,
+  "returned_to_modern": true
+}

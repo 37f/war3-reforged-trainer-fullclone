@@ -112,7 +112,7 @@ def _check_classic_interface(window):
     window.evaluate_js("document.querySelector('[data-testid=\"page-elephant\"]').click()")
     wait("Boolean(document.querySelector('input[aria-label=\"替换单位ID\"]'))")
     window.evaluate_js("window.__interfaceInput = document.querySelector('input[aria-label=\"替换单位ID\"]'); document.querySelector('[data-testid=\"interface-switch\"]').click()")
-    wait("document.documentElement.dataset.interface === 'classic' && document.querySelectorAll('[data-classic-page]').length === 17")
+    wait("document.documentElement.dataset.interface === 'classic' && document.querySelectorAll('[data-classic-page]').length === 18")
     preserved=window.evaluate_js("window.__interfaceInput === document.querySelector('input[aria-label=\"替换单位ID\"]')")
     assert preserved,'Switching layouts remounted the active page'
     assert window.evaluate_js("localStorage.getItem('war3-interface-mode') === 'classic'")
@@ -274,7 +274,7 @@ def _run_desktop(args, startup_log) -> int:
             report['panels'] = panels = _visit_pages(window)
             # Every page is rebuilt on the new frontend and must offer controls.
             report['pending_pages'] = [p['id'] for p in panels if not p['ready']]
-            assert len(panels) == 17 and len({p['id'] for p in panels}) == 17, [p['id'] for p in panels]
+            assert len(panels) == 18 and len({p['id'] for p in panels}) == 18, [p['id'] for p in panels]
             assert not report['pending_pages'], report['pending_pages']
             assert all(p['controls'] > 0 for p in panels), [p['id'] for p in panels if not p['controls']]
             assert all(p['bodyWidth'] <= p['viewportWidth'] for p in panels)

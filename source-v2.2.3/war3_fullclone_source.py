@@ -36,7 +36,19 @@ def metadata(trainer):
         path=PureWindowsPath(name)
         if path.suffix.casefold() not in ('.w3m','.w3x') or '..' in path.parts or any(ord(c)<32 for c in name):raise ValueError('当前地图来源路径无效')
         host=memory.read_u64(world+0x25d8)
-        if memory.read_u64(host)!=registry.base+0x2878890:raise ValueError('当前地图脚本宿主尚未就绪')
+        host_type=memory.read_u64(host)
+        # R31.6: observed LuaScriptInstance_t in UndeadRE01.w3x on this exact
+        # build. Lua never enters the JASS VM/global-symbol reader below.
+        if host_type==registry.base+0x2878f50:
+            col=memory.read_u64(host_type-8)
+            signature,offset,_,type_rva,_,self_rva=struct.unpack('<6I',memory.read(col,24))
+            if signature!=1 or offset!=0 or registry.base+self_rva!=col or _string(memory,registry.base+type_rva+16,128)!='.?AVLuaScriptInstance_t@@':
+                raise ValueError('当前 Lua 脚本宿主类型尚未核对')
+            if memory.read_u64(world+0x2ed0)!=path_record:raise ValueError('地图读取期间已切换')
+            return dict(identity=engine.session.identity,epoch=engine.session.epoch,world=world,
+                map_path=name,path_record=path_record,host=host,vm=0,symbols=0,language='lua',
+                module=registry.base,profile=engine.session.profile.id)
+        if host_type!=registry.base+0x2878890:raise ValueError('当前地图脚本宿主尚未就绪或类型暂不支持')
         context=memory.read_u64(mode.tls+engine.session.profile.section('context')['native_slot'])
         count=memory.read_u32(context+0xe8);index=memory.read_u32(host+8)
         if not 0<=index<count<=4096:raise ValueError('当前地图脚本上下文无效')
@@ -69,7 +81,8 @@ def current_script(trainer):
         f,chapter=candidates[0];actual=inspect_windows_source_file(path=f.path,pid=engine.pid)
         if actual.file_id!=f.file_id or actual.size!=f.size or actual.modified!=f.modified:raise ValueError('地图文件身份与游戏持有文件不同')
         if f.modified>f.process_created:raise ValueError('地图文件在游戏启动后有过修改，请重开游戏后检索')
-        snapshot,_=_source(f.path,chapter);source_stamp=dict(kind='file',path=f.path,id=f.file_id,size=f.size,modified=f.modified)
+        snapshot,_=(_source(f.path,chapter,preferred_language='lua') if before.get('language')=='lua' else _source(f.path,chapter))
+        source_stamp=dict(kind='file',path=f.path,id=f.file_id,size=f.size,modified=f.modified)
     else:
         from war3_fullclone_casc import read_build_identity,CascArchive,official_member,_local_file_override_configuration
         root=Path(trainer._executable_path).parent
@@ -83,7 +96,7 @@ def current_script(trainer):
         from war3_mpq import Archive
         with tempfile.TemporaryDirectory(prefix='war3-r31-source-') as folder:
             path=Path(folder)/'current.w3m';path.write_bytes(raw)
-            with Archive(path) as archive:script,wts,language=_members(archive)
+            with Archive(path) as archive:script,wts,language=_members(archive,preferred_language=before.get('language'))
         enabled,_,_=_local_file_override_configuration();trusted=not enabled
         origin=str(root)+'::'+member
         if not trusted:origin+='（安装包基础脚本；本地文件覆盖已开启，生效来源未完全确认）'
@@ -108,6 +121,7 @@ def check_source(trainer,proof):
 
 
 def quest_states(trainer,report,proof):
+    if proof['metadata'].get('language')=='lua':return {q.key:dict(state='状态未确认',reason='Lua 任务实时变量尚未绑定；当前显示静态脚本信息') for q in report.quests}
     if not proof.get('trusted'):return {q.key:dict(state='状态未确认',reason='本地文件覆盖已开启，无法将基础脚本与运行中的任务唯一绑定') for q in report.quests}
     from war3_fullclone_status import query_states
     return query_states(trainer,report,proof)

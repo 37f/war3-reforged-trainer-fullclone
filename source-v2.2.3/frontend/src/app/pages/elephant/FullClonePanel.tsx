@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { Button, Checkbox, Select, TextField, announce } from '../../../ds'
 import { fullclone } from '../../../lib/api'
 import { useSystem } from '../../state/system'
+import { useNav } from '../../state/nav'
 import s from './FullClonePanel.module.css'
 
 export function useFullCloneOptions() {
@@ -75,6 +76,7 @@ export default function FullClonePanel({ layout }: { layout?: (controls: FullClo
       <div className={s.row}><Button size="sm" disabled={!connected} onClick={() => void readOwner()}>读取选中玩家与队伍</Button>
         <Checkbox label="每秒监视玩家名字和队伍" checked={monitor} onChange={() => setMonitor(!monitor)} /></div>
       <p role="status">{owner}</p>
+      <Button size="sm" onClick={() => useNav.getState().setPage('players')}>查看队伍与全部玩家</Button>
     </>,
     unit: <>
       <div className={s.row}>{button('replace_unit', '替换单位（Ctrl+U+8）')}<TextField aria-label="替换单位ID" maxLength={4} value={String(o.replace_id ?? 'zhyd')} onChange={e => void set('replace_id', e.target.value)} /></div>

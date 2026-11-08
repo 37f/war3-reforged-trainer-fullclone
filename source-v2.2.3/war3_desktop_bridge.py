@@ -1005,6 +1005,11 @@ class DesktopBridgeApi:
         from war3_fullclone_desktop import owner_status
         return owner_status(self)
 
+    # R31.7: isolated read-only directory; no setter/native ABI changes.
+    def fullclone_player_directory(self,refresh_map=False):
+        from war3_player_directory import directory
+        return directory(self,refresh_map)
+
     def fullclone_action(self,name):
         from war3_fullclone_desktop import action
         return action(self,name)

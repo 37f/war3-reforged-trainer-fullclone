@@ -6,3 +6,6 @@ releases/v1.0.19-R19.2/* -text
 # R31.5 packaged source and verification files retain their original bytes.
 source-v2.2.3/** -text
 releases/v2.2.3-R31.5/** -text
+
+# R31.7 release evidence retains exact local bytes.
+releases/v2.2.3-R31.7/** -text

@@ -204,6 +204,10 @@ class QuestText:
         lines=[clean_text(q.title),'【'+quest_kind(q,self.en)+'】',
             self.text('分类依据：地图脚本的必需／可选标记；类型未知时不推测。','Type follows the script required/optional flag; unknown stays unconfirmed.'),
             '',self.text('任务目标','Objectives'),clean_text(q.description) or self.text('地图未提供任务说明。','No quest description supplied.')]
+        if self.report.snapshot.language=='lua':
+            note=self.text('Lua 静态线索，非实时任务状态。','Static Lua evidence, not live task state.')
+            if any('基础字符串表候选' in issue for issue in self.report.issues):note+=self.text('文字含基础字符串表候选；地图包装或本地化后的最终文字未确认。',' Text includes base string-table candidates; map wrappers/localization were not evaluated.')
+            lines.insert(2,note)
         for item in q.items:lines.append('• '+clean_text(item.description or self.text('未命名目标','Unnamed objective')))
         lines.extend(('',self.text('完成条件','Completion conditions')))
         for rule in q.completed:lines.extend(self.rule(rule))

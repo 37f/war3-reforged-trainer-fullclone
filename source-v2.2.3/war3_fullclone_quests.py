@@ -32,7 +32,7 @@ def _state(api):
     return api.port.value('state').setdefault('fullclone_quests',dict(status='idle',started=False,rows=[],locations=[],generation=0))
 
 
-def _source(path,chapter):
+def _source(path,chapter,*,preferred_language=None):
     path=Path(path).resolve(strict=True)
     if path.suffix.casefold() not in ('.w3n','.w3x','.w3m'):raise ValueError('请选择战役或地图文件')
     before=(path.stat().st_size,path.stat().st_mtime_ns)
@@ -46,18 +46,18 @@ def _source(path,chapter):
             blob=a.read(matches[0]);campaign_wts=a.read('war3campaign.wts',optional=True) or b''
             with tempfile.TemporaryDirectory(prefix='war3-r31-quest-') as folder:
                 target=Path(folder)/'chapter.w3x';target.write_bytes(blob)
-                with Archive(target) as m:script,wts,language=_members(m)
+                with Archive(target) as m:script,wts,language=_members(m,preferred_language=preferred_language)
             if campaign_wts:
                 from war3_custom_objects import parse_wts
                 values=parse_wts(campaign_wts);values.update(parse_wts(wts) if wts else {})
                 wts='\n'.join(f'STRING {k}\n{{\n{v}\n}}' for k,v in values.items()).encode('utf8')
-        else:script,wts,language=_members(a)
+        else:script,wts,language=_members(a,preferred_language=preferred_language)
     if before!=(path.stat().st_size,path.stat().st_mtime_ns):raise RuntimeError('分析期间地图文件已变化，请重新检测')
     return ScriptSnapshot(script=script,strings_data=wts,language=language,origin=str(path)+(f'::{chapter}' if chapter else ''),script_sha256=hashlib.sha256(script).hexdigest()),[]
 
 
-def _members(archive):
-    script=archive.read('war3map.j',optional=True) or archive.read('scripts\\war3map.j',optional=True)
+def _members(archive,*,preferred_language=None):
+    script=None if preferred_language=='lua' else archive.read('war3map.j',optional=True) or archive.read('scripts\\war3map.j',optional=True)
     language='jass'
     if not script:
         script=archive.read('war3map.lua',optional=True) or archive.read('scripts\\war3map.lua',optional=True);language='lua'
@@ -85,7 +85,7 @@ def render(report):
                 conditions.append(dict(label='子目标：'+clean_text(item.description),text='\n'.join(reader.rule(rule)),positions=place(locations.rule(rule))))
         rows.append(dict(key=q.key,title=clean_text(q.title),kind=quest_kind(q),
             description=clean_text(q.description),text=reader.quest(q),conditions=conditions,
-            entries=entries,state='状态未确认',stateReason='当前任务运行状态尚未核对'))
+            entries=entries,state='状态未确认',stateReason='Lua 任务实时变量尚未绑定；当前显示静态脚本信息' if report.snapshot.language=='lua' else '当前任务运行状态尚未核对'))
     outcomes=[dict(text='\n'.join(reader.rule(r)),positions=place(locations.rule(r))) for r in report.outcomes]
     return rows,positions,outcomes
 
@@ -93,7 +93,7 @@ def render(report):
 def start(api,path='',chapter=''):
     s=_state(api)
     if s['status'] in ('reading','analyzing'):return dict(success=True,status=s['status'])
-    s['generation']+=1;generation=s['generation'];s.update(status='reading',started=True,rows=[],locations=[],error='',chapters=[])
+    s['generation']+=1;generation=s['generation'];s.update(status='reading',started=True,rows=[],locations=[],error='',chapters=[],notice='')
     def worker():
         try:
             if path:
@@ -110,7 +110,8 @@ def start(api,path='',chapter=''):
             report=analyze_quests(snapshot);rows,positions,outcomes=render(report)
             if generation!=s['generation']:return
             s.update(status='ready',report=report,rows=rows,locations=positions,outcomes=outcomes,
-                     source=snapshot.origin,proof=proof,issues=list(report.issues),last_poll=0.)
+                     source=snapshot.origin,proof=proof,issues=list(report.issues),last_poll=0.,
+                     notice='Lua 静态解析：实时状态尚未绑定；文字可能为基础字符串表候选，复杂函数和动态条件可能未展开，请查看“未完全解析的内容”。' if snapshot.language=='lua' else '')
         except Exception as exc:
             if generation==s['generation']:s.update(status='failed',error=str(exc),rows=[],locations=[])
     api.app.start_operation_thread(worker,'fullclone-quest-analysis')
@@ -132,7 +133,7 @@ def status(api):
                     row.update(state=state.get('state','状态未确认'),stateReason=state.get('reason','未能唯一绑定运行中的任务'))
         except Exception as exc:
             for row in s['rows']:row.update(state='状态未确认',stateReason=str(exc))
-    return dict(success=True,**{k:s.get(k) for k in ('status','started','rows','outcomes','error','source','issues','chapters')})
+    return dict(success=True,**{k:s.get(k) for k in ('status','started','rows','outcomes','error','source','issues','chapters','notice')})
 
 
 def camera(api,index):

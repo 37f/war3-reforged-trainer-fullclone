@@ -1,0 +1,30 @@
+{
+  "ok": true,
+  "captured_readonly_reply": true,
+  "rows": 28,
+  "initial_group_filter": true,
+  "current_group_filter": true,
+  "search": true,
+  "details": true,
+  "all_three_layouts": [
+    {
+      "mode": "modern",
+      "width": 1400,
+      "body": 1400
+    },
+    {
+      "mode": "classic",
+      "width": 1400,
+      "body": 1400
+    },
+    {
+      "mode": "legacy19",
+      "width": 1400,
+      "body": 1400
+    }
+  ],
+  "wheel_scroll": true,
+  "failure_clears_old_rows": true,
+  "manual_reads_only": true,
+  "gameplay_mutations": false
+}
