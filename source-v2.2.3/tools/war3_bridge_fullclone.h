@@ -128,13 +128,13 @@ static uint32_t FullCloneReplace(FullCloneWork*w,FullCloneRow*r) {
 __declspec(dllexport) uint64_t BridgeFullCloneQuery(void) {
     FullCloneWork*w=(FullCloneWork*)g_dispatch->work;
     uint64_t count=0,local=0,owner=0;
-    if(!w || w->tls!=g_dispatch->tls_value || w->action>18 || w->action==13 || w->count>24) {
+    if(!w || w->tls!=g_dispatch->tls_value || w->action>20 || w->action==13 || w->count>24) {
         if(w)w->error=1000;return 0;
     }
     __try {
         local=w->selection.local_player();
         if(!local){w->error=1001;return 0;}
-        if(w->action>=16){
+        if(w->action>=16 && w->action<=18){
             uint64_t caster=w->target,object=0;float facing=270.f,mana=100000.f;
             if(!w->fn[63]){w->error=1020;return 0;}
             if(w->action==16){
@@ -177,7 +177,28 @@ __declspec(dllexport) uint64_t BridgeFullCloneQuery(void) {
             w->rows[0].created=u;w->rows[0].unit=u;w->rows[0].owner=p;w->rows[0].rawcode=w->rawcode;
             w->count=1;w->changed=1;w->completed=1;return 1;
         }
-        if(w->count){
+        /* R31.12 explicit-player diplomacy. It does not select a game unit or
+           alter the existing selected-owner actions 8/9. */
+        uint32_t direct=w->action==19 || w->action==20;
+        if(direct){
+            if(w->target>=28 || w->count){w->error=1000;return 0;}
+            owner=FC_PLAYER((int32_t)w->target);
+            if(!owner || FC_ID(owner)!=(int32_t)w->target || (w->expected_owner && owner!=w->expected_owner)){w->error=1237;return 0;}
+            if(w->action==20 && (!w->expected_owner || !FullClonePlayerExists(w,owner,(int32_t)w->target))){w->error=1168;return 0;}
+            count=1;w->count=1;w->rows[0].b=FC_ID(local);
+            /* Control is outside this entry's scope, including requests that
+               bypass the Python facade. Validate before the first setter. */
+            if(w->action==20){
+                for(uint32_t p=0;p<28;p++){
+                    uint64_t peer=FC_PLAYER(p);if(!peer){w->error=1005;return 0;}
+                    for(uint32_t a=0;a<10;a++){
+                        uint32_t k=p*20+a;
+                        if(w->matrix[k]>1 || w->matrix[k+10]>1){w->error=1000;return 0;}
+                        if((a==6 || a==7) && (w->matrix[k]!=FC_GET(owner,peer,a) || w->matrix[k+10]!=FC_GET(peer,owner,a))){w->error=1007;return 0;}
+                    }
+                }
+            }
+        }else if(w->count){
             /* Explicit handles are emitted by the author's clone transaction.
                Recheck type before every extension; never infer a handle from rawcode. */
             count=w->count;
@@ -197,11 +218,12 @@ __declspec(dllexport) uint64_t BridgeFullCloneQuery(void) {
             }
         }
         if(!count){w->completed=1;return 0;}
-        if(w->fn[0]){
+        if(w->fn[0] && !direct){
             owner=FC_OWNER(w->rows[0].unit);
             if(w->expected_owner && owner!=w->expected_owner){w->error=1237;return count;}
         }
-        if(w->action==8 || w->action==9){
+        if(w->action==8 || w->action==9 || direct){
+            uint32_t write=w->action==9 || w->action==20;
             if(w->action==8 && w->target==1){
                 if(w->value<0 || w->value>=28){w->error=1000;return count;}
                 owner=FC_PLAYER(w->value);
@@ -215,18 +237,18 @@ __declspec(dllexport) uint64_t BridgeFullCloneQuery(void) {
                 w->peer_teams[p]=FC_TEAM(peer);
                 for(uint32_t a=0;a<10;a++){
                     uint32_t k=p*20+a;
-                    if(w->action==9 && peer!=owner){
+                    if(write && peer!=owner){
                         w->error=FullCloneSetAllianceChecked(w,owner,peer,a,w->matrix[k]);
                         if(w->error)return count;
                         w->error=FullCloneSetAllianceChecked(w,peer,owner,a,w->matrix[k+10]);
                         if(w->error)return count;
                     }
                     uint32_t f=FC_GET(owner,peer,a),b=FC_GET(peer,owner,a);
-                    if(w->action==9 && peer!=owner && (f!=w->matrix[k] || b!=w->matrix[k+10])){w->error=1006;return count;}
+                    if(write && peer!=owner && (f!=w->matrix[k] || b!=w->matrix[k+10])){w->error=1006;return count;}
                     w->matrix[k]=f;w->matrix[k+10]=b;
                 }
             }
-            if(w->action==9){
+            if(write){
                 /* Later flag setters can affect earlier flags. Confirm the
                    entire final matrix, not just each intermediate write. */
                 for(uint32_t p=0;p<28;p++){
@@ -237,7 +259,7 @@ __declspec(dllexport) uint64_t BridgeFullCloneQuery(void) {
                     }
                 }
             }
-            w->changed=w->action==9;w->completed=1;return count;
+            w->changed=write;w->completed=1;return count;
         }
         if(w->action==10){
             w->rows[0].owner=owner;w->rows[0].a=FC_ID(owner);

@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { api } from '../../lib/api'
+import { useSystem } from './system'
 import type { CandidateUnit, SelectedUnitData } from '../../lib/types'
 
 /** The four-character type id inside unitTypeId, e.g. "Hpal". */
@@ -22,6 +23,8 @@ interface UnitState {
   loadSnapshot(): Promise<void>
   /** Read every selected unit in the game (Ctrl+F11 in game). */
   readAll(): Promise<void>
+  /** Read the current selection for the optional timer, without overlapping. */
+  monitorSelected(): Promise<boolean>
 }
 
 export const useUnit = create<UnitState>()((set, get) => {
@@ -52,6 +55,29 @@ export const useUnit = create<UnitState>()((set, get) => {
         const [unit, candidates] = await Promise.all([api.getSelectedUnitSnapshot(), api.getUnitCandidatesSnapshot()])
         get().received(unit, candidates)
       } catch { /* reported by callApi */ }
+    },
+
+    async monitorSelected() {
+      if (get().reading) return true
+      const before = useSystem.getState().status
+      if (!before.connected) return false
+      set({ reading: true })
+      try {
+        // Same selection read as the manual command; no new native/parameters.
+        const result = await api.readAllSelectedUnits()
+        const after = useSystem.getState().status
+        if (!after.connected || before.pid !== after.pid || before.connectionId !== after.connectionId) return false
+        if (result?.unit) get().received(result.unit, result.candidates)
+        else set({ unit: null, candidates: result?.candidates ?? [] })
+        return true
+      } catch {
+        // A failed/no-selection read must not keep displaying the old unit as
+        // the monitored selection. Do not clear a different connection's data.
+        const after = useSystem.getState().status
+        if (before.pid === after.pid && before.connectionId === after.connectionId) set({ unit: null, candidates: [] })
+        return false // Shared API reports once; the page stops polling.
+      }
+      finally { set({ reading: false }) }
     },
 
     async readAll() {

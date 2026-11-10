@@ -188,7 +188,9 @@ export interface MapScriptProgress extends DefinitionProgress {files?:(Definitio
 
 // R31 extension endpoints use the same error handling as the original UI.
 export const fullclone = {
+  pageContext: () => callApi<any>('fullclone_page_context'),
   players: (refreshMap = false) => callApi<any>('fullclone_player_directory', refreshMap),
+  movePlayer: (player: number, target: number, context: string) => callApi<any>('fullclone_move_player_team', player, target, context),
   currentCatalog: () => callApi<any>('fullclone_current_catalog'),
   settings: () => callApi<any>('fullclone_settings'),
   set: (key: string, value: unknown) => callApi<any>('fullclone_set_option', key, value),

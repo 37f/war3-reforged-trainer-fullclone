@@ -1,0 +1,51 @@
+{
+  "edition": "v2.2.3 FullClone R31.14-Test",
+  "date": "2026-11-10",
+  "source_commit": "b688d721e91680dfb9bbfb68529367371348d4a1",
+  "baseline_commit": "292e84bb6b89b627e3ac10a787b1f6425f556ee9",
+  "exe": {
+    "name": "War3ReforgedTrainer-v2.2.3-FullClone-R31.14-Test.exe",
+    "sha256": "7c240537045213831d11115c4596172c921a1201287b7fac3963a2f677f84d7e",
+    "bytes": 27438928,
+    "file_version": "2.2.3.324"
+  },
+  "source": {
+    "name": "War3ReforgedTrainer-v2.2.3-FullClone-R31.14-Test-source.zip",
+    "sha256": "60d567f5cfb9b650136af1bcd70332ba5620489e2f8b75ddf1bb2918ef0224d2",
+    "files": 669,
+    "all_members_re_read": true
+  },
+  "tests": {
+    "passed": 253,
+    "native_executable_fixtures": true,
+    "before_fix_regressions_failed": 5,
+    "real_browser": true,
+    "modes": [
+      "modern",
+      "classic",
+      "legacy19"
+    ],
+    "neutral_ui_round_trips": 6
+  },
+  "frozen_ui": {
+    "ok": true,
+    "panels": 18,
+    "hotkeys": 77,
+    "offline": true
+  },
+  "backend": {
+    "original_readers_profiles_preserved": true,
+    "native_code_and_protocols_unchanged": true,
+    "new_native_actions": [],
+    "frontend_unchanged": true,
+    "helper_sha256": "d0191e97c77c3bc2c38bb35e072bcb9e8004aaefa3636ef841aacb2cb633893f",
+    "neutral_template_uses_original_bilateral_snapshots": true,
+    "control_flags_preserved": true
+  },
+  "gameplay": {
+    "actual_game_write_tested": false,
+    "browser_uses_mock_rpc": true
+  },
+  "original_r31_13_assets_preserved": true,
+  "published": false
+}

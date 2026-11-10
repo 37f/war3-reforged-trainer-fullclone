@@ -34,7 +34,9 @@ def owner_status(api):
     if p in (24,27):label+='（中立敌对）' if p==24 else '（中立被动）'
     if name:label+=f'（{name}）'
     elif p not in (24,27):label+='（名称暂无法读取）'
-    label+='：'+(f'原生队伍 {team+1}' if team>=0 else f'未分配普通队伍（原始值 {team}）')
+    # A neutral's raw team0 is not ordinary team1; match the directory wording.
+    label+='：'+(f'特殊中立槽位（原生队伍原始值 {team}）' if p in (24,27) else
+        f'原生队伍 {team+1}' if team>=0 else f'未分配普通队伍（原始值 {team}）')
     saved=t._engine_instance_24268().session.cache.get('fullclone_teams',{}).get(row['owner'])
     if saved and saved['applied'] is not None:
         target=saved['applied'];label+='；当前外交模板：'+(f'队伍 {target+1}' if target<12 else '中立敌对' if target==12 else '中立被动')
@@ -43,5 +45,5 @@ def owner_status(api):
 
 def action(api,name):
     message=api._run_action(lambda:api.app.fc_action(name),'fullclone:'+name)
-    if name not in ('join_team','restore_team'):api._mark_units_changed()
+    if name not in ('join_team','restore_team','restore_all_teams'):api._mark_units_changed()
     return dict(success=True,message=str(message or '操作完成'))

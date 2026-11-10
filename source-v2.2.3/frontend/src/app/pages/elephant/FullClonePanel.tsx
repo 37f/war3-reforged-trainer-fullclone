@@ -3,6 +3,7 @@ import { Button, Checkbox, Select, TextField, announce } from '../../../ds'
 import { fullclone } from '../../../lib/api'
 import { useSystem } from '../../state/system'
 import { useNav } from '../../state/nav'
+import { usePageMemory } from '../../state/pageMemory'
 import s from './FullClonePanel.module.css'
 
 export function useFullCloneOptions() {
@@ -33,7 +34,8 @@ export default function FullClonePanel({ layout }: { layout?: (controls: FullClo
   const { options: o, set } = useFullCloneOptions()
   const connected = useSystem(st => st.status.connected)
   const [busy, setBusy] = useState(false)
-  const [monitor, setMonitor] = useState(false)
+  const monitor = usePageMemory(st => st.ownerMonitor)
+  const setMonitor = usePageMemory(st => st.setOwnerMonitor)
   const [owner, setOwner] = useState('尚未读取选中玩家')
   const readOwner = async () => { try { setOwner((await fullclone.owner()).message) } catch (e) { setOwner(String(e)) } }
   useEffect(() => {
@@ -71,6 +73,7 @@ export default function FullClonePanel({ layout }: { layout?: (controls: FullClo
       <div className={s.row}>{button('join_team', '把选中玩家加入队伍（Ctrl+F1）')}
         <Select aria-label="队伍" value={String(o.team ?? 0)} options={TEAMS} onChange={e => void set('team', Number(e.target.value))} />
         {button('restore_team', '恢复真正原队伍')}
+        {button('restore_all_teams', '恢复所有玩家真正原队伍')}
       </div>
       <p>队伍功能套用外交关系模板；恢复使用当前地图首次切换前记录的双向关系。原生队伍编号单独显示。</p>
       <div className={s.row}><Button size="sm" disabled={!connected} onClick={() => void readOwner()}>读取选中玩家与队伍</Button>

@@ -1,8 +1,9 @@
-"""Read-only player directory, with explicitly separate live/config sources.
+"""Player directory and explicit drag action, with separate live/config sources.
 
 No native slots, helper ABI, unit readers or game profile fields are changed.
 Scalar offsets are admitted only after recognizing the current getter's exact
-success branch. Team queries reuse FullClone action8 without changing it.
+success branch. Independent action19 queries players without unit selection;
+the original selected-owner action8 remains unchanged.
 """
 from pathlib import Path
 import struct
@@ -12,6 +13,7 @@ import time
 from war3_fullclone_runtime import read_context,player_name
 from war3_fullclone_source import current_script,check_source
 from war3_player_map_info import parse_player_info
+from war3_services.fullclone import applied_diplomacy_templates,diplomacy_template_label,pinned_native_teams
 
 GETTERS={
     'color':('GetPlayerColor','(Hplayer;)Hplayercolor;'),
@@ -30,6 +32,17 @@ SKINS={1:'人族',2:'兽族',4:'暗夜精灵',8:'亡灵',64:'已选种族',128:'
 
 
 def label(values,value):return '未确认' if value is None else values.get(value,f'其他（原始值 {value}）')
+
+
+def force_suffix(members,forces,active):
+    """Name a native team after the map force that staffs only that team.
+
+    A force that also holds active players of another native team cannot name
+    either team, so the title keeps the bare team number instead of guessing.
+    """
+    team=set(members)
+    names={name for name,people in forces if name and team<=people and not (people&active)-team}
+    return f'（{names.pop()}）' if len(names)==1 else ''
 
 
 def scalar_offset(memory,entry,name_entry,signature):
@@ -59,12 +72,13 @@ def live_players(trainer):
     with engine.session.lock:
         with read_context(trainer) as (_,memory,registry,mode,table):
             before=(engine.session.identity,engine.session.epoch,tuple(registry.players(memory)))
-        # action8 is an existing getter-only query. With no selected unit its
-        # zero-filled reply is NOT a verified list of teams.
+        # Independent player query: unlike selected-owner action8 this does not
+        # require a selected unit. Empty/zero replies remain unconfirmed.
         try:
-            result=engine.fullclone(8,value=0,target=1)
-            if result['rows'] and result['rows'][0]['a']==0 and len(result['teams'])==28 and all(-1<=v<28 for v in result['teams']):teams=result['teams']
-            else:issues.append('实时队伍未读出：现有队伍查询需先选中任意单位；其他玩家信息仍可读取。')
+            result=engine.fullclone(19,target=0)
+            if result['rows'] and result['rows'][0]['a']==0 and len(result['teams'])==28 and all(-1<=v<28 for v in result['teams']):
+                teams=pinned_native_teams(engine.session.cache,result['teams'])
+            else:issues.append('实时队伍未读出：指定玩家查询没有返回已确认的队伍列表；其他玩家信息仍可读取。')
         except Exception as exc:issues.append('实时队伍未确认：'+str(exc).split('; engine24268=',1)[0])
         with read_context(trainer) as (engine,memory,registry,mode,table):
             epoch=engine.session.epoch;identity=engine.session.identity;players=registry.players(memory)
@@ -73,9 +87,13 @@ def live_players(trainer):
             for key,(name,signature) in GETTERS.items():
                 try:offsets[key]=scalar_offset(memory,table.entries[name],name_entry,signature)
                 except Exception as exc:issues.append(name+'：'+str(exc))
+            applied=applied_diplomacy_templates(engine.session.cache,players)
+            local_id=None
+            try:local_id=players.index(registry.local_player_for_mode(memory,mode.value))
+            except Exception as exc:issues.append('本地玩家未确认：'+str(exc))
             rows=[]
             for index,address in enumerate(players):
-                row=dict(id=index,team=teams[index] if teams else None,name='',name_source='未读出')
+                row=dict(id=index,team=teams[index] if teams else None,diplomacy=applied.get(index),is_local=index==local_id,name='',name_source='未读出')
                 try:
                     row['name']=player_name(trainer,index)
                     if row['name']:row['name_source']='游戏读取值'
@@ -129,21 +147,26 @@ def combine(live,config=None,config_error=''):
             if index in NEUTRALS:name=NEUTRALS[index];name_source='中立槽位标识'
             elif saved and saved['name']:name=saved['name'];name_source='地图配置名（非实时）'
             else:name=f'玩家 {index+1}';name_source='槽位编号'
+        diplomacy=raw.get('diplomacy')
+        if type(diplomacy) is not int or not 0<=diplomacy<=13:diplomacy=None
         rows.append(dict(raw,id=index,slot=index+1,name=name,name_source=name_source,special=NEUTRALS.get(index),
             race_label=label(RACES,raw.get('race')),controller_label=label(CONTROLLERS,raw.get('controller')),
             state_label=label(STATES,raw.get('slot_state')),groups=[g['name'] for g in initial if index in g['members']],
+            diplomacy=diplomacy,diplomacy_label=diplomacy_template_label(diplomacy),
             config=dict(saved,race_label=label(MAP_RACES,saved['race']),controller_label=label(MAP_CONTROLLERS,saved['controller']),skin_label=label(SKINS,saved['skin'])) if saved else None))
     # Neutral and empty slots are not ordinary team members, even when their
     # getter reports0. Unassigned(-1) must never be displayed as team0.
-    runtime=[];normal=[p for p in rows if p['id']<24 and p.get('slot_state')==1]
+    runtime=[];normal=[p for p in rows if p['id']<24 and (p.get('slot_state')==1 or p.get('is_local'))]
+    active={p['id'] for p in normal};forces=[(g['name'],set(g['members'])) for g in initial if g.get('members')]
     for team in sorted({p.get('team') for p in normal if p.get('team') is not None and p['team']>=0}):
-        runtime.append(dict(key=f'team:{team}',name=f'原生队伍 {team+1}',members=[p['id'] for p in normal if p.get('team')==team]))
+        members=[p['id'] for p in normal if p.get('team')==team]
+        runtime.append(dict(key=f'team:{team}',name=f'原生队伍 {team+1}{force_suffix(members,forces,active)}',members=members))
     for key,name,predicate in [('unassigned','未分配普通队伍',lambda p:p.get('team')==-1),('unknown','队伍未确认',lambda p:p.get('team') is None)]:
         members=[p['id'] for p in normal if predicate(p)]
         if members:runtime.append(dict(key=key,name=name,members=members))
     special=[p['id'] for p in rows if p['id'] in NEUTRALS]
     if special:runtime.append(dict(key='neutral',name='特殊中立槽位',members=special))
-    inactive=[p['id'] for p in rows if p['id']<24 and p.get('slot_state')!=1]
+    inactive=[p['id'] for p in rows if p['id']<24 and p.get('slot_state')!=1 and not p.get('is_local')]
     if inactive:runtime.append(dict(key='inactive',name='空槽／已离开／状态未确认',members=inactive))
     configured={p for g in initial for p in g['members']}
     initial=list(initial)
@@ -151,10 +174,47 @@ def combine(live,config=None,config_error=''):
     if remaining:initial.append(dict(key='config-other',name='未列入地图势力',members=remaining))
     other_special=[p for p in special if p not in configured]
     if other_special:initial.append(dict(key='config-neutral',name='特殊中立槽位',members=other_special))
+    # R31.12: unchanged players stay in their original team. Team names are
+    # bound to the original membership, never renamed after a player is moved.
+    titles={}
+    for target in range(12):
+        members=[p['id'] for p in normal if p.get('team')==target]
+        suffix=force_suffix(members,forces,active) if members else ''
+        titles[target]=f'{suffix[1:-1] if suffix else "未读取队伍名"}（队伍 {target+1}）'
+    titles.update({12:'中立敌对',13:'中立被动'})
+    members={};unknown=[]
+    for p in normal+[p for p in rows if p['id'] in (24,27)]:
+        target=p['diplomacy']
+        if target is None:
+            original=p.get('team')
+            target=12 if p['id']==24 else 13 if p['id']==27 else original if type(original) is int and 0<=original<12 else None
+        if type(target) is int and 0<=target<14:
+            members.setdefault(target,[]).append(p['id']);p['diplomacy_label']=titles[target]
+        else:unknown.append(p)
+    # Retain empty original teams as drop destinations after all their players
+    # leave; an absent/ambiguous team number is never guessed from force order.
+    known={p['team'] for p in normal if type(p.get('team')) is int and 0<=p['team']<12}
+    templates=[dict(key=f'diplomacy:{target}',name=titles[target],members=members.get(target,[]),template=target)
+        for target in sorted(known|set(members)|{12,13})]
+    for g in initial:
+        people=[p for p in unknown if p['id'] in g['members']]
+        if people:
+            name=f'{g["name"]}（队伍未确认）'
+            templates.append(dict(key='diplomacy-origin:'+g['key'],name=name,members=[p['id'] for p in people]))
+            for p in people:p['diplomacy_label']=name
+            unknown=[p for p in unknown if p not in people]
+    if unknown:templates.append(dict(key='diplomacy-unknown',name='队伍未确认',members=[p['id'] for p in unknown]))
+    for p in unknown:p['diplomacy_label']='队伍未确认'
+    other_neutral=[p for p in special if p not in (24,27)]
+    if other_neutral:templates.append(dict(key='neutral',name='其他特殊中立槽位',members=other_neutral))
+    if inactive:templates.append(dict(key='inactive',name='空槽／已离开／状态未确认',members=inactive))
+    for p in rows:
+        if p['id'] in inactive:p['diplomacy_label']='空槽／已离开／状态未确认'
+        elif p['id'] in other_neutral:p['diplomacy_label']=p['special']
     issues=list(live['issues'])+list((config or {}).get('issues',[]))
     if config_error:issues.append('地图初始配置未确认：'+config_error)
     if config and not config['trusted']:issues.append('地图配置来自安装包基础文件，本地覆盖优先级未确认；配置仅供参考。')
-    return dict(success=True,rows=rows,initial_groups=initial,current_groups=runtime,issues=issues,
+    return dict(success=True,rows=rows,initial_groups=initial,current_groups=runtime,diplomacy_groups=templates,issues=issues,
         source=(config or {}).get('origin',''),map_name=(config or {}).get('map_name',''),context=live['context'],
         profile=live['profile'],read_at=time.strftime('%H:%M:%S'),read_only=True)
 
@@ -174,3 +234,32 @@ def directory(api,refresh_map=False):
     with read_context(trainer) as (engine,memory,registry,mode,table):
         if live['stamp']!=(engine.session.identity,engine.session.epoch,tuple(registry.players(memory))):raise ValueError('读取期间地图或连接已变化，请重新读取')
     return combine(live,config,error)
+
+
+def page_context(api):
+    """Validate a remembered page without enumerating players or reading files."""
+    with read_context(api.app.elephant_trainer()) as (engine,memory,registry,mode,table):
+        identity=engine.session.identity
+        return dict(success=True,context=f'{identity.pid}:{identity.created}:{engine.session.epoch}')
+
+
+def move_player(api,player,target,context):
+    """Drag applies the existing diplomacy semantics to an explicit player.
+
+    A page from a previous process/map is rejected inside the serialized action;
+    no unit selection, ownership, original-team pin or control record changes.
+    """
+    if type(player) is not int or player not in (*range(24),24,27):raise ValueError('不支持拖动该玩家')
+    if type(target) is not int or target not in range(14):raise ValueError('目标外交模板无效')
+    if type(context) is not str or not context:raise ValueError('请先读取当前地图玩家')
+    def apply():
+        trainer=api.app.elephant_trainer();engine=trainer._engine_instance_24268()
+        with engine.session.lock:
+            with read_context(trainer) as (_,memory,registry,mode,table):
+                identity=engine.session.identity;epoch=engine.session.epoch
+                if context!=f'{identity.pid}:{identity.created}:{epoch}':raise ValueError('地图或连接已变化，请重新读取玩家后再拖放')
+            result=trainer.fullclone_team(target,player=player,expected_epoch=epoch)
+            if not result.get('changed'):raise ValueError('未确认外交模板修改成功，请重新读取')
+            return f'玩家 {player+1} 已套用{diplomacy_template_label(target)}外交模板（控制权限保持不变）'
+    message=api._run_action(apply,'fullclone:move_player_team')
+    return dict(success=True,message=message)

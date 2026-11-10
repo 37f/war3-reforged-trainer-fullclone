@@ -64,6 +64,8 @@ ACTIONS = {
     16: ('CreateUnit','RemoveUnit','GetOwningPlayer','UnitAddAbility','BlzSetUnitMaxMana','SetUnitState','ConvertUnitState','SetUnitVertexColor','SetUnitPathing'),
     17: ('IssuePointOrderById','GetOwningPlayer'),
     18: ('RemoveUnit','GetOwningPlayer'),
+    19: COMMON+('ConvertAllianceType','GetPlayerAlliance'),
+    20: COMMON+('GetPlayerSlotState','ConvertPlayerSlotState','ConvertAllianceType','GetPlayerAlliance','SetPlayerAlliance'),
 }
 SLOTS=64
 ROW_SIZE=48
@@ -105,7 +107,9 @@ def validate_work(p):
     if action in (3,4) and not 0<=value<24:raise ValueError('颜色必须是1至24')
     if action in (11,12) and not rawcode:raise ValueError('请填写四字符单位ID')
     if action==6 and not 0<=value<=100000:raise ValueError('英雄等级超出范围')
-    if action==9 and any(v not in (0,1) for v in struct.unpack_from('<560I',p,MATRIX)):raise ValueError('联盟快照无效')
+    if action in (9,20) and any(v not in (0,1) for v in struct.unpack_from('<560I',p,MATRIX)):raise ValueError('联盟快照无效')
+    if action in (19,20) and (target not in range(28) or n):raise ValueError('指定玩家外交请求无效')
+    if action==20 and (target not in (*range(24),24,27) or not owner):raise ValueError('指定玩家身份无效')
 
 
 def decode_work(p,count=None):
@@ -120,5 +124,5 @@ def decode_work(p,count=None):
     verified_faults,last_fault=struct.unpack_from('<2I',p,1056)
     return dict(action=action,count=n,changed=changed,rows=rows,target=target,owner=owner,
                 verified_faults=verified_faults,last_fault=last_fault,
-                matrix=struct.unpack_from('<560I',p,MATRIX) if action in (8,9) else (),
-                teams=struct.unpack_from('<28i',p,MATRIX+2240) if action in (8,9) else ())
+                matrix=struct.unpack_from('<560I',p,MATRIX) if action in (8,9,19,20) else (),
+                teams=struct.unpack_from('<28i',p,MATRIX+2240) if action in (8,9,19,20) else ())

@@ -1010,6 +1010,14 @@ class DesktopBridgeApi:
         from war3_player_directory import directory
         return directory(self,refresh_map)
 
+    def fullclone_page_context(self):
+        from war3_player_directory import page_context
+        return page_context(self)
+
+    def fullclone_move_player_team(self,player,target,context):
+        from war3_player_directory import move_player
+        return move_player(self,player,target,context)
+
     def fullclone_action(self,name):
         from war3_fullclone_desktop import action
         return action(self,name)

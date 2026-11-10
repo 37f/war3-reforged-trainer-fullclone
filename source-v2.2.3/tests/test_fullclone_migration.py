@@ -144,6 +144,55 @@ def test_native_control_only_changes_shared_control_flags(dll):
     assert not any(w.alliances.values())
 
 
+@pytest.mark.parametrize('player',[0,1,23,24,27])
+def test_explicit_player_diplomacy_without_selection_keeps_control_and_units(dll,player):
+    w=World();w.selected=[];calls=[]
+    w.alliances[(player+1,1,6)]=1;w.alliances[(1,player+1,7)]=1
+    units={k:dict(v) for k,v in w.units.items()}
+    def setter(a,b,k,v):calls.append((a,b,k,v));w.alliances[(a,b,k)]=v
+    w.bind('SetPlayerAlliance',V,(U,U,U,I),setter)
+    before=w.run(dll,19,target=player)
+    assert before['rows'][0]['a']==player and before['rows'][0]['b']==0 and before['rows'][0]['handle']==0
+    desired=list(before['matrix']);peer=2 if player==0 else 0;desired[peer*20]=1;desired[peer*20+10]=1
+    after=w.run(dll,20,target=player,matrix=desired,expected_owner=player+1)
+    assert after['changed']==1 and after['matrix']==tuple(desired)
+    assert calls and all(k not in (6,7) for a,b,k,v in calls)
+    assert w.units==units and w.selected==[] and before['teams']==after['teams']
+
+
+def test_explicit_player_write_rejects_control_change_or_stale_owner_before_setter(dll):
+    w=World();w.selected=[];calls=[]
+    w.bind('SetPlayerAlliance',V,(U,U,U,I),lambda *args:calls.append(args))
+    before=w.run(dll,19,target=1);desired=list(before['matrix']);desired[6]=1
+    with pytest.raises(RuntimeError):w.run(dll,20,target=1,matrix=desired,expected_owner=2)
+    with pytest.raises(RuntimeError):w.run(dll,20,target=1,matrix=before['matrix'],expected_owner=3)
+    assert calls==[]
+
+
+def test_drag_facade_apply_and_restore_share_first_snapshot_without_selection(dll):
+    w=World();w.selected=[];cache={};actions=[]
+    class Engine:
+        session=SimpleNamespace(lock=threading.RLock(),cache=cache,epoch=3)
+        def fullclone(self,action,**options):
+            epoch=options.pop('expected_epoch',None)
+            assert epoch in (None,3)
+            actions.append(action);return w.run(dll,action,**options)
+    engine=Engine()
+    class Host(FullCloneFacade):
+        def _engine_instance_24268(self):return engine
+    h=Host();original=w.run(dll,19,target=0)['matrix']
+    assert h.fullclone_team(1,player=0,expected_epoch=3)['changed']==1
+    assert cache['fullclone_teams'][1]['matrix']==original and cache['fullclone_teams'][1]['player']==0
+    assert cache['fullclone_teams'][1]['applied']==1
+    w.alliances[(1,2,6)]=1  # Explicit control change after the team operation.
+    h.fullclone_team(2,player=0);h.fullclone_team(restore=True,player=0)
+    restored=w.run(dll,19,target=0)['matrix']
+    for k,value in enumerate(original):
+        if k%20 not in (6,7,16,17):assert restored[k]==value
+    assert w.alliances[(1,2,6)]==1 and cache['fullclone_teams'][1]['applied'] is None
+    assert set(actions)=={19,20} and w.selected==[]
+
+
 @pytest.mark.parametrize('applied,fault',[(True,0xc0000005),(False,0xc0000005),(True,0xe0310002)])
 def test_alliance_fault_requires_known_fault_and_independent_requested_readback(dll,applied,fault):
     w=World();w.selected=[1001];cell=c.c_uint32(0)
@@ -301,7 +350,10 @@ def test_first_team_snapshot_survives_many_switches_and_restore():
     class Engine:
         session=SimpleNamespace(lock=threading.RLock(),cache=cache)
         def fullclone(self,action,**options):
-            if action==8:return dict(rows=[dict(row)],matrix=tuple(current),teams=tuple(range(24))+(-1,)*4)
+            if action==8:
+                selected=dict(row)
+                if options.get('target')==1:selected.update(a=options['value'],owner=options['value']+1)
+                return dict(rows=[selected],matrix=tuple(current),teams=tuple(range(24))+(-1,)*4)
             assert action==9;writes.append(options['matrix']);current[:]=options['matrix'];return dict(changed=1)
     engine=Engine()
     class Host(FullCloneFacade):
@@ -309,8 +361,67 @@ def test_first_team_snapshot_survives_many_switches_and_restore():
     h=Host()
     for team in (0,5,12,3,13):h.fullclone_team(team)
     assert cache['fullclone_teams'][2]['matrix']==original
+    assert cache['fullclone_teams'][2]['player']==1
     h.fullclone_team(restore=True)
     assert tuple(current)==original and writes[-1]==original
+
+
+def test_team_join_keeps_live_control_and_skips_reference_control():
+    current=[0]*560
+    current[3*20+6]=1          # peer 3 already shares the player's control
+    current[5*20+10+7]=1       # peer 5 already has advanced control
+    reference=[1]*560          # the reference player grants everything
+    row=dict(owner=2,a=1,team=-1);cache={};writes=[]
+    class Engine:
+        session=SimpleNamespace(lock=threading.RLock(),cache=cache)
+        def fullclone(self,action,**options):
+            matrix=reference if options.get('value')==0 else current
+            if action==8:return dict(rows=[dict(row)],matrix=tuple(matrix),teams=(0,)+(-1,)*27)
+            assert action==9;writes.append(options['matrix']);current[:]=options['matrix'];return dict(changed=1)
+    engine=Engine()
+    class Host(FullCloneFacade):
+        def _engine_instance_24268(self):return engine
+    Host().fullclone_team(0);m=writes[-1]
+    assert (m[3*20+6],m[3*20+7])==(1,0) and m[3*20+0]==1
+    assert (m[5*20+10+6],m[5*20+10+7])==(0,1) and m[5*20+10+0]==1
+    assert (m[7*20+6],m[7*20+7],m[7*20+10+6],m[7*20+10+7])==(0,0,0,0)
+
+
+def test_team_restore_keeps_control_toggled_after_join():
+    original=tuple((i//3)%2 for i in range(560));current=list(original)
+    row=dict(owner=2,a=1,team=-1);cache={};writes=[]
+    class Engine:
+        session=SimpleNamespace(lock=threading.RLock(),cache=cache)
+        def fullclone(self,action,**options):
+            if action==8:return dict(rows=[dict(row)],matrix=tuple(current),teams=tuple(range(24))+(-1,)*4)
+            assert action==9;writes.append(options['matrix']);current[:]=options['matrix'];return dict(changed=1)
+    engine=Engine()
+    class Host(FullCloneFacade):
+        def _engine_instance_24268(self):return engine
+    h=Host();h.fullclone_team(0)
+    current[4*20+6]=1;current[6*20+10+7]=1   # toggled after the join
+    h.fullclone_team(restore=True);m=writes[-1]
+    assert cache['fullclone_teams'][2]['matrix']==original
+    for i in range(560):
+        if i//20==1:assert m[i]==original[i]
+        elif i%20 in (6,7,16,17):assert m[i]==current[i]
+        else:assert m[i]==original[i]
+
+
+def test_unassigned_team_template_keeps_control_flags():
+    current=[0]*560;current[2*20+3]=1;current[2*20+7]=1;current[9*20+10+6]=1
+    row=dict(owner=2,a=1,team=-1);cache={};writes=[]
+    class Engine:
+        session=SimpleNamespace(lock=threading.RLock(),cache=cache)
+        def fullclone(self,action,**options):
+            if action==8:return dict(rows=[dict(row)],matrix=tuple(current),teams=(-1,)*28)
+            assert action==9;writes.append(options['matrix']);current[:]=options['matrix'];return dict(changed=1)
+    engine=Engine()
+    class Host(FullCloneFacade):
+        def _engine_instance_24268(self):return engine
+    Host().fullclone_team(0);m=writes[-1]
+    assert (m[2*20+3],m[2*20+7],m[2*20+6])==(0,1,0)
+    assert (m[9*20+10+6],m[9*20+10+7])==(1,0)
 
 
 def test_partial_control_failure_keeps_original_for_next_restore():
@@ -441,3 +552,25 @@ endfunction''')
     assert '地图作者的原任务说明' in rows[0]['text']
     assert 'X=' not in rows[0]['text']
     assert any(p.locatable for p in locations)
+
+def test_join_team_pins_native_teams_before_write():
+    current=[0]*560
+    original_teams=(2,0)+(-1,)*26
+    later_teams=(5,0)+(-1,)*26
+    row=dict(owner=2,a=1,team=2);cache={};queries=[]
+    class Engine:
+        session=SimpleNamespace(lock=threading.RLock(),cache=cache)
+        def fullclone(self,action,**options):
+            if action==8:
+                queries.append('query')
+                teams=later_teams if len(queries)>1 else original_teams
+                return dict(rows=[dict(row)],matrix=tuple(current),teams=teams)
+            assert action==9;return dict(changed=1)
+    engine=Engine()
+    class Host(FullCloneFacade):
+        def _engine_instance_24268(self):return engine
+    Host().fullclone_team(0)
+    assert cache['native_teams_snapshot']==original_teams
+    Host().fullclone_team(5)
+    assert cache['native_teams_snapshot']==original_teams
+

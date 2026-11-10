@@ -112,3 +112,17 @@ def test_original_level_panel_keeps_using_its_input_without_custom_checkbox(desk
     api.port.value('elephant_hero_level').set('12')
     api.app.elephant_set_hero_level()
     assert calls==[('custom_level',12)]
+
+
+@pytest.mark.parametrize('total',[0,3])
+def test_bulk_restore_generic_action_keeps_unit_snapshot_unchanged(desktop,monkeypatch,total):
+    api,calls=desktop
+    trainer=api.app.elephant_trainer()
+    trainer.fullclone_restore_all_teams=lambda:(calls.append(('restore_all',)) or dict(changed=total,total=total))
+    monkeypatch.setattr(api,'_run_action',lambda fn,key:fn())
+    monkeypatch.setattr(api,'_mark_units_changed',lambda:pytest.fail('alliance-only command must not mark units changed'))
+    # Bypass only the offline transport gate; the real application dispatch and
+    # action wrapper still run against the injected fixture trainer.
+    result=type(api).fullclone_action.__wrapped__(api,'restore_all_teams')
+    assert result['success'] and calls==[('restore_all',)]
+    assert ('没有可恢复' if not total else '3 个玩家') in result['message']

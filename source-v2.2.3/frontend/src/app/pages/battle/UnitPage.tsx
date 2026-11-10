@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Button, EditableNumber, Icon, PillGroup, RawcodePlate, StatBar, TextField, announce, bounty } from '../../../ds'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Button, Checkbox, EditableNumber, Icon, PillGroup, RawcodePlate, StatBar, TextField, announce, bounty } from '../../../ds'
 import { api } from '../../../lib/api'
 import type { CandidateUnit, SelectedUnitData, UnitFieldRow } from '../../../lib/types'
 import { useCommandCard } from '../../state/commands'
@@ -7,6 +7,7 @@ import { unitLockId, useLocks } from '../../state/locks'
 import { num } from '../../state/resources'
 import { useSystem } from '../../state/system'
 import { rawcodeOf, useUnit } from '../../state/unit'
+import { usePageMemory } from '../../state/pageMemory'
 import { useT } from '../../i18n'
 import { FieldTable, type FieldRow } from '../common/FieldTable'
 import { Status, usePending } from '../common/Layout'
@@ -30,6 +31,21 @@ export default function UnitPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [candidate, setCandidate] = useState<string | null>(null)
+  const monitor = usePageMemory(st => st.unitMonitor)
+  const setMonitor = usePageMemory(st => st.setUnitMonitor)
+  const pageRef = useRef<HTMLDivElement>(null)
+  const editing = useRef(false)
+  editing.current = !!editingId || Object.values(pending).some(Boolean)
+  useEffect(() => {
+    if (!monitor || !connected) return
+    let live = true
+    const timer = setInterval(() => {
+      const focus = document.activeElement
+      if (editing.current || focus instanceof HTMLElement && pageRef.current?.contains(focus) && focus.matches('input:not([type=checkbox]), textarea, [contenteditable=true]')) return
+      void useUnit.getState().monitorSelected().then(ok => { if (live && !ok) setMonitor(false) })
+    }, 5000)
+    return () => { live = false; clearInterval(timer) }
+  }, [monitor, connected, setMonitor])
 
   useEffect(() => { void useLocks.getState().reload() }, [])
 
@@ -112,8 +128,9 @@ export default function UnitPage() {
   ])
 
   return (
-    <div className={s.page}>
+    <div className={s.page} ref={pageRef} data-testid="unit-page">
       <aside className={s.dossier} aria-label={t('单位卷宗')}>
+        <Checkbox label={t('每5秒监视单位状态')} checked={monitor} disabled={!connected} onChange={() => setMonitor(!monitor)} />
         <Dossier unit={unit} connected={connected} pending={pending} writeCore={writeCore} />
         <Candidates
           connected={connected}

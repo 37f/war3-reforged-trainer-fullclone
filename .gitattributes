@@ -9,3 +9,6 @@ releases/v2.2.3-R31.5/** -text
 
 # R31.7 release evidence retains exact local bytes.
 releases/v2.2.3-R31.7/** -text
+
+# R31.14 exact release evidence bytes.
+releases/v2.2.3-R31.14/** -text

@@ -12,6 +12,8 @@
   min-height: 0;
 }
 
+.content[hidden] { display: none; }
+
 .legacySubtabs { display: flex; gap: 2px; border-bottom: 1px solid #bbb; padding-bottom: 3px; }
 .legacySubtabs button { padding: 5px 10px; font-size: 13px; }
 .legacySubtabs button[aria-current='page'] { color: #005a9e; font-weight: 600; }

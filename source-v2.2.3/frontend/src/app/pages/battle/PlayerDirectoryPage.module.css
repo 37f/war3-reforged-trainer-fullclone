@@ -1,4 +1,4 @@
-/* Independent read-only page; scroll stays within all three existing shells. */
+/* Player directory; scrolling stays within all three existing shells. */
 .page { display: grid; gap: 12px; padding: 18px; height: 100%; min-height: 0; min-width: 0; overflow-y: auto; align-content: start; }
 .toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
 .toolbar > [data-ui='field'] { flex: 1; min-width: 190px; }
@@ -10,6 +10,9 @@
 .groups ul { list-style: none; margin: 4px 0; padding-left: 12px; }
 .groups button { text-align: left; background: transparent; color: inherit; border: 0; padding: 6px; overflow-wrap: anywhere; }
 .groups button[aria-pressed='true'], .groups button[aria-current='true'] { background: var(--tint-selected); outline: 1px solid var(--focus); }
+.groups button[draggable='true'] { cursor: grab; }
+.groups .dragging { opacity: .55; }
+.groups .dropTarget { outline: 2px solid var(--focus); background: var(--tint-selected); }
 .content { display: grid; gap: 12px; min-width: 0; }
 .table { width: 100%; max-height: 480px; overflow: auto; border: 1px solid var(--line); }
 .table table { border-collapse: collapse; width: 100%; font-size: 13px; }

@@ -43,6 +43,7 @@ const en: Record<string, string> = {
   // Selected unit
   '单位卷宗': 'Unit dossier',
   '单位动态字段表': 'Unit fields',
+  '每5秒监视单位状态': 'Monitor selected unit every 5 seconds',
   '未读取单位': 'No unit read',
   '当前生命': 'Current life',
   '当前魔法': 'Current mana',

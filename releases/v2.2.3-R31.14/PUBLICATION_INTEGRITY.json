@@ -1,0 +1,21 @@
+{
+  "tag": "v2.2.3-fullclone-r31.14-test",
+  "source_path": "source-v2.2.3",
+  "build_source_commit": "b688d721e91680dfb9bbfb68529367371348d4a1",
+  "source_files": 669,
+  "rebuilt": false,
+  "exe_sha256": "7c240537045213831d11115c4596172c921a1201287b7fac3963a2f677f84d7e",
+  "source_zip_sha256": "60d567f5cfb9b650136af1bcd70332ba5620489e2f8b75ddf1bb2918ef0224d2",
+  "local_to_published_names": {
+    "R31_14_使用说明.md": "R31_14_USAGE_ZH.md",
+    "R31_14_更新说明.md": "R31_14_CHANGELOG_ZH.md",
+    "R31_14_中立拖放预览.png": "R31_14_NEUTRAL_UI_PREVIEW.png",
+    "SHA256SUMS-R31.14.txt": "SHA256SUMS-R31.14-LOCAL.txt"
+  },
+  "original_bytes_preserved": true,
+  "tests_passed": 253,
+  "embedded_modules_verified": 221,
+  "actual_gameplay_write_acceptance": false,
+  "prior_releases_to_preserve": 13,
+  "scope": "R31.14 with R31.8-R31.13 cumulative features; no separate intermediate releases"
+}

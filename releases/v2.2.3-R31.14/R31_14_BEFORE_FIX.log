@@ -1,0 +1,99 @@
+FFFFF.                                                                   [100%]
+================================== FAILURES ===================================
+__ test_neutral_drag_to_ordinary_and_back_restores_original_relations[24-12] __
+
+dll = <WinDLL 'C:\Users\22824\AppData\Local\Temp\pytest-of-22824\pytest-55\fc-native0\fixture.dll', handle 7ffee67a0000 at 0x24e94657380>
+player = 24, target = 12
+
+    @pytest.mark.parametrize('player,target',[(24,12),(27,13)])
+    def test_neutral_drag_to_ordinary_and_back_restores_original_relations(dll,player,target):
+        w,e,h=fixture(dll)
+        original=w.run(dll,19,target=player)['matrix']
+        h.fullclone_team(0,player=player)
+        assert w.run(dll,19,target=player)['matrix']!=original
+        # Explicit control changes remain independent of the diplomacy round trip.
+        w.alliances[player+1,3,6]=1;w.alliances[3,player+1,7]=1
+        control={k:v for k,v in w.alliances.items() if k[2] in (6,7)}
+        h.fullclone_team(target,player=player)
+        after=w.run(dll,19,target=player)['matrix']
+>       assert all(after[i]==v for i,v in enumerate(original) if i%20 not in (6,7,16,17))
+E       assert False
+E        +  where False = all(<generator object test_neutral_drag_to_ordinary_and_back_restores_original_relations.<locals>.<genexpr> at 0x0000024E948C6A40>)
+
+tests\test_neutral_template_roundtrip.py:42: AssertionError
+__ test_neutral_drag_to_ordinary_and_back_restores_original_relations[27-13] __
+
+dll = <WinDLL 'C:\Users\22824\AppData\Local\Temp\pytest-of-22824\pytest-55\fc-native0\fixture.dll', handle 7ffee67a0000 at 0x24e94657380>
+player = 27, target = 13
+
+    @pytest.mark.parametrize('player,target',[(24,12),(27,13)])
+    def test_neutral_drag_to_ordinary_and_back_restores_original_relations(dll,player,target):
+        w,e,h=fixture(dll)
+        original=w.run(dll,19,target=player)['matrix']
+        h.fullclone_team(0,player=player)
+        assert w.run(dll,19,target=player)['matrix']!=original
+        # Explicit control changes remain independent of the diplomacy round trip.
+        w.alliances[player+1,3,6]=1;w.alliances[3,player+1,7]=1
+        control={k:v for k,v in w.alliances.items() if k[2] in (6,7)}
+        h.fullclone_team(target,player=player)
+        after=w.run(dll,19,target=player)['matrix']
+>       assert all(after[i]==v for i,v in enumerate(original) if i%20 not in (6,7,16,17))
+E       assert False
+E        +  where False = all(<generator object test_neutral_drag_to_ordinary_and_back_restores_original_relations.<locals>.<genexpr> at 0x0000024E948C7300>)
+
+tests\test_neutral_template_roundtrip.py:42: AssertionError
+____ test_earlier_other_player_move_cannot_pollute_neutral_first_snapshot _____
+
+dll = <WinDLL 'C:\Users\22824\AppData\Local\Temp\pytest-of-22824\pytest-55\fc-native0\fixture.dll', handle 7ffee67a0000 at 0x24e94657380>
+
+    def test_earlier_other_player_move_cannot_pollute_neutral_first_snapshot(dll):
+        w,e,h=fixture(dll);original=w.run(dll,19,target=27)['matrix']
+        h.fullclone_team(12,player=0)  # Changes the passive neutral's reverse relation.
+        h.fullclone_team(0,player=27)
+        assert e.session.cache['fullclone_teams'][28]['matrix'][0]!=original[0]
+        h.fullclone_team(13,player=27)
+        after=w.run(dll,19,target=27)['matrix']
+>       assert all(after[i]==v for i,v in enumerate(original) if i%20 not in (6,7,16,17))
+E       assert False
+E        +  where False = all(<generator object test_earlier_other_player_move_cannot_pollute_neutral_first_snapshot.<locals>.<genexpr> at 0x0000024E948C6DC0>)
+
+tests\test_neutral_template_roundtrip.py:55: AssertionError
+_ test_other_player_receives_original_neutral_template_after_neutral_was_moved[24-12] _
+
+dll = <WinDLL 'C:\Users\22824\AppData\Local\Temp\pytest-of-22824\pytest-55\fc-native0\fixture.dll', handle 7ffee67a0000 at 0x24e94657380>
+reference = 24, target = 12
+
+    @pytest.mark.parametrize('reference,target',[(24,12),(27,13)])
+    def test_other_player_receives_original_neutral_template_after_neutral_was_moved(dll,reference,target):
+        w,e,h=fixture(dll);original=w.run(dll,19,target=reference)['matrix']
+        h.fullclone_team(0,player=reference)
+        h.fullclone_team(target,player=2)
+        after=w.run(dll,19,target=2)['matrix']
+>       assert all(after[i]==v for i,v in enumerate(original) if i//20!=2 and i%20 not in (6,7,16,17))
+E       assert False
+E        +  where False = all(<generator object test_other_player_receives_original_neutral_template_after_neutral_was_moved.<locals>.<genexpr> at 0x0000024E948C42E0>)
+
+tests\test_neutral_template_roundtrip.py:64: AssertionError
+_ test_other_player_receives_original_neutral_template_after_neutral_was_moved[27-13] _
+
+dll = <WinDLL 'C:\Users\22824\AppData\Local\Temp\pytest-of-22824\pytest-55\fc-native0\fixture.dll', handle 7ffee67a0000 at 0x24e94657380>
+reference = 27, target = 13
+
+    @pytest.mark.parametrize('reference,target',[(24,12),(27,13)])
+    def test_other_player_receives_original_neutral_template_after_neutral_was_moved(dll,reference,target):
+        w,e,h=fixture(dll);original=w.run(dll,19,target=reference)['matrix']
+        h.fullclone_team(0,player=reference)
+        h.fullclone_team(target,player=2)
+        after=w.run(dll,19,target=2)['matrix']
+>       assert all(after[i]==v for i,v in enumerate(original) if i//20!=2 and i%20 not in (6,7,16,17))
+E       assert False
+E        +  where False = all(<generator object test_other_player_receives_original_neutral_template_after_neutral_was_moved.<locals>.<genexpr> at 0x0000024E948C5B60>)
+
+tests\test_neutral_template_roundtrip.py:64: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_neutral_template_roundtrip.py::test_neutral_drag_to_ordinary_and_back_restores_original_relations[24-12]
+FAILED tests/test_neutral_template_roundtrip.py::test_neutral_drag_to_ordinary_and_back_restores_original_relations[27-13]
+FAILED tests/test_neutral_template_roundtrip.py::test_earlier_other_player_move_cannot_pollute_neutral_first_snapshot
+FAILED tests/test_neutral_template_roundtrip.py::test_other_player_receives_original_neutral_template_after_neutral_was_moved[24-12]
+FAILED tests/test_neutral_template_roundtrip.py::test_other_player_receives_original_neutral_template_after_neutral_was_moved[27-13]
+5 failed, 1 passed in 3.06s

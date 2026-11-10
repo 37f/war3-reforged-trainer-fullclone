@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { Button, Checkbox, Select, TextField, announce } from '../../../ds'
 import { fullclone } from '../../../lib/api'
 import { useSystem } from '../../state/system'
+import { useNav } from '../../state/nav'
+import { usePageMemory } from '../../state/pageMemory'
 import s from './QuestPage.module.css'
 
 type Place = { index: number; label: string; enabled: boolean }
@@ -10,6 +12,9 @@ type Quest = { key: string; title: string; kind: string; text: string; descripti
 
 export default function QuestPage() {
   const connected = useSystem(st => st.status.connected)
+  const active = useNav(st => st.page === 'quests')
+  const remember = usePageMemory(st => st.remember.quests)
+  const [checking, setChecking] = useState(true)
   const [data, setData] = useState<any>({ status: 'idle', started: false, rows: [], chapters: [] })
   const [selected, setSelected] = useState('')
   const [locations, setLocations] = useState(false)
@@ -18,15 +23,18 @@ export default function QuestPage() {
   const [starting, setStarting] = useState(false)
   // Opening the page only reads an existing result; analysis starts on a click.
   useEffect(() => {
+    if (!active) return
+    setChecking(true)
     let live = true, reading = false
     const poll = async () => {
       if (reading) return; reading = true
-      try { const r = await fullclone.quests(); if (live) setData(r) } catch { /* API reports */ }
-      finally { reading = false }
+      try { const r = await fullclone.quests(); if (live) setData(r) }
+      catch { if (live) setData({ status: 'stale', started: true, rows: [], chapters: [], error: '无法核对当前地图，请重新检测' }) }
+      finally { reading = false; if (live) setChecking(false) }
     }
     void poll(); const timer = setInterval(() => void poll(), 1000)
     return () => { live = false; clearInterval(timer) }
-  }, [])
+  }, [active])
   const busy = starting || ['reading', 'analyzing'].includes(data.status)
   const start = async (file = '') => {
     setStarting(true)
@@ -36,7 +44,7 @@ export default function QuestPage() {
   const quests: Quest[] = data.rows || []
   const q = quests.find(r => r.key === selected) || quests[0]
   const jump = async (p: Place) => {
-    if (!p.enabled) return
+    if (!p.enabled || checking || !active) return
     try { const r = await fullclone.camera(p.index); announce(r.message) } catch { /* API reports */ }
   }
   const selectQuest = (r: Quest) => {
@@ -46,11 +54,12 @@ export default function QuestPage() {
     if (points.length === 1) void jump(points[0])
   }
   const places = (list: Place[]) => <div className={s.places}>
-    {list.length ? list.map(p => <Button key={p.index} size="sm" disabled={!p.enabled || !connected} onClick={() => void jump(p)}>{p.label}</Button>) : <span className={s.muted}>无位置</span>}
+    {list.length ? list.map(p => <Button key={p.index} size="sm" disabled={!p.enabled || !connected || checking} onClick={() => void jump(p)}>{p.label}</Button>) : <span className={s.muted}>无位置</span>}
   </div>
-  return <div className={s.page}>
+  return <div className={s.page} data-testid="quest-page">
     <div className={s.toolbar}>
       <Button disabled={!connected || busy} onClick={() => void start()}>{data.started ? '重新检测' : '开始检测'}</Button>
+      <Checkbox label="记忆模式" checked={remember} onChange={() => usePageMemory.getState().setRemember('quests', !remember)} />
       <Checkbox label="触发位置" checked={locations} onChange={() => setLocations(!locations)} />
       <span role="status">{busy ? '正在读取并分析地图脚本…' : data.status === 'ready' ? `已检索 ${quests.length} 个任务` : data.status === 'idle' ? '点击开始检测后读取当前地图' : data.error || '请选择战役章节'}</span>
     </div>

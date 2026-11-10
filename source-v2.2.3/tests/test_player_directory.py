@@ -119,6 +119,19 @@ def test_live_and_map_enum_domains_neutral_and_unassigned():
     assert 24 not in next(g for g in r['initial_groups'] if g['key']=='config-neutral')['members']
 
 
+def test_team_titles_use_map_force_only_when_it_staffs_the_team():
+    live=live_fixture()
+    cfg=dict(players=[],groups=[dict(key='force:0',name='森林巡逻队',members=[0,1,2,3]),
+        dict(key='force:1',name='石塔野生单位',members=[4,5,6,7])],issues=[],origin='fixture',map_name='',trusted=True)
+    r=d.combine(live,cfg)
+    assert [g['name'] for g in r['current_groups'] if g['key'].startswith('team:')]==['原生队伍 1（森林巡逻队）','原生队伍 2（石塔野生单位）']
+    # A force holding an active player of another team names neither team.
+    cfg['groups'][0]['members']=[0,1,2,3,4]
+    cfg['groups'][1]['members']=[0,4,5,6,7]
+    r=d.combine(live,cfg)
+    assert [g['name'] for g in r['current_groups'] if g['key'].startswith('team:')]==['原生队伍 1','原生队伍 2']
+
+
 def test_missing_teams_and_config_have_no_invented_membership():
     live=live_fixture()
     for p in live['rows']:p['team']=None
@@ -129,7 +142,7 @@ def test_missing_teams_and_config_have_no_invented_membership():
 
 
 def test_team_query_without_selection_does_not_admit_zero_buffer(monkeypatch):
-    engine=NS(session=NS(identity=NS(pid=10,created=20),epoch=3,profile=NS(id='fixture')))
+    engine=NS(session=NS(identity=NS(pid=10,created=20),epoch=3,profile=NS(id='fixture'),cache={}))
     from threading import RLock
     engine.session.lock=RLock();calls=[]
     engine.fullclone=lambda *a,**kw:(calls.append((a,kw)) or dict(rows=[],teams=[0]*28))
@@ -139,7 +152,7 @@ def test_team_query_without_selection_does_not_admit_zero_buffer(monkeypatch):
     monkeypatch.setattr(d,'read_context',context);monkeypatch.setattr(d,'player_name',lambda t,i:'')
     r=d.live_players(NS(_engine_instance_24268=lambda:engine))
     assert len(r['rows'])==28 and all(p['team'] is None for p in r['rows'])
-    assert calls==[((8,),dict(value=0,target=1))]  # getter-only; no setters
+    assert calls==[((19,),dict(target=0))]  # explicit-player getter; no setters
 
 
 def test_source_cache_cleared_on_refresh_error(monkeypatch):
@@ -157,3 +170,105 @@ def test_source_cache_cleared_on_refresh_error(monkeypatch):
     assert api._player_directory_config is None and not r['source'] and 'old map' not in str(r)
     engine.session.epoch=4
     with pytest.raises(ValueError,match='地图或连接已变化'):d.directory(api)
+
+def test_live_teams_stay_on_first_verified_snapshot(monkeypatch):
+    engine=NS(session=NS(identity=NS(pid=10,created=20),epoch=3,profile=NS(id='fixture'),cache={}))
+    from threading import RLock
+    engine.session.lock=RLock()
+    replies=[dict(rows=[dict(a=0)],teams=(0,)+(-1,)*27),dict(rows=[dict(a=0)],teams=(1,)+(0,)*27)]
+    engine.fullclone=lambda *a,**kw:(replies.pop(0))
+    registry=NS(players=lambda m:list(range(28)));table=NS(entries={})
+    @contextmanager
+    def context(trainer):yield engine,None,registry,None,table
+    monkeypatch.setattr(d,'read_context',context);monkeypatch.setattr(d,'player_name',lambda t,i:'')
+    trainer=NS(_engine_instance_24268=lambda:engine)
+    first=d.live_players(trainer);second=d.live_players(trainer)
+    assert first['rows'][0]['team']==0 and second['rows'][0]['team']==0
+    assert all(p['team']==-1 for p in second['rows'][1:])
+    assert engine.session.cache['native_teams_snapshot']==(0,)+(-1,)*27
+    for row in second['rows']:
+        row['slot_state']=1 if row['id']<24 else 0
+    cfg=dict(players=[],groups=[dict(key='force:0',name='森林巡逻队',members=[0,1,2,3])],issues=[],origin='fixture',map_name='',trusted=True)
+    groups=d.combine(second,cfg)['current_groups']
+    assert next(g for g in groups if g['key']=='team:0')['members']==[0]
+    assert not any(g['key']=='team:1' for g in groups)
+
+
+def test_diplomacy_groups_follow_applied_templates_not_handles():
+    live=live_fixture()
+    live['rows'][0]['diplomacy']=0
+    live['rows'][1]['diplomacy']=0
+    live['rows'][4]['diplomacy']=12
+    r=d.combine(live)
+    assert '队伍 1' in r['rows'][0]['diplomacy_label']
+    assert r['rows'][4]['diplomacy_label']=='中立敌对'
+    assert '队伍 1' in r['rows'][2]['diplomacy_label']
+    assert next(g for g in r['diplomacy_groups'] if g['key']=='diplomacy:0')['members']==[0,1,2,3]
+    assert next(g for g in r['diplomacy_groups'] if g['key']=='diplomacy:12')['members']==[4,24]
+    assert not any(g['key']=='diplomacy-none' for g in r['diplomacy_groups'])
+
+
+def test_applied_templates_use_player_id_not_owner_handle():
+    from war3_services.fullclone import applied_diplomacy_templates
+    cache={'fullclone_teams':{2:dict(applied=5,player=1)}}
+    assert applied_diplomacy_templates(cache)=={1:5}
+    assert 2 not in applied_diplomacy_templates(cache)
+    cache={'fullclone_teams':{0x100:dict(applied=0)}}
+    assert applied_diplomacy_templates(cache,addresses=[0xAA,0x100])=={1:0}
+    cache={'fullclone_teams':{2:dict(applied=5)}}
+    assert applied_diplomacy_templates(cache)=={}
+
+
+def test_diplomacy_original_names_membership_local_and_empty_destination():
+    live=live_fixture();live['rows'][2].update(is_local=True,slot_state=0)
+    cfg=dict(players=[],groups=[dict(key='force:0',name='森林巡逻队',members=[0,1,2,3]),dict(key='force:1',name='地图居民',members=[4,5,6,7])],issues=[],trusted=True)
+    r=d.combine(live,cfg)
+    first=next(g for g in r['diplomacy_groups'] if g.get('template')==0)
+    assert first['name']=='森林巡逻队（队伍 1）' and first['members']==[0,1,2,3]
+    assert 2 not in next(g for g in r['diplomacy_groups'] if g['key']=='inactive')['members']
+    for i in (4,5,6,7):live['rows'][i]['diplomacy']=0
+    moved=d.combine(live,cfg)
+    assert next(g for g in moved['diplomacy_groups'] if g.get('template')==0)['name']==first['name']
+    empty=next(g for g in moved['diplomacy_groups'] if g.get('template')==1)
+    assert empty['name']=='地图居民（队伍 2）' and empty['members']==[]
+    assert r['initial_groups']==moved['initial_groups'] and r['current_groups']==moved['current_groups']
+
+
+def test_diplomacy_unknown_original_team_is_not_guessed_from_force_order():
+    live=live_fixture();live['rows'][0]['team']=-1
+    cfg=dict(players=[],groups=[dict(key='force:0',name='英雄',members=[0])],issues=[],trusted=True)
+    r=d.combine(live,cfg)
+    g=next(g for g in r['diplomacy_groups'] if 0 in g['members'])
+    assert g['name']=='英雄（队伍未确认）' and 'template' not in g
+
+
+@pytest.mark.parametrize('player,target,context',[(True,1,'1:2:3'),(25,1,'1:2:3'),(28,1,'1:2:3'),(0,14,'1:2:3'),(0,False,'1:2:3'),(0,0,'')])
+def test_drag_parameters_rejected_before_connecting(player,target,context):
+    with pytest.raises(ValueError):d.move_player(NS(),player,target,context)
+
+
+def test_drag_stale_context_and_serialized_explicit_player_dispatch(monkeypatch):
+    from threading import RLock
+    engine=NS(session=NS(lock=RLock(),identity=NS(pid=10,created=20),epoch=3));calls=[]
+    trainer=NS(_engine_instance_24268=lambda:engine,fullclone_team=lambda *a,**kw:(calls.append((a,kw)) or dict(changed=1)))
+    api=NS(app=NS(elephant_trainer=lambda:trainer),_run_action=lambda fn,key:fn())
+    @contextmanager
+    def context(t):yield engine,None,None,None,None
+    monkeypatch.setattr(d,'read_context',context)
+    with pytest.raises(ValueError,match='地图或连接已变化'):d.move_player(api,0,1,'10:20:2')
+    assert calls==[]
+    result=d.move_player(api,0,1,'10:20:3')
+    assert calls==[((1,),dict(player=0,expected_epoch=3))] and result['success']
+
+
+def test_remembered_page_context_does_not_enumerate_or_read_files(monkeypatch):
+    engine=NS(session=NS(identity=NS(pid=10,created=20),epoch=3))
+    @contextmanager
+    def context(t):yield engine,None,None,None,None
+    monkeypatch.setattr(d,'read_context',context)
+    monkeypatch.setattr(d,'live_players',lambda *a:pytest.fail('no player enumeration on page return'))
+    monkeypatch.setattr(d,'map_config',lambda *a:pytest.fail('no file scan on page return'))
+    api=NS(app=NS(elephant_trainer=lambda:None))
+    assert d.page_context(api)==dict(success=True,context='10:20:3')
+    engine.session.epoch=4
+    assert d.page_context(api)['context']=='10:20:4'

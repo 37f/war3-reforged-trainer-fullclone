@@ -16,6 +16,9 @@ class FullCloneApplication:
             r=t.fullclone_toggle_control();return '已恢复选中玩家的控制状态' if r['restored'] else '已控制选中玩家（阵营不变）'
         elif action=='join_team':r=t.fullclone_team(o['team'])
         elif action=='restore_team':r=t.fullclone_team(restore=True)
+        elif action=='restore_all_teams':
+            r=t.fullclone_restore_all_teams()
+            return f'已恢复 {r["changed"]} 个玩家真正原队伍（共享控制权限保持不变）' if r['total'] else '本次地图没有可恢复的原队伍记录'
         elif action=='replace_unit':r=t.fullclone_action(12,rawcode=self.fc_rawcode(o['replace_id']))
         elif action=='fill_life_mana':r=t.fullclone_action(2)
         elif action=='revive_owner_heroes':

@@ -43,7 +43,7 @@ const server = http.createServer(async (req, res) => {
     await table.getByRole('button', { name: first.name, exact: true }).click()
     await page.getByRole('heading', { name: `玩家 ${first.slot} · ${first.name}`, exact: true }).waitFor()
     const group = data.initial_groups.find(g => g.members.length && g.key.startsWith('force:'))
-    await page.getByRole('button', { name: `${group.name}（${group.members.length}）`, exact: true }).click()
+    await page.getByRole('button', { name: `${group.name}（${group.members.length} 个玩家）`, exact: true }).click()
     assert.equal(await table.locator('tbody tr').count(), group.members.length)
     await page.getByRole('button', { name: '查看全部玩家', exact: true }).click()
     const search = page.getByLabel('搜索玩家信息', { exact: true })
@@ -54,11 +54,20 @@ const server = http.createServer(async (req, res) => {
     await grouping.selectOption('current')
     const team = data.current_groups.find(g => g.key.startsWith('team:'))
     if (team) {
-      await page.getByRole('button', { name: `${team.name}（${team.members.length}）`, exact: true }).click()
+      await page.getByRole('button', { name: `${team.name}（${team.members.length} 个玩家）`, exact: true }).click()
       assert.equal(await table.locator('tbody tr').count(), team.members.length)
       assert(team.members.every(id => id < 24))
     }
     await page.getByRole('button', { name: '查看全部玩家', exact: true }).click()
+    const modeLabels = await grouping.locator('option').allTextContents()
+    assert.ok(modeLabels.includes('查看或修改外交模板'))
+    await grouping.selectOption('diplomacy')
+    const applied = (data.diplomacy_groups || []).find(g => g.key && String(g.key).startsWith('diplomacy:') && g.members && g.members.length)
+    if (applied) {
+      await page.getByRole('button', { name: `${applied.name}（${applied.members.length} 个玩家）`, exact: true }).click()
+      assert.equal(await table.locator('tbody tr').count(), applied.members.length)
+      await page.getByRole('button', { name: '查看全部玩家', exact: true }).click()
+    }
     await grouping.selectOption('initial')
     const geometry = []
     for (const mode of ['modern', 'classic', 'legacy19']) {
@@ -86,7 +95,7 @@ const server = http.createServer(async (req, res) => {
     await read.click()
     await page.waitForFunction(() => !document.querySelector('[aria-label="玩家信息表"]'))
     assert.equal(errors.length, 0, errors.join('\n'))
-    const result = { ok: true, captured_readonly_reply: true, rows: data.rows.length, initial_group_filter: true, current_group_filter: true, search: true, details: true, all_three_layouts: geometry, wheel_scroll: true, failure_clears_old_rows: true, manual_reads_only: true, gameplay_mutations: false }
+    const result = { ok: true, captured_readonly_reply: true, rows: data.rows.length, initial_group_filter: true, current_group_filter: true, diplomacy_group_option: true, diplomacy_group_filter: Boolean(applied), search: true, details: true, all_three_layouts: geometry, wheel_scroll: true, failure_clears_old_rows: true, manual_reads_only: true, gameplay_mutations: false }
     await fs.writeFile(resolve(out, 'player-directory-check.json'), JSON.stringify(result, null, 2))
     console.log(JSON.stringify(result))
   } finally { await browser.close(); await new Promise(r => server.close(r)) }

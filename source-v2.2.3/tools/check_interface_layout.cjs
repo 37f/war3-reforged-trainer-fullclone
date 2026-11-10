@@ -61,9 +61,9 @@ const server = http.createServer(async (req, res) => {
       assert.equal(await page.evaluate(() => document.body.scrollWidth <= innerWidth), true, id)
     }
     await page.locator('[data-classic-page="elephant"]').click()
-    // Page navigation follows the existing lifecycle; layout switching itself
-    // must preserve the active monitor in that mounted page.
-    await page.getByText('每秒监视玩家名字和队伍', { exact: true }).click()
+    // R31.13 also remembers this switch across page navigation; do not toggle
+    // an already enabled monitor off before checking the next layout.
+    if (!await monitor.isChecked()) await page.getByText('每秒监视玩家名字和队伍', { exact: true }).click()
     await page.locator('[data-testid="interface-legacy19"]').click()
     await page.locator('[data-testid="legacy19-groups"]').waitFor()
     assert.equal(await monitor.isChecked(), true)
