@@ -2,7 +2,7 @@
 
 ## 当前 3.0+ 扩展测试版：v2.2.3 FullClone R31.14-Test
 
-基于[原作者项目](https://github.com/dc114154qq/war3-reforged-trainer)的 **v2.2.3 / e4930f5e0739** 源码，保留作者3.0读取、字段、扩展背包、装备、英雄技能、脚本和存档工具，加入FullClone累计扩展。本项目为非官方扩展测试版。
+基于[原作者项目](https://github.com/dc114154qq/war3-reforged-trainer)的 **v2.2.3 / e4930f5e0739** 源码，保留作者3.0+读取、字段、扩展背包、装备、英雄技能、脚本和存档工具，加入FullClone累计扩展。本项目为非官方扩展测试版。
 
 - **[R31.14 发布与下载](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v2.2.3-fullclone-r31.14-test)**
 - **[Windows 单文件 EXE](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v2.2.3-fullclone-r31.14-test/War3ReforgedTrainer-v2.2.3-FullClone-R31.14-Test.exe)**
