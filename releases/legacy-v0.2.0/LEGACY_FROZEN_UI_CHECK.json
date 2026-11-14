@@ -1,0 +1,27 @@
+{
+  "ok": true,
+  "offline": true,
+  "backend_imported": false,
+  "tabs": [
+    "玩家资源",
+    "选中单位与英雄",
+    "复制与替换"
+  ],
+  "buttons": 14,
+  "hotkeys_default_off": true,
+  "custom_inputs_default_disabled": true,
+  "checkbox_enables_custom_inputs": true,
+  "target_path": "E:\\Games\\Warcraft III (Legacy)\\Warcraft III.exe",
+  "clone_defaults_valid": true,
+  "clone_owner_options": [
+    "self",
+    "selected",
+    "player"
+  ],
+  "replace_id_default": "zhyd",
+  "controls_constructed": true,
+  "game_process_attached": false,
+  "gameplay_mutations": false,
+  "width": 980,
+  "height": 740
+}

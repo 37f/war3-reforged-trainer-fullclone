@@ -1,0 +1,130 @@
+{
+  "ok": true,
+  "edition": "War3LegacyTrainer v0.2.0-Test",
+  "date": "2026-11-08",
+  "game_version": "1.29.2.9231",
+  "game_original_sha256": "3f2ed0120d80578bf07e4423296dade1adfb959d59a2d20a7584224559570eed",
+  "original_game_file_unchanged": true,
+  "preserved_v1": {
+    "exe_sha256": "0fe17c59302c8fc489e184e916422ce4be0cdf245df674ce1d21ef3ec68251c9",
+    "source_zip_sha256": "68a5658ace6d744b1f395266708141e5d9dfd0a04a37cadf8e3ca6a6c9efe577"
+  },
+  "core_x86_fixture": {
+    "assertions": 361,
+    "failed": 0,
+    "game_attached": false
+  },
+  "clone_x86_fixture": {
+    "assertions": 117,
+    "failed": 0,
+    "game_attached": false
+  },
+  "python_tests": {
+    "passed": 8
+  },
+  "x86_exception_guard_fixture_passed": true,
+  "frozen_ui": {
+    "ok": true,
+    "offline": true,
+    "backend_imported": false,
+    "tabs": [
+      "玩家资源",
+      "选中单位与英雄",
+      "复制与替换"
+    ],
+    "buttons": 14,
+    "hotkeys_default_off": true,
+    "custom_inputs_default_disabled": true,
+    "checkbox_enables_custom_inputs": true,
+    "target_path": "E:\\Games\\Warcraft III (Legacy)\\Warcraft III.exe",
+    "clone_defaults_valid": true,
+    "clone_owner_options": [
+      "self",
+      "selected",
+      "player"
+    ],
+    "replace_id_default": "zhyd",
+    "controls_constructed": true,
+    "game_process_attached": false,
+    "gameplay_mutations": false,
+    "width": 980,
+    "height": 740
+  },
+  "frozen_readonly_ok": true,
+  "frozen_build": {
+    "ok": true,
+    "exe": "War3LegacyTrainer-v0.2.0-Test.exe",
+    "exe_sha256": "3902e2747b4bf9f7cb550cfe1d699daf99e620620209b2924f22ff854589ea06",
+    "exe_bytes": 11681505,
+    "version": "0.2.0-Test",
+    "game_version": "1.29.2.9231",
+    "game_sha256": "3f2ed0120d80578bf07e4423296dade1adfb959d59a2d20a7584224559570eed",
+    "outer_machine": "x64",
+    "helper_machine": "x86",
+    "packet_bytes": 7300,
+    "embedded_originals_match": true,
+    "backend_code_matches": true,
+    "ui_code_matches": true
+  },
+  "ui_behavior": {
+    "ok": true,
+    "backend_imported": false,
+    "gameplay_mutations": false,
+    "third_tab": true,
+    "old_and_new_neutral_labels": true,
+    "owner_modes": true,
+    "ctrl_a_always_self": true,
+    "clone_count_validation": true,
+    "rawcode_validation": true,
+    "hotkey_edges": true,
+    "busy_does_not_queue": true,
+    "foreground_gating": true,
+    "backend_message_used": true,
+    "existing_level_stats_hotkeys_retained": true
+  },
+  "live_gameplay": {
+    "authorized_test_map": true,
+    "production_helper_tested": true,
+    "helper_sha256": "fc659f5ba58e7fcb0808ce815d449e190bdc9007bb1de627b2004df0183c4f67",
+    "original_hero_preserved": true,
+    "passed_steps": [
+      "single_self",
+      "configured",
+      "copy_state",
+      "mass_player_13",
+      "mass_player_16",
+      "mass_source_owner",
+      "mass_ordinary_player2",
+      "replace_zhyd",
+      "replace_hero",
+      "invalid_id",
+      "inactive_player",
+      "test_operation_not_shipped",
+      "multi_selection",
+      "passed"
+    ],
+    "tests": [
+      "single self clone",
+      "XP/level/permanent attributes/skill points/skills and levels/HP/MP/pause states copied",
+      "inventory new identities, charges, life, invulnerable/pawnable and exact slots",
+      "ordinary player 2",
+      "neutral hostile old-map player13",
+      "neutral passive old-map player16",
+      "source-owner mass clone",
+      "multi-selection mass clone",
+      "replace zhyd and Hpal",
+      "replacement retains original item instances",
+      "unknown ID rejected",
+      "inactive ordinary player rejected",
+      "test-only command rejected by production helper"
+    ]
+  },
+  "validation_limits": [
+    "Not a universal all-map compatibility claim",
+    "Hotkey dispatch tested with fake foreground/key state; not every chord physically tested in game",
+    "No map generation identity; reconnect after map/save/menu changes",
+    "No arbitrary script state, timed buffs, cooldown or trigger-reference migration",
+    "Replacement uses new unit type skill template",
+    "Earlier exploratory failures are not counted as acceptance"
+  ]
+}

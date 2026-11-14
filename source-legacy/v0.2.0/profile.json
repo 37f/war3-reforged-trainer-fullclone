@@ -1,0 +1,438 @@
+{
+  "version": "1.29.2.9231",
+  "sha256": "3f2ed0120d80578bf07e4423296dade1adfb959d59a2d20a7584224559570eed",
+  "machine": 332,
+  "timestamp": 1525216791,
+  "image_size": 15446016,
+  "image_base": 4194304,
+  "world_rva": 13874932,
+  "world_vtable_rva": 10938172,
+  "player_count_offset": 84,
+  "natives": {
+    "GetPlayerState": {
+      "rva": 608896,
+      "signature": "(Hplayer;Hplayerstate;)I",
+      "code": "558becff7508e8e5dcfeff83c40485c075025dc3568b750c83fe1a720533c05e5dc38d4e",
+      "relocations": []
+    },
+    "SetPlayerState": {
+      "rva": 694176,
+      "signature": "(Hplayer;Hplayerstate;I)V",
+      "code": "558bec56ff7508e8c48ffdff8bf083c40485f6743e8b550c83fa1a73368d4af183f90177",
+      "relocations": []
+    },
+    "GetPlayerId": {
+      "rva": 607728,
+      "signature": "(Hplayer;)I",
+      "code": "558becff7508e875e1feff83c40485c075025dc3560fb67030a1f4b613018b48308d4924",
+      "relocations": [
+        26
+      ]
+    },
+    "GetLocalPlayer": {
+      "rva": 604048,
+      "signature": "()Hplayer;",
+      "code": "568b35f4b6130185f67436e8f09f11008bce85c074060fb7462aeb040fb7462850e81a40",
+      "relocations": [
+        3
+      ]
+    },
+    "Player": {
+      "rva": 672320,
+      "signature": "(I)Hplayer;",
+      "code": "558beca1f4b613018b48308d4924e8bd4dfcff50e8d70026008b4d0883c4043dac170000",
+      "relocations": [
+        4
+      ]
+    },
+    "GetPlayerSlotState": {
+      "rva": 608640,
+      "signature": "(Hplayer;)Hplayerslotstate;",
+      "code": "558becff7508e8e5ddfeff83c40485c075025dc38b80d00200005dc3cccccccc558becff",
+      "relocations": []
+    },
+    "GetUnitState": {
+      "rva": 621744,
+      "signature": "(Hunit;Hunitstate;)R",
+      "code": "558bec568b750c83fe047c08a18cd812015e5dc3ff7508e874bcfeff83c40485c074e983",
+      "relocations": [
+        13
+      ]
+    },
+    "SetUnitState": {
+      "rva": 703392,
+      "signature": "(Hunit;Hunitstate;R)V",
+      "code": "558bec568b750c83fe047d1fff7508e88c7dfdff83c40485c0741083fe04730bff75108b",
+      "relocations": []
+    },
+    "GetHeroLevel": {
+      "rva": 600336,
+      "signature": "(Hunit;)I",
+      "code": "558bec56ff7508e82410ffff8bf083c40485f6744bff7610ff760ce8c0defdff83c40885",
+      "relocations": []
+    },
+    "SetHeroLevel": {
+      "rva": 690352,
+      "signature": "(Hunit;IB)V",
+      "code": "558bec5156ff7508e883b0fdff8bf083c40485f60f8491000000ff7610ff760ce81b7ffc",
+      "relocations": []
+    },
+    "UnitStripHeroLevel": {
+      "rva": 718960,
+      "signature": "(Hunit;I)B",
+      "code": "558bec56ff7508e8c440fdff8bf083c40485f6744fff7610ff760ce8600ffcff83c40885",
+      "relocations": []
+    },
+    "GetHeroStr": {
+      "rva": 600944,
+      "signature": "(Hunit;B)I",
+      "code": "558bec56ff7508e8c40dffff8bf083c40485f6744fff7610ff760ce860dcfdff83c40885",
+      "relocations": []
+    },
+    "SetHeroStr": {
+      "rva": 690880,
+      "signature": "(Hunit;IB)V",
+      "code": "558bec56ff7508e874aefdff8bf083c40485f6744fff7610ff760ce8107dfcff83c40885",
+      "relocations": []
+    },
+    "GetHeroAgi": {
+      "rva": 600112,
+      "signature": "(Hunit;B)I",
+      "code": "558bec56ff7508e80411ffff8bf083c40485f6744fff7610ff760ce8a0dffdff83c40885",
+      "relocations": []
+    },
+    "SetHeroAgi": {
+      "rva": 690128,
+      "signature": "(Hunit;IB)V",
+      "code": "558bec56ff7508e864b1fdff8bf083c40485f6744fff7610ff760ce80080fcff83c40885",
+      "relocations": []
+    },
+    "GetHeroInt": {
+      "rva": 600224,
+      "signature": "(Hunit;B)I",
+      "code": "558bec56ff7508e89410ffff8bf083c40485f6744fff7610ff760ce830dffdff83c40885",
+      "relocations": []
+    },
+    "SetHeroInt": {
+      "rva": 690240,
+      "signature": "(Hunit;IB)V",
+      "code": "558bec56ff7508e8f4b0fdff8bf083c40485f6744fff7610ff760ce8907ffcff83c40885",
+      "relocations": []
+    },
+    "IsSuspendedXP": {
+      "rva": 628784,
+      "signature": "(Hunit;)B",
+      "code": "558bec56ff7508e804a1feff8bf083c40485f6744bff7610ff760ce8a06ffdff83c40885",
+      "relocations": []
+    },
+    "SuspendHeroXP": {
+      "rva": 706944,
+      "signature": "(Hunit;B)V",
+      "code": "558bec56ff7508e8b46ffdff8bf083c40485f6744cff7610ff760ce8503efcff83c40885",
+      "relocations": []
+    },
+    "IsUnitType": {
+      "rva": 631312,
+      "signature": "(Hunit;Hunittype;)B",
+      "code": "558bec56ff7508e82497feff8bf083c40485f60f843d0100008b450c83f81a0f87310100",
+      "relocations": []
+    },
+    "GetOwningPlayer": {
+      "rva": 607248,
+      "signature": "(Hunit;)Hplayer;",
+      "code": "558becff7508e825f5feff83c40485c075025dc3568bc8e814df1f008b0df4b613018bf0",
+      "relocations": [
+        30
+      ]
+    },
+    "GetUnitTypeId": {
+      "rva": 621872,
+      "signature": "(Hunit;)I",
+      "code": "558becff7508e805bcfeff83c40485c075025dc38b40345dc3cccccccccccccc558becff",
+      "relocations": []
+    },
+    "CreateGroup": {
+      "rva": 582384,
+      "signature": "()Hgroup;",
+      "code": "558bec6aff68c60bdc0064a10000000050515657a1e49f0e0133c5508d45f464a3000000",
+      "relocations": [
+        6,
+        21
+      ]
+    },
+    "DestroyGroup": {
+      "rva": 586816,
+      "signature": "(Hgroup;)V",
+      "code": "558becff7508e8d52affff83c40485c074088b108bc85dff625c5dc3cccccccc558bec8b",
+      "relocations": []
+    },
+    "GroupEnumUnitsSelected": {
+      "rva": 623424,
+      "signature": "(Hgroup;Hplayer;Hboolexpr;)V",
+      "code": "558bec6aff685814dc0064a1000000005083ec1c535657a1e49f0e0133c5508d45f464a3",
+      "relocations": [
+        6,
+        24
+      ]
+    },
+    "FirstOfGroup": {
+      "rva": 590560,
+      "signature": "(Hgroup;)Hunit;",
+      "code": "558bec56ff7508e8341cffff83c40485c074296a008d4824e8732306008bf085f674198b",
+      "relocations": []
+    },
+    "GroupRemoveUnit": {
+      "rva": 624336,
+      "signature": "(Hgroup;Hunit;)V",
+      "code": "558bec56ff7508e84498feff8bf083c40485f67417ff750ce853b2feff83c40485c07408",
+      "relocations": []
+    },
+    "CreateUnit": {
+      "rva": 585216,
+      "signature": "(Hplayer;IRRR)Hunit;",
+      "code": "558bec51833d98b81301007428e87e7e30008bc82b0d9cb8130183f964761651a39cb813",
+      "relocations": [
+        6,
+        22
+      ]
+    },
+    "RemoveUnit": {
+      "rva": 676832,
+      "signature": "(Hunit;)V",
+      "code": "558bec56ff7508e854e5fdff8bf083c40485f674158b168bceff92840000006a016a018b",
+      "relocations": []
+    },
+    "GetUnitX": {
+      "rva": 621936,
+      "signature": "(Hunit;)R",
+      "code": "558bec83ec0cff7508e8c2bbfeff8bc883c40485c97509a18cd812018be55dc38d45f450",
+      "relocations": [
+        24
+      ]
+    },
+    "GetUnitY": {
+      "rva": 622000,
+      "signature": "(Hunit;)R",
+      "code": "558bec83ec0cff7508e882bbfeff8bc883c40485c97509a18cd812018be55dc38d45f450",
+      "relocations": [
+        24
+      ]
+    },
+    "GetUnitFacing": {
+      "rva": 620112,
+      "signature": "(Hunit;)R",
+      "code": "558bec83ec0856ff7508e8e1c2feff8bf083c40485f67457ff7610ff760ce87d91fdff83",
+      "relocations": []
+    },
+    "GetHeroXP": {
+      "rva": 601056,
+      "signature": "(Hunit;)I",
+      "code": "558bec56ff7508e8540dffff8bf083c40485f6744bff7610ff760ce8f0dbfdff83c40885",
+      "relocations": []
+    },
+    "SetHeroXP": {
+      "rva": 690992,
+      "signature": "(Hunit;IB)V",
+      "code": "558bec5156ff7508e803aefdff8bf083c40485f67472ff7610ff760ce89f7cfcff83c408",
+      "relocations": []
+    },
+    "GetHeroSkillPoints": {
+      "rva": 600720,
+      "signature": "(Hunit;)I",
+      "code": "558bec56ff7508e8a40effff8bf083c40485f6744bff7610ff760ce840ddfdff83c40885",
+      "relocations": []
+    },
+    "UnitModifySkillPoints": {
+      "rva": 718000,
+      "signature": "(Hunit;I)B",
+      "code": "558bec56ff7508e88444fdff8bf083c40485f6744fff7610ff760ce82013fcff83c40885",
+      "relocations": []
+    },
+    "GetUnitAbilityLevel": {
+      "rva": 618944,
+      "signature": "(Hunit;I)I",
+      "code": "558bec56ff7508e874c7feff8bf083c40485f67445ff7610ff760ce81096fdff83c40885",
+      "relocations": []
+    },
+    "UnitAddAbility": {
+      "rva": 714992,
+      "signature": "(Hunit;I)B",
+      "code": "558bec56ff7508e84450fdff8bf083c40485f675035e5dc3578b7d0c8bce6a016a016a01",
+      "relocations": []
+    },
+    "SetUnitAbilityLevel": {
+      "rva": 699936,
+      "signature": "(Hunit;II)I",
+      "code": "558bec5156ff7508e8138bfdff8bf083c40485f60f84c0000000ff7610ff760ce8ab59fc",
+      "relocations": []
+    },
+    "UnitItemInSlot": {
+      "rva": 717824,
+      "signature": "(Hunit;I)Hitem;",
+      "code": "558bec56ff7508e83445fdff8bf083c40485f674348bcee844f81c0085c07429ff750c8b",
+      "relocations": []
+    },
+    "GetItemTypeId": {
+      "rva": 602048,
+      "signature": "(Hitem;)I",
+      "code": "558becff7508e885f0feff83c40485c075025dc38b40345dc3cccccccccccccc558becff",
+      "relocations": []
+    },
+    "GetItemCharges": {
+      "rva": 601424,
+      "signature": "(Hitem;)I",
+      "code": "558becff7508e8f5f2feff83c40485c075025dc38b808c0100005dc3cccccccc558becff",
+      "relocations": []
+    },
+    "SetItemCharges": {
+      "rva": 691680,
+      "signature": "(Hitem;I)V",
+      "code": "558becff7508e86592fdff83c40485c0743d8b4d0c33d285c90f49d185d2751881482000",
+      "relocations": []
+    },
+    "GetWidgetLife": {
+      "rva": 622064,
+      "signature": "(Hwidget;)R",
+      "code": "558bec51ff7508e8a4bdfeff8bc883c40485c97509a18cd812018be55dc38b018d55fc52",
+      "relocations": [
+        22
+      ]
+    },
+    "SetWidgetLife": {
+      "rva": 704192,
+      "signature": "(Hwidget;R)V",
+      "code": "558becff7508e8d57cfdff83c40485c0740d8b108bc8ff750cff92240100005dc3cccccc",
+      "relocations": []
+    },
+    "CreateItem": {
+      "rva": 582704,
+      "signature": "(IRR)Hitem;",
+      "code": "558bec56ff7510ff750cff7508e8fe6923008b0df4b6130183c40c8bf0e8be92feff85c0",
+      "relocations": [
+        20
+      ]
+    },
+    "UnitAddItem": {
+      "rva": 715248,
+      "signature": "(Hunit;Hitem;)B",
+      "code": "558bec6aff68881ddc0064a1000000005051535657a1e49f0e0133c5508d45f464a30000",
+      "relocations": [
+        6,
+        22
+      ]
+    },
+    "UnitDropItemSlot": {
+      "rva": 716976,
+      "signature": "(Hunit;Hitem;I)B",
+      "code": "558bec56ff7508e88448fdff8bf083c40485f6741a8bcee894fb1c0085c0740fff750ce8",
+      "relocations": []
+    },
+    "UnitRemoveItem": {
+      "rva": 718416,
+      "signature": "(Hunit;Hitem;)V",
+      "code": "558bec56ff7508e8e442fdff8bf083c40485f674228bcee8f4f51c0085c07417ff750ce8",
+      "relocations": []
+    },
+    "RemoveItem": {
+      "rva": 676112,
+      "signature": "(Hitem;)V",
+      "code": "558bec56ff7508e834cffdff8bf083c40485f674198b168bceff92840000008b168bce68",
+      "relocations": []
+    },
+    "SelectUnit": {
+      "rva": 681920,
+      "signature": "(Hunit;B)V",
+      "code": "558bec56ff7508e874d1fdff8bf083c40485f60f8491000000ff7610ff760ce80ca0fcff",
+      "relocations": []
+    },
+    "IsUnitPaused": {
+      "rva": 631024,
+      "signature": "(Hunit;)B",
+      "code": "558bec56ff7508e84498feff8bf083c40485f67437ff7610ff760ce8e066fdff83c40885",
+      "relocations": []
+    },
+    "PauseUnit": {
+      "rva": 671488,
+      "signature": "(Hunit;B)V",
+      "code": "558bec56ff7508e834fafdff8bf083c40485f67451ff7610ff760ce8d0c8fcff83c40885",
+      "relocations": []
+    },
+    "IsItemInvulnerable": {
+      "rva": 626896,
+      "signature": "(Hitem;)B",
+      "code": "558becff7508e8758ffeff83c40485c075025dc38b4020c1e80383e0015dc3cc558becff",
+      "relocations": []
+    },
+    "SetItemInvulnerable": {
+      "rva": 692144,
+      "signature": "(Hitem;B)V",
+      "code": "558becff7508e89590fdff83c40485c0740d8b108bc8ff750cff92a80000005dc3cccccc",
+      "relocations": []
+    },
+    "IsItemPawnable": {
+      "rva": 626992,
+      "signature": "(Hitem;)B",
+      "code": "558becff7508e8158ffeff83c40485c075025dc38b4020c1e80d83e0015dc3cc558becff",
+      "relocations": []
+    },
+    "SetItemPawnable": {
+      "rva": 692256,
+      "signature": "(Hitem;B)V",
+      "code": "558becff7508e82590fdff83c40485c07416837d0c007409814820002000005dc3816020",
+      "relocations": []
+    },
+    "BlzSetUnitMaxHP": {
+      "rva": 702400,
+      "signature": "(Hunit;I)V",
+      "code": "558bec83ec0c56ff7508e87181fdff8bf083c40485f674358b168d45fc6a00508bceff92",
+      "relocations": []
+    },
+    "BlzSetUnitMaxMana": {
+      "rva": 702496,
+      "signature": "(Hunit;I)V",
+      "code": "558bec83ec0c56ff7508e81181fdff8bf083c40485f674398d45fc508d8ec0010000e8d9",
+      "relocations": []
+    },
+    "ResolveUnit": {
+      "rva": 538944,
+      "signature": "(Hunit;)P:internal-cdecl",
+      "code": "558bec6aff68fbeddb0064a1000000005083ec0c535657a1e49f0e0133c5508d45f464a3",
+      "relocations": [
+        6,
+        24
+      ]
+    },
+    "DecodeAbilityLink": {
+      "rva": 4179936,
+      "signature": "(P)P:internal-thiscall",
+      "code": "ff7104ff31e80640c7ff83c40885c0740a8378200075048b4054c333c0c3cccc558bec83",
+      "relocations": []
+    },
+    "AbilityHeadLayout": {
+      "rva": 2975231,
+      "signature": "layout-evidence",
+      "code": "8b81ec03000081c1e80300005357230183f8ff746ce8c76112008bf885ff7461908b4728",
+      "relocations": []
+    },
+    "AbilityNodeLayout": {
+      "rva": 2975264,
+      "signature": "layout-evidence",
+      "code": "8b47288d4f2423018bdf83f8ff750433ffeb07e8a86112008bf8f64320207406837d1800",
+      "relocations": []
+    },
+    "AbilityLevelLayout": {
+      "rva": 619011,
+      "signature": "layout-evidence",
+      "code": "6a00ff750c8bcee861f3230085c074078b4050405e5dc333c05e5dc3cc558becff7508e8",
+      "relocations": []
+    }
+  },
+  "ability_layout": {
+    "unit_head": 1000,
+    "next": 36,
+    "flags": 32,
+    "rawcode": 52,
+    "level": 80,
+    "item_flag": 32
+  }
+}

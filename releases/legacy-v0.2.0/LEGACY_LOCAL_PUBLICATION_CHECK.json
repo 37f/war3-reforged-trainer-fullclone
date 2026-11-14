@@ -1,0 +1,53 @@
+{
+  "ok": true,
+  "exe_sha256": "3902e2747b4bf9f7cb550cfe1d699daf99e620620209b2924f22ff854589ea06",
+  "source_zip_sha256": "11a8fa1473bfadaf9340ee10e99f9a9af6e6be5bf5d197b58e4db00bb24d899b",
+  "source_commit": "19e2d1caceb364dcdae2e258e94a6cfc4d699434",
+  "source_files": 33,
+  "source_archive_all_members_verified": true,
+  "embedded_components": {
+    "profile.json": "831b9dab6d6a243dbe1942ddc8ff8369578eae571285dc80e69bc06f6d19b6ce",
+    "legacy32/legacy_host32_v2.exe": "4a7380f94fbc7d9ce5274e410d079aecb605590dfb7ed3e25cc2ab6d293bca9a",
+    "legacy32/legacy_bridge32_v2.dll": "fc659f5ba58e7fcb0808ce815d449e190bdc9007bb1de627b2004df0183c4f67"
+  },
+  "embedded_backend_ui_match_source": true,
+  "outer_machine": "x64",
+  "helper_machine": "x86",
+  "file_version": "0.2.0.0",
+  "offline_ui": {
+    "ok": true,
+    "offline": true,
+    "backend_imported": false,
+    "tabs": [
+      "玩家资源",
+      "选中单位与英雄",
+      "复制与替换"
+    ],
+    "buttons": 14,
+    "hotkeys_default_off": true,
+    "custom_inputs_default_disabled": true,
+    "checkbox_enables_custom_inputs": true,
+    "target_path": "E:\\Games\\Warcraft III (Legacy)\\Warcraft III.exe",
+    "clone_defaults_valid": true,
+    "clone_owner_options": [
+      "self",
+      "selected",
+      "player"
+    ],
+    "replace_id_default": "zhyd",
+    "controls_constructed": true,
+    "game_process_attached": false,
+    "gameplay_mutations": false,
+    "width": 980,
+    "height": 740
+  },
+  "recompiled": false,
+  "gameplay_mutations": false,
+  "checked_on": "2026-11-14",
+  "known_unfixed_issues": [
+    "Some ordinary units with temporary aura/buff effects can report partial ability-copy failure",
+    "Copies are created near the source unit instead of the mouse",
+    "Manual hero level change has no level-up effect"
+  ],
+  "v0_2_1_unfinished_and_excluded": true
+}

@@ -1,0 +1,304 @@
+{
+  "ok": true,
+  "gameplay_mutations": false,
+  "snapshot": {
+    "pid": 18204,
+    "profile": "Legacy 1.29.2.9231",
+    "local_player": 0,
+    "world": 230277320,
+    "applied": 0,
+    "players": [
+      {
+        "slot": 0,
+        "state": 1,
+        "gold": 21270,
+        "lumber": 20110,
+        "food_used": 99,
+        "food_cap": 20
+      },
+      {
+        "slot": 1,
+        "state": 1,
+        "gold": 680,
+        "lumber": 70,
+        "food_used": 34,
+        "food_cap": 24
+      },
+      {
+        "slot": 2,
+        "state": 1,
+        "gold": 630,
+        "lumber": 40,
+        "food_used": 14,
+        "food_cap": 20
+      },
+      {
+        "slot": 3,
+        "state": 1,
+        "gold": 1030,
+        "lumber": 60,
+        "food_used": 11,
+        "food_cap": 20
+      },
+      {
+        "slot": 4,
+        "state": 1,
+        "gold": 1030,
+        "lumber": 3,
+        "food_used": 14,
+        "food_cap": 50
+      },
+      {
+        "slot": 5,
+        "state": 1,
+        "gold": 1040,
+        "lumber": 3,
+        "food_used": 14,
+        "food_cap": 50
+      },
+      {
+        "slot": 6,
+        "state": 1,
+        "gold": 1070,
+        "lumber": 4,
+        "food_used": 14,
+        "food_cap": 50
+      },
+      {
+        "slot": 7,
+        "state": 1,
+        "gold": 630,
+        "lumber": 3,
+        "food_used": 18,
+        "food_cap": 50
+      },
+      {
+        "slot": 8,
+        "state": 0,
+        "gold": 0,
+        "lumber": 0,
+        "food_used": 0,
+        "food_cap": 0
+      },
+      {
+        "slot": 9,
+        "state": 0,
+        "gold": 0,
+        "lumber": 0,
+        "food_used": 0,
+        "food_cap": 0
+      },
+      {
+        "slot": 10,
+        "state": 0,
+        "gold": 0,
+        "lumber": 0,
+        "food_used": 0,
+        "food_cap": 0
+      },
+      {
+        "slot": 11,
+        "state": 0,
+        "gold": 0,
+        "lumber": 0,
+        "food_used": 0,
+        "food_cap": 0
+      },
+      {
+        "slot": 12,
+        "state": 1,
+        "gold": 0,
+        "lumber": 0,
+        "food_used": 205,
+        "food_cap": 0
+      },
+      {
+        "slot": 13,
+        "state": 1,
+        "gold": 0,
+        "lumber": 0,
+        "food_used": 0,
+        "food_cap": 0
+      },
+      {
+        "slot": 14,
+        "state": 1,
+        "gold": 0,
+        "lumber": 0,
+        "food_used": 0,
+        "food_cap": 0
+      },
+      {
+        "slot": 15,
+        "state": 1,
+        "gold": 0,
+        "lumber": 0,
+        "food_used": 55,
+        "food_cap": 0
+      },
+      {
+        "slot": 16,
+        "state": 0,
+        "gold": 0,
+        "lumber": 0,
+        "food_used": 0,
+        "food_cap": 0
+      },
+      {
+        "slot": 17,
+        "state": 0,
+        "gold": 0,
+        "lumber": 0,
+        "food_used": 0,
+        "food_cap": 0
+      },
+      {
+        "slot": 18,
+        "state": 0,
+        "gold": 0,
+        "lumber": 0,
+        "food_used": 0,
+        "food_cap": 0
+      },
+      {
+        "slot": 19,
+        "state": 0,
+        "gold": 0,
+        "lumber": 0,
+        "food_used": 0,
+        "food_cap": 0
+      },
+      {
+        "slot": 20,
+        "state": 0,
+        "gold": 0,
+        "lumber": 0,
+        "food_used": 0,
+        "food_cap": 0
+      },
+      {
+        "slot": 21,
+        "state": 0,
+        "gold": 0,
+        "lumber": 0,
+        "food_used": 0,
+        "food_cap": 0
+      },
+      {
+        "slot": 22,
+        "state": 0,
+        "gold": 0,
+        "lumber": 0,
+        "food_used": 0,
+        "food_cap": 0
+      },
+      {
+        "slot": 23,
+        "state": 0,
+        "gold": 0,
+        "lumber": 0,
+        "food_used": 0,
+        "food_cap": 0
+      }
+    ],
+    "units": [
+      {
+        "handle": 1052131,
+        "type_id": "Ekee",
+        "owner": 0,
+        "hero": true,
+        "hp": 1000.0,
+        "max_hp": 1000.0,
+        "mp": 553.24,
+        "max_mp": 660.0,
+        "level": 7,
+        "str": 36,
+        "agi": 34,
+        "int": 44
+      }
+    ],
+    "old_map_neutral_aliases": true,
+    "created": [],
+    "warnings": 0,
+    "detail": {
+      "handle": 1052131,
+      "type_id": "Ekee",
+      "x": -1604.55517578125,
+      "y": -6335.90283203125,
+      "facing": 277.64227294921875,
+      "xp": 2700,
+      "points": 0,
+      "paused": false,
+      "xp_paused": false,
+      "item_nodes": 1,
+      "abilities": [
+        {
+          "id": "AEtq",
+          "level": 1,
+          "flags": 16
+        },
+        {
+          "id": "AEer",
+          "level": 1,
+          "flags": 16
+        },
+        {
+          "id": "AEfn",
+          "level": 2,
+          "flags": 528
+        },
+        {
+          "id": "AEah",
+          "level": 3,
+          "flags": 2415919248
+        },
+        {
+          "id": "BEah",
+          "level": 1,
+          "flags": 1627390352
+        },
+        {
+          "id": "AItp",
+          "level": 1,
+          "flags": 8224
+        },
+        {
+          "id": "Ault",
+          "level": 1,
+          "flags": 16
+        },
+        {
+          "id": "AInv",
+          "level": 1,
+          "flags": 144
+        },
+        {
+          "id": "AHer",
+          "level": 1,
+          "flags": 144
+        },
+        {
+          "id": "Aatk",
+          "level": 1,
+          "flags": 570966032
+        },
+        {
+          "id": "Amov",
+          "level": 1,
+          "flags": 16
+        }
+      ],
+      "items": [
+        {
+          "slot": 0,
+          "handle": 1052133,
+          "id": "stwp",
+          "charges": 1,
+          "life": 75.0,
+          "invulnerable": false,
+          "pawnable": true
+        }
+      ]
+    }
+  }
+}

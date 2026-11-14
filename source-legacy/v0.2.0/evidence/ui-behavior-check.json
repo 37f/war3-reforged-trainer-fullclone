@@ -1,0 +1,16 @@
+{
+  "ok": true,
+  "backend_imported": false,
+  "gameplay_mutations": false,
+  "third_tab": true,
+  "old_and_new_neutral_labels": true,
+  "owner_modes": true,
+  "ctrl_a_always_self": true,
+  "clone_count_validation": true,
+  "rawcode_validation": true,
+  "hotkey_edges": true,
+  "busy_does_not_queue": true,
+  "foreground_gating": true,
+  "backend_message_used": true,
+  "existing_level_stats_hotkeys_retained": true
+}

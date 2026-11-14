@@ -1,0 +1,137 @@
+{
+  "source_commit": "19e2d1caceb364dcdae2e258e94a6cfc4d699434",
+  "files": {
+    ".gitignore": {
+      "bytes": 463,
+      "sha256": "433166a6cd6f6b4a9322d0c9c4411fd5fc48887724c3ef08f5773169d0e814e2"
+    },
+    "README.md": {
+      "bytes": 1899,
+      "sha256": "babe79d320d59b636e0bf9d8a2166bdfd39939a8f70842242e8585d719b1ab2a"
+    },
+    "VERIFICATION.json": {
+      "bytes": 4259,
+      "sha256": "c47fe339f43c176176ef14cea8e7015104d7804ca9bb02b05592a6a3768bd7b6"
+    },
+    "build.py": {
+      "bytes": 3295,
+      "sha256": "cfa20f6be8bbdf9a3ddded3a1de05de89198c233bea22ceaae50a94a3bc67f7f"
+    },
+    "clone_fixture.c": {
+      "bytes": 10734,
+      "sha256": "bceaa67f6c3cee4dc9692f39f9ab95c9692709a7b9b87fa178259695fbbc4145"
+    },
+    "core_fixture.c": {
+      "bytes": 6156,
+      "sha256": "42ec81068218a35472bc426499a10b5e3b0b720b0a720a3389c7e19431f3c486"
+    },
+    "evidence/BUILD_VERIFICATION.json": {
+      "bytes": 502,
+      "sha256": "ad2164cce31b0f95b92be84e443440ac445f274ef651fcf3f66c64dc2bb9cb7c"
+    },
+    "evidence/frozen-readonly.json": {
+      "bytes": 5904,
+      "sha256": "0737cba3db92087f6a18508ee86647ee2d16ce26291cb0c344e1530bc9fe274f"
+    },
+    "evidence/frozen-ui-check.json": {
+      "bytes": 648,
+      "sha256": "9e1e7f2f292acb794ccf02352e5f3659bfdd83941df067b4eebec599b31bdb41"
+    },
+    "evidence/live-acceptance.json": {
+      "bytes": 152544,
+      "sha256": "3f08bfbe7c5db58d6610307c8fac731c239a226ae8318f397e394953722c9760"
+    },
+    "evidence/replacement-detail.json": {
+      "bytes": 18611,
+      "sha256": "455d6065c9e5e0d60e616cf8f6e121ec38c482ad825556b214095b79c9e62c3d"
+    },
+    "evidence/ui-behavior-check.json": {
+      "bytes": 432,
+      "sha256": "d36325462b4ff1df643d49a32669bed05577714e4cfa8deab9328681445759f6"
+    },
+    "extract_profile.py": {
+      "bytes": 4841,
+      "sha256": "3e10603b4eee88ad2817777365f3c2057faf6cabec88d5054467a358ba30905f"
+    },
+    "guard32.h": {
+      "bytes": 1567,
+      "sha256": "b13d93f08c035a9fc882f816142a041bb01910a3443e7a57024b6894dc20a230"
+    },
+    "guard_fixture.c": {
+      "bytes": 460,
+      "sha256": "038ba20afc6ceb462bd3683b139847c96d0403e0ef808f5aca31cd1ac97ac653"
+    },
+    "legacy32/legacy_bridge32_v2.dll": {
+      "bytes": 61952,
+      "sha256": "fc659f5ba58e7fcb0808ce815d449e190bdc9007bb1de627b2004df0183c4f67"
+    },
+    "legacy32/legacy_host32_v2.exe": {
+      "bytes": 63488,
+      "sha256": "4a7380f94fbc7d9ce5274e410d079aecb605590dfb7ed3e25cc2ab6d293bca9a"
+    },
+    "legacy_backend.py": {
+      "bytes": 17562,
+      "sha256": "c2f00eab4d631a5c7fbd4c006504194b6fd14f8c1016bb4606b4eefb56b4962d"
+    },
+    "legacy_bridge32.c": {
+      "bytes": 6408,
+      "sha256": "6c1088612c23d6531c817d510970452afd45a9fe0d93026f04b0247867571c47"
+    },
+    "legacy_clone.c": {
+      "bytes": 11710,
+      "sha256": "2952de1395011cd38e66134a7f4505393a51e62771b6dfcae2923de5b572454e"
+    },
+    "legacy_core.c": {
+      "bytes": 6517,
+      "sha256": "d09e4097502e23ada46f2ecb0f2b7ec6e3cc9b6e11cfe24c0482b9e88411b5c4"
+    },
+    "legacy_host32.c": {
+      "bytes": 2519,
+      "sha256": "806a5a9920b48255a8f8df43756e504971ccd548a992d41abb726cafa9ddab0a"
+    },
+    "legacy_protocol.h": {
+      "bytes": 4613,
+      "sha256": "0ad2644027f2f4802d6039e6dc33045be50641a7494457ff515875c7e0b94097"
+    },
+    "legacy_test_support.h": {
+      "bytes": 1711,
+      "sha256": "438d359dd97f45579927c7a525ad21d94260a7fa8b141976219d73a3cbe83f45"
+    },
+    "live_v2_acceptance.py": {
+      "bytes": 5094,
+      "sha256": "39e14f10a68d38e6a53ab9ea89297a66cad6db0074a7d188da61acfc55fb6903"
+    },
+    "live_v2_check.py": {
+      "bytes": 2041,
+      "sha256": "1f2afa60145e632455e993d59b501dcaa15a2ce4cb50fa082cadc3d27747e2f9"
+    },
+    "package.py": {
+      "bytes": 2710,
+      "sha256": "2e9771c9e0123412240f1dd743edd631b12ffb0d1ccadf13679ee726bc1c28cc"
+    },
+    "profile.json": {
+      "bytes": 14062,
+      "sha256": "831b9dab6d6a243dbe1942ddc8ff8369578eae571285dc80e69bc06f6d19b6ce"
+    },
+    "profile_native.h": {
+      "bytes": 15031,
+      "sha256": "6390f6701b077fdeef0b0fe7ae67b85df86ae622ebfac3df251b14ffa61e6a2d"
+    },
+    "test_legacy.py": {
+      "bytes": 3864,
+      "sha256": "660bd05209b1977340646df890a54014e4ae2bfb85414662baa5d62ea35fe2e6"
+    },
+    "ui.py": {
+      "bytes": 28288,
+      "sha256": "7f0a28d3a69bae720867cf40b19a9c3b05a981aa914a0cc1ddfcf7761f2c49c7"
+    },
+    "version-info.txt": {
+      "bytes": 576,
+      "sha256": "4b2a093b430cad4ac143b9c6a8a67f2e108f08ce1be1971bacc9c352d83f7676"
+    },
+    "使用说明.md": {
+      "bytes": 6821,
+      "sha256": "909f277752791b603a3976f6589a4fd3a61e9b539b9fe931029b1cfee65e690d"
+    }
+  }
+}

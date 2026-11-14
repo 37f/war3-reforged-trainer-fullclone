@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "exe": "War3LegacyTrainer-v0.2.0-Test.exe",
+  "exe_sha256": "3902e2747b4bf9f7cb550cfe1d699daf99e620620209b2924f22ff854589ea06",
+  "exe_bytes": 11681505,
+  "version": "0.2.0-Test",
+  "game_version": "1.29.2.9231",
+  "game_sha256": "3f2ed0120d80578bf07e4423296dade1adfb959d59a2d20a7584224559570eed",
+  "outer_machine": "x64",
+  "helper_machine": "x86",
+  "packet_bytes": 7300,
+  "embedded_originals_match": true,
+  "backend_code_matches": true,
+  "ui_code_matches": true
+}

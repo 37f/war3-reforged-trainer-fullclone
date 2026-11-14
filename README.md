@@ -1,5 +1,19 @@
 # 魔兽争霸 III 重制版修改器 FullClone
 
+## Legacy 1.29.2 独立测试版：v0.2.0-Test
+
+本仓库另提供Legacy独立版本；下方Reforged 3.0+ FullClone及全部历史发布继续保留。
+
+- **[Legacy发布与下载](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/legacy-v0.2.0-test)**
+- **[Legacy EXE](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/legacy-v0.2.0-test/War3LegacyTrainer-v0.2.0-Test.exe)** · [Legacy完整源码ZIP](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/legacy-v0.2.0-test/War3LegacyTrainer-v0.2.0-Test-source.zip)
+- [使用说明](releases/legacy-v0.2.0/LEGACY_USAGE_ZH.md) · **[已知问题](releases/legacy-v0.2.0/LEGACY_KNOWN_ISSUES_ZH.md)** · [独立源码目录](source-legacy/v0.2.0/)
+
+功能：玩家资源、选中单位生命魔法、英雄等级/永久三围、复制/大量复制、归属选择、替换单位及游戏前台快捷键。仅适配1.29.2.9231 x86，默认目标路径固定为`E:\Games\Warcraft III (Legacy)\Warcraft III.exe`；外壳为Windows x64，内含x86助手，无需Python。
+
+**本次上传现有v0.2.0成品，尚有普通单位复制报错、源单位附近创建而非鼠标落点、手动升级无原生特效等问题，未包含未完成的v0.2.1修复。**33个源码文件、内嵌后端/助手及离线三页UI已重新核对；没有重新编译或操作当前游戏。不要将历史测试地图结果视为任意地图保证。
+
+---
+
 ## 当前 3.0+ 扩展测试版：v2.2.3 FullClone R31.14-Test
 
 基于[原作者项目](https://github.com/dc114154qq/war3-reforged-trainer)的 **v2.2.3 / e4930f5e0739** 源码，保留作者3.0+读取、字段、扩展背包、装备、英雄技能、脚本和存档工具，加入FullClone累计扩展。本项目为非官方扩展测试版。

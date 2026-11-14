@@ -1,0 +1,10 @@
+{
+  "ok": true,
+  "source_commit": "19e2d1caceb364dcdae2e258e94a6cfc4d699434",
+  "source_files": 33,
+  "source_zip_sha256": "11a8fa1473bfadaf9340ee10e99f9a9af6e6be5bf5d197b58e4db00bb24d899b",
+  "exe_sha256": "3902e2747b4bf9f7cb550cfe1d699daf99e620620209b2924f22ff854589ea06",
+  "exe_path": "E:\\Games\\Warcraft III (Legacy)\\War3LegacyTrainer-v0.2.0-Test.exe",
+  "source_zip_path": "E:\\Games\\Warcraft III (Legacy)\\LegacyTrainer-v0.2.0-Test\\War3LegacyTrainer-v0.2.0-Test-source.zip",
+  "archive_readback_verified": true
+}

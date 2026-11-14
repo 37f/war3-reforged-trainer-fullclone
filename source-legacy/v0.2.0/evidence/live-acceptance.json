@@ -1,0 +1,7099 @@
+[
+  {
+    "step": "preview",
+    "result": {
+      "pid": 18204,
+      "profile": "Legacy 1.29.2.9231",
+      "local_player": 0,
+      "world": 230277320,
+      "applied": 0,
+      "players": [
+        {
+          "slot": 0,
+          "state": 1,
+          "gold": 21270,
+          "lumber": 20110,
+          "food_used": 65,
+          "food_cap": 20
+        },
+        {
+          "slot": 1,
+          "state": 1,
+          "gold": 680,
+          "lumber": 70,
+          "food_used": 24,
+          "food_cap": 24
+        },
+        {
+          "slot": 2,
+          "state": 1,
+          "gold": 630,
+          "lumber": 40,
+          "food_used": 14,
+          "food_cap": 20
+        },
+        {
+          "slot": 3,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 60,
+          "food_used": 11,
+          "food_cap": 20
+        },
+        {
+          "slot": 4,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 5,
+          "state": 1,
+          "gold": 1040,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 6,
+          "state": 1,
+          "gold": 1070,
+          "lumber": 4,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 7,
+          "state": 1,
+          "gold": 630,
+          "lumber": 3,
+          "food_used": 18,
+          "food_cap": 50
+        },
+        {
+          "slot": 8,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 9,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 10,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 11,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 12,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 195,
+          "food_cap": 0
+        },
+        {
+          "slot": 13,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 14,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 15,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 35,
+          "food_cap": 0
+        },
+        {
+          "slot": 16,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 17,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 18,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 19,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 20,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 21,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 22,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 23,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        }
+      ],
+      "units": [
+        {
+          "handle": 1052131,
+          "type_id": "Ekee",
+          "owner": 0,
+          "hero": true,
+          "hp": 1000.0,
+          "max_hp": 1000.0,
+          "mp": 553.24,
+          "max_mp": 660.0,
+          "level": 7,
+          "str": 36,
+          "agi": 34,
+          "int": 44
+        }
+      ],
+      "old_map_neutral_aliases": true,
+      "created": [],
+      "warnings": 0,
+      "detail": {
+        "handle": 1052131,
+        "type_id": "Ekee",
+        "x": -1604.55517578125,
+        "y": -6335.90283203125,
+        "facing": 277.64227294921875,
+        "xp": 2700,
+        "points": 0,
+        "paused": false,
+        "xp_paused": false,
+        "item_nodes": 1,
+        "abilities": [
+          {
+            "id": "AEtq",
+            "level": 1,
+            "flags": 16
+          },
+          {
+            "id": "AEer",
+            "level": 1,
+            "flags": 16
+          },
+          {
+            "id": "AEfn",
+            "level": 2,
+            "flags": 528
+          },
+          {
+            "id": "AEah",
+            "level": 3,
+            "flags": 2415919248
+          },
+          {
+            "id": "BEah",
+            "level": 1,
+            "flags": 1627390352
+          },
+          {
+            "id": "AItp",
+            "level": 1,
+            "flags": 8224
+          },
+          {
+            "id": "Ault",
+            "level": 1,
+            "flags": 16
+          },
+          {
+            "id": "AInv",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "AHer",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "Aatk",
+            "level": 1,
+            "flags": 570966032
+          },
+          {
+            "id": "Amov",
+            "level": 1,
+            "flags": 16
+          }
+        ],
+        "items": [
+          {
+            "slot": 0,
+            "handle": 1052133,
+            "id": "stwp",
+            "charges": 1,
+            "life": 75.0,
+            "invulnerable": false,
+            "pawnable": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "step": "single_self",
+    "result": {
+      "pid": 18204,
+      "profile": "Legacy 1.29.2.9231",
+      "local_player": 0,
+      "world": 230277320,
+      "applied": 1,
+      "players": [
+        {
+          "slot": 0,
+          "state": 1,
+          "gold": 21270,
+          "lumber": 20110,
+          "food_used": 70,
+          "food_cap": 20
+        },
+        {
+          "slot": 1,
+          "state": 1,
+          "gold": 680,
+          "lumber": 70,
+          "food_used": 24,
+          "food_cap": 24
+        },
+        {
+          "slot": 2,
+          "state": 1,
+          "gold": 630,
+          "lumber": 40,
+          "food_used": 14,
+          "food_cap": 20
+        },
+        {
+          "slot": 3,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 60,
+          "food_used": 11,
+          "food_cap": 20
+        },
+        {
+          "slot": 4,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 5,
+          "state": 1,
+          "gold": 1040,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 6,
+          "state": 1,
+          "gold": 1070,
+          "lumber": 4,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 7,
+          "state": 1,
+          "gold": 630,
+          "lumber": 3,
+          "food_used": 18,
+          "food_cap": 50
+        },
+        {
+          "slot": 8,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 9,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 10,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 11,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 12,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 195,
+          "food_cap": 0
+        },
+        {
+          "slot": 13,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 14,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 15,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 35,
+          "food_cap": 0
+        },
+        {
+          "slot": 16,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 17,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 18,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 19,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 20,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 21,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 22,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 23,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        }
+      ],
+      "units": [
+        {
+          "handle": 1052131,
+          "type_id": "Ekee",
+          "owner": 0,
+          "hero": true,
+          "hp": 1000.0,
+          "max_hp": 1000.0,
+          "mp": 553.24,
+          "max_mp": 660.0,
+          "level": 7,
+          "str": 36,
+          "agi": 34,
+          "int": 44
+        }
+      ],
+      "old_map_neutral_aliases": true,
+      "created": [
+        1053545
+      ],
+      "warnings": 0,
+      "detail": {
+        "handle": 1052131,
+        "type_id": "Ekee",
+        "x": -1604.55517578125,
+        "y": -6335.90283203125,
+        "facing": 277.64227294921875,
+        "xp": 2700,
+        "points": 0,
+        "paused": false,
+        "xp_paused": false,
+        "item_nodes": 1,
+        "abilities": [
+          {
+            "id": "AEtq",
+            "level": 1,
+            "flags": 16
+          },
+          {
+            "id": "AEer",
+            "level": 1,
+            "flags": 16
+          },
+          {
+            "id": "AEfn",
+            "level": 2,
+            "flags": 528
+          },
+          {
+            "id": "AEah",
+            "level": 3,
+            "flags": 2415919248
+          },
+          {
+            "id": "BEah",
+            "level": 1,
+            "flags": 1627390352
+          },
+          {
+            "id": "AItp",
+            "level": 1,
+            "flags": 8224
+          },
+          {
+            "id": "Ault",
+            "level": 1,
+            "flags": 16
+          },
+          {
+            "id": "AInv",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "AHer",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "Aatk",
+            "level": 1,
+            "flags": 570966032
+          },
+          {
+            "id": "Amov",
+            "level": 1,
+            "flags": 16
+          }
+        ],
+        "items": [
+          {
+            "slot": 0,
+            "handle": 1052133,
+            "id": "stwp",
+            "charges": 1,
+            "life": 75.0,
+            "invulnerable": false,
+            "pawnable": true
+          }
+        ]
+      },
+      "message": "已复制 1 个单位。"
+    }
+  },
+  {
+    "step": "configured",
+    "result": {
+      "pid": 18204,
+      "profile": "Legacy 1.29.2.9231",
+      "local_player": 0,
+      "world": 230277320,
+      "applied": 0,
+      "players": [
+        {
+          "slot": 0,
+          "state": 1,
+          "gold": 21270,
+          "lumber": 20110,
+          "food_used": 70,
+          "food_cap": 20
+        },
+        {
+          "slot": 1,
+          "state": 1,
+          "gold": 680,
+          "lumber": 70,
+          "food_used": 24,
+          "food_cap": 24
+        },
+        {
+          "slot": 2,
+          "state": 1,
+          "gold": 630,
+          "lumber": 40,
+          "food_used": 14,
+          "food_cap": 20
+        },
+        {
+          "slot": 3,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 60,
+          "food_used": 11,
+          "food_cap": 20
+        },
+        {
+          "slot": 4,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 5,
+          "state": 1,
+          "gold": 1040,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 6,
+          "state": 1,
+          "gold": 1070,
+          "lumber": 4,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 7,
+          "state": 1,
+          "gold": 630,
+          "lumber": 3,
+          "food_used": 18,
+          "food_cap": 50
+        },
+        {
+          "slot": 8,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 9,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 10,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 11,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 12,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 195,
+          "food_cap": 0
+        },
+        {
+          "slot": 13,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 14,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 15,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 35,
+          "food_cap": 0
+        },
+        {
+          "slot": 16,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 17,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 18,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 19,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 20,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 21,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 22,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 23,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        }
+      ],
+      "units": [
+        {
+          "handle": 1053545,
+          "type_id": "Ekee",
+          "owner": 0,
+          "hero": true,
+          "hp": 700.0,
+          "max_hp": 1234.0,
+          "mp": 123.0,
+          "max_mp": 456.0,
+          "level": 4,
+          "str": 30,
+          "agi": 40,
+          "int": 50
+        }
+      ],
+      "old_map_neutral_aliases": true,
+      "created": [],
+      "warnings": 0,
+      "detail": {
+        "handle": 1053545,
+        "type_id": "Ekee",
+        "x": -1744.0,
+        "y": -6416.0,
+        "facing": 277.6422424316406,
+        "xp": 1100,
+        "points": 1,
+        "paused": true,
+        "xp_paused": true,
+        "item_nodes": 2,
+        "abilities": [
+          {
+            "id": "AItf",
+            "level": 1,
+            "flags": 2147483808
+          },
+          {
+            "id": "AEer",
+            "level": 2,
+            "flags": 16
+          },
+          {
+            "id": "AItp",
+            "level": 1,
+            "flags": 8224
+          },
+          {
+            "id": "AEah",
+            "level": 1,
+            "flags": 2415919248
+          },
+          {
+            "id": "BEah",
+            "level": 1,
+            "flags": 1627390352
+          },
+          {
+            "id": "Ault",
+            "level": 1,
+            "flags": 16
+          },
+          {
+            "id": "AInv",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "AHer",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "Aatk",
+            "level": 1,
+            "flags": 532624
+          },
+          {
+            "id": "Amov",
+            "level": 1,
+            "flags": 16
+          }
+        ],
+        "items": [
+          {
+            "slot": 0,
+            "handle": 1053546,
+            "id": "stwp",
+            "charges": 1,
+            "life": 75.0,
+            "invulnerable": false,
+            "pawnable": true
+          },
+          {
+            "slot": 2,
+            "handle": 1053550,
+            "id": "ratf",
+            "charges": 7,
+            "life": 25.0,
+            "invulnerable": true,
+            "pawnable": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "step": "copy_state",
+    "result": {
+      "pid": 18204,
+      "profile": "Legacy 1.29.2.9231",
+      "local_player": 0,
+      "world": 230277320,
+      "applied": 1,
+      "players": [
+        {
+          "slot": 0,
+          "state": 1,
+          "gold": 21270,
+          "lumber": 20110,
+          "food_used": 75,
+          "food_cap": 20
+        },
+        {
+          "slot": 1,
+          "state": 1,
+          "gold": 680,
+          "lumber": 70,
+          "food_used": 24,
+          "food_cap": 24
+        },
+        {
+          "slot": 2,
+          "state": 1,
+          "gold": 630,
+          "lumber": 40,
+          "food_used": 14,
+          "food_cap": 20
+        },
+        {
+          "slot": 3,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 60,
+          "food_used": 11,
+          "food_cap": 20
+        },
+        {
+          "slot": 4,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 5,
+          "state": 1,
+          "gold": 1040,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 6,
+          "state": 1,
+          "gold": 1070,
+          "lumber": 4,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 7,
+          "state": 1,
+          "gold": 630,
+          "lumber": 3,
+          "food_used": 18,
+          "food_cap": 50
+        },
+        {
+          "slot": 8,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 9,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 10,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 11,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 12,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 195,
+          "food_cap": 0
+        },
+        {
+          "slot": 13,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 14,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 15,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 35,
+          "food_cap": 0
+        },
+        {
+          "slot": 16,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 17,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 18,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 19,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 20,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 21,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 22,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 23,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        }
+      ],
+      "units": [
+        {
+          "handle": 1053545,
+          "type_id": "Ekee",
+          "owner": 0,
+          "hero": true,
+          "hp": 700.0,
+          "max_hp": 1234.0,
+          "mp": 123.0,
+          "max_mp": 456.0,
+          "level": 4,
+          "str": 30,
+          "agi": 40,
+          "int": 50
+        }
+      ],
+      "old_map_neutral_aliases": true,
+      "created": [
+        1053559
+      ],
+      "warnings": 0,
+      "detail": {
+        "handle": 1053545,
+        "type_id": "Ekee",
+        "x": -1744.0,
+        "y": -6416.0,
+        "facing": 277.6422424316406,
+        "xp": 1100,
+        "points": 1,
+        "paused": true,
+        "xp_paused": true,
+        "item_nodes": 2,
+        "abilities": [
+          {
+            "id": "AItf",
+            "level": 1,
+            "flags": 2147483808
+          },
+          {
+            "id": "AEer",
+            "level": 2,
+            "flags": 16
+          },
+          {
+            "id": "AItp",
+            "level": 1,
+            "flags": 8224
+          },
+          {
+            "id": "AEah",
+            "level": 1,
+            "flags": 2415919248
+          },
+          {
+            "id": "BEah",
+            "level": 1,
+            "flags": 1627390352
+          },
+          {
+            "id": "Ault",
+            "level": 1,
+            "flags": 16
+          },
+          {
+            "id": "AInv",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "AHer",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "Aatk",
+            "level": 1,
+            "flags": 532624
+          },
+          {
+            "id": "Amov",
+            "level": 1,
+            "flags": 16
+          }
+        ],
+        "items": [
+          {
+            "slot": 0,
+            "handle": 1053546,
+            "id": "stwp",
+            "charges": 1,
+            "life": 75.0,
+            "invulnerable": false,
+            "pawnable": true
+          },
+          {
+            "slot": 2,
+            "handle": 1053550,
+            "id": "ratf",
+            "charges": 7,
+            "life": 25.0,
+            "invulnerable": true,
+            "pawnable": false
+          }
+        ]
+      },
+      "message": "已复制 1 个单位。"
+    }
+  },
+  {
+    "step": "preview",
+    "result": {
+      "pid": 18204,
+      "profile": "Legacy 1.29.2.9231",
+      "local_player": 0,
+      "world": 230277320,
+      "applied": 0,
+      "players": [
+        {
+          "slot": 0,
+          "state": 1,
+          "gold": 21270,
+          "lumber": 20110,
+          "food_used": 75,
+          "food_cap": 20
+        },
+        {
+          "slot": 1,
+          "state": 1,
+          "gold": 680,
+          "lumber": 70,
+          "food_used": 24,
+          "food_cap": 24
+        },
+        {
+          "slot": 2,
+          "state": 1,
+          "gold": 630,
+          "lumber": 40,
+          "food_used": 14,
+          "food_cap": 20
+        },
+        {
+          "slot": 3,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 60,
+          "food_used": 11,
+          "food_cap": 20
+        },
+        {
+          "slot": 4,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 5,
+          "state": 1,
+          "gold": 1040,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 6,
+          "state": 1,
+          "gold": 1070,
+          "lumber": 4,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 7,
+          "state": 1,
+          "gold": 630,
+          "lumber": 3,
+          "food_used": 18,
+          "food_cap": 50
+        },
+        {
+          "slot": 8,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 9,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 10,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 11,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 12,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 195,
+          "food_cap": 0
+        },
+        {
+          "slot": 13,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 14,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 15,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 35,
+          "food_cap": 0
+        },
+        {
+          "slot": 16,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 17,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 18,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 19,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 20,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 21,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 22,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 23,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        }
+      ],
+      "units": [
+        {
+          "handle": 1053559,
+          "type_id": "Ekee",
+          "owner": 0,
+          "hero": true,
+          "hp": 700.0,
+          "max_hp": 1234.0,
+          "mp": 123.0,
+          "max_mp": 456.0,
+          "level": 4,
+          "str": 30,
+          "agi": 40,
+          "int": 50
+        }
+      ],
+      "old_map_neutral_aliases": true,
+      "created": [],
+      "warnings": 0,
+      "detail": {
+        "handle": 1053559,
+        "type_id": "Ekee",
+        "x": -1872.0,
+        "y": -6512.0,
+        "facing": 277.6422119140625,
+        "xp": 1100,
+        "points": 1,
+        "paused": true,
+        "xp_paused": true,
+        "item_nodes": 2,
+        "abilities": [
+          {
+            "id": "AItf",
+            "level": 1,
+            "flags": 2147483808
+          },
+          {
+            "id": "AItp",
+            "level": 1,
+            "flags": 8224
+          },
+          {
+            "id": "AEah",
+            "level": 1,
+            "flags": 2415919248
+          },
+          {
+            "id": "BEah",
+            "level": 1,
+            "flags": 1627390352
+          },
+          {
+            "id": "AEer",
+            "level": 2,
+            "flags": 16
+          },
+          {
+            "id": "Ault",
+            "level": 1,
+            "flags": 16
+          },
+          {
+            "id": "AInv",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "AHer",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "Aatk",
+            "level": 1,
+            "flags": 532624
+          },
+          {
+            "id": "Amov",
+            "level": 1,
+            "flags": 16
+          }
+        ],
+        "items": [
+          {
+            "slot": 0,
+            "handle": 1053560,
+            "id": "stwp",
+            "charges": 1,
+            "life": 75.0,
+            "invulnerable": false,
+            "pawnable": true
+          },
+          {
+            "slot": 2,
+            "handle": 1053561,
+            "id": "ratf",
+            "charges": 7,
+            "life": 25.0,
+            "invulnerable": true,
+            "pawnable": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "step": "mass_player_13",
+    "result": {
+      "pid": 18204,
+      "profile": "Legacy 1.29.2.9231",
+      "local_player": 0,
+      "world": 230277320,
+      "applied": 2,
+      "players": [
+        {
+          "slot": 0,
+          "state": 1,
+          "gold": 21270,
+          "lumber": 20110,
+          "food_used": 75,
+          "food_cap": 20
+        },
+        {
+          "slot": 1,
+          "state": 1,
+          "gold": 680,
+          "lumber": 70,
+          "food_used": 24,
+          "food_cap": 24
+        },
+        {
+          "slot": 2,
+          "state": 1,
+          "gold": 630,
+          "lumber": 40,
+          "food_used": 14,
+          "food_cap": 20
+        },
+        {
+          "slot": 3,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 60,
+          "food_used": 11,
+          "food_cap": 20
+        },
+        {
+          "slot": 4,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 5,
+          "state": 1,
+          "gold": 1040,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 6,
+          "state": 1,
+          "gold": 1070,
+          "lumber": 4,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 7,
+          "state": 1,
+          "gold": 630,
+          "lumber": 3,
+          "food_used": 18,
+          "food_cap": 50
+        },
+        {
+          "slot": 8,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 9,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 10,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 11,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 12,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 205,
+          "food_cap": 0
+        },
+        {
+          "slot": 13,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 14,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 15,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 35,
+          "food_cap": 0
+        },
+        {
+          "slot": 16,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 17,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 18,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 19,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 20,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 21,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 22,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 23,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        }
+      ],
+      "units": [
+        {
+          "handle": 1053545,
+          "type_id": "Ekee",
+          "owner": 0,
+          "hero": true,
+          "hp": 700.0,
+          "max_hp": 1234.0,
+          "mp": 123.0,
+          "max_mp": 456.0,
+          "level": 4,
+          "str": 30,
+          "agi": 40,
+          "int": 50
+        }
+      ],
+      "old_map_neutral_aliases": true,
+      "created": [
+        1053576,
+        1053579
+      ],
+      "warnings": 0,
+      "detail": {
+        "handle": 1053545,
+        "type_id": "Ekee",
+        "x": -1744.0,
+        "y": -6416.0,
+        "facing": 277.6422424316406,
+        "xp": 1100,
+        "points": 1,
+        "paused": true,
+        "xp_paused": true,
+        "item_nodes": 2,
+        "abilities": [
+          {
+            "id": "AItf",
+            "level": 1,
+            "flags": 2147483808
+          },
+          {
+            "id": "AEer",
+            "level": 2,
+            "flags": 16
+          },
+          {
+            "id": "AItp",
+            "level": 1,
+            "flags": 8224
+          },
+          {
+            "id": "AEah",
+            "level": 1,
+            "flags": 2415919248
+          },
+          {
+            "id": "BEah",
+            "level": 1,
+            "flags": 1627390352
+          },
+          {
+            "id": "Ault",
+            "level": 1,
+            "flags": 16
+          },
+          {
+            "id": "AInv",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "AHer",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "Aatk",
+            "level": 1,
+            "flags": 532624
+          },
+          {
+            "id": "Amov",
+            "level": 1,
+            "flags": 16
+          }
+        ],
+        "items": [
+          {
+            "slot": 0,
+            "handle": 1053546,
+            "id": "stwp",
+            "charges": 1,
+            "life": 75.0,
+            "invulnerable": false,
+            "pawnable": true
+          },
+          {
+            "slot": 2,
+            "handle": 1053550,
+            "id": "ratf",
+            "charges": 7,
+            "life": 25.0,
+            "invulnerable": true,
+            "pawnable": false
+          }
+        ]
+      },
+      "message": "已复制 2 个单位。"
+    }
+  },
+  {
+    "step": "preview",
+    "result": {
+      "pid": 18204,
+      "profile": "Legacy 1.29.2.9231",
+      "local_player": 0,
+      "world": 230277320,
+      "applied": 0,
+      "players": [
+        {
+          "slot": 0,
+          "state": 1,
+          "gold": 21270,
+          "lumber": 20110,
+          "food_used": 75,
+          "food_cap": 20
+        },
+        {
+          "slot": 1,
+          "state": 1,
+          "gold": 680,
+          "lumber": 70,
+          "food_used": 24,
+          "food_cap": 24
+        },
+        {
+          "slot": 2,
+          "state": 1,
+          "gold": 630,
+          "lumber": 40,
+          "food_used": 14,
+          "food_cap": 20
+        },
+        {
+          "slot": 3,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 60,
+          "food_used": 11,
+          "food_cap": 20
+        },
+        {
+          "slot": 4,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 5,
+          "state": 1,
+          "gold": 1040,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 6,
+          "state": 1,
+          "gold": 1070,
+          "lumber": 4,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 7,
+          "state": 1,
+          "gold": 630,
+          "lumber": 3,
+          "food_used": 18,
+          "food_cap": 50
+        },
+        {
+          "slot": 8,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 9,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 10,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 11,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 12,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 205,
+          "food_cap": 0
+        },
+        {
+          "slot": 13,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 14,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 15,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 35,
+          "food_cap": 0
+        },
+        {
+          "slot": 16,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 17,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 18,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 19,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 20,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 21,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 22,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 23,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        }
+      ],
+      "units": [
+        {
+          "handle": 1053576,
+          "type_id": "Ekee",
+          "owner": 12,
+          "hero": true,
+          "hp": 700.0,
+          "max_hp": 1234.0,
+          "mp": 123.0,
+          "max_mp": 456.0,
+          "level": 4,
+          "str": 30,
+          "agi": 40,
+          "int": 50
+        }
+      ],
+      "old_map_neutral_aliases": true,
+      "created": [],
+      "warnings": 0,
+      "detail": {
+        "handle": 1053576,
+        "type_id": "Ekee",
+        "x": -1904.0,
+        "y": -6192.0,
+        "facing": 277.6422119140625,
+        "xp": 1100,
+        "points": 1,
+        "paused": true,
+        "xp_paused": true,
+        "item_nodes": 2,
+        "abilities": [
+          {
+            "id": "AItf",
+            "level": 1,
+            "flags": 2147483808
+          },
+          {
+            "id": "AItp",
+            "level": 1,
+            "flags": 8224
+          },
+          {
+            "id": "AEah",
+            "level": 1,
+            "flags": 2415919250
+          },
+          {
+            "id": "BEah",
+            "level": 1,
+            "flags": 1627390352
+          },
+          {
+            "id": "AEer",
+            "level": 2,
+            "flags": 16
+          },
+          {
+            "id": "Ault",
+            "level": 1,
+            "flags": 16
+          },
+          {
+            "id": "AInv",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "AHer",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "Aatk",
+            "level": 1,
+            "flags": 532624
+          },
+          {
+            "id": "Amov",
+            "level": 1,
+            "flags": 16
+          }
+        ],
+        "items": [
+          {
+            "slot": 0,
+            "handle": 1053577,
+            "id": "stwp",
+            "charges": 1,
+            "life": 75.0,
+            "invulnerable": false,
+            "pawnable": true
+          },
+          {
+            "slot": 2,
+            "handle": 1053578,
+            "id": "ratf",
+            "charges": 7,
+            "life": 25.0,
+            "invulnerable": true,
+            "pawnable": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "step": "preview",
+    "result": {
+      "pid": 18204,
+      "profile": "Legacy 1.29.2.9231",
+      "local_player": 0,
+      "world": 230277320,
+      "applied": 0,
+      "players": [
+        {
+          "slot": 0,
+          "state": 1,
+          "gold": 21270,
+          "lumber": 20110,
+          "food_used": 75,
+          "food_cap": 20
+        },
+        {
+          "slot": 1,
+          "state": 1,
+          "gold": 680,
+          "lumber": 70,
+          "food_used": 24,
+          "food_cap": 24
+        },
+        {
+          "slot": 2,
+          "state": 1,
+          "gold": 630,
+          "lumber": 40,
+          "food_used": 14,
+          "food_cap": 20
+        },
+        {
+          "slot": 3,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 60,
+          "food_used": 11,
+          "food_cap": 20
+        },
+        {
+          "slot": 4,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 5,
+          "state": 1,
+          "gold": 1040,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 6,
+          "state": 1,
+          "gold": 1070,
+          "lumber": 4,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 7,
+          "state": 1,
+          "gold": 630,
+          "lumber": 3,
+          "food_used": 18,
+          "food_cap": 50
+        },
+        {
+          "slot": 8,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 9,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 10,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 11,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 12,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 205,
+          "food_cap": 0
+        },
+        {
+          "slot": 13,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 14,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 15,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 35,
+          "food_cap": 0
+        },
+        {
+          "slot": 16,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 17,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 18,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 19,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 20,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 21,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 22,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 23,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        }
+      ],
+      "units": [
+        {
+          "handle": 1053579,
+          "type_id": "Ekee",
+          "owner": 12,
+          "hero": true,
+          "hp": 700.0,
+          "max_hp": 1234.0,
+          "mp": 123.0,
+          "max_mp": 456.0,
+          "level": 4,
+          "str": 30,
+          "agi": 40,
+          "int": 50
+        }
+      ],
+      "old_map_neutral_aliases": true,
+      "created": [],
+      "warnings": 0,
+      "detail": {
+        "handle": 1053579,
+        "type_id": "Ekee",
+        "x": -1648.0,
+        "y": -6608.0,
+        "facing": 277.6422119140625,
+        "xp": 1100,
+        "points": 1,
+        "paused": true,
+        "xp_paused": true,
+        "item_nodes": 2,
+        "abilities": [
+          {
+            "id": "AItf",
+            "level": 1,
+            "flags": 2147483808
+          },
+          {
+            "id": "AItp",
+            "level": 1,
+            "flags": 8224
+          },
+          {
+            "id": "AEah",
+            "level": 1,
+            "flags": 2415919250
+          },
+          {
+            "id": "BEah",
+            "level": 1,
+            "flags": 1627390352
+          },
+          {
+            "id": "AEer",
+            "level": 2,
+            "flags": 16
+          },
+          {
+            "id": "Ault",
+            "level": 1,
+            "flags": 16
+          },
+          {
+            "id": "AInv",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "AHer",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "Aatk",
+            "level": 1,
+            "flags": 532624
+          },
+          {
+            "id": "Amov",
+            "level": 1,
+            "flags": 16
+          }
+        ],
+        "items": [
+          {
+            "slot": 0,
+            "handle": 1053580,
+            "id": "stwp",
+            "charges": 1,
+            "life": 75.0,
+            "invulnerable": false,
+            "pawnable": true
+          },
+          {
+            "slot": 2,
+            "handle": 1053581,
+            "id": "ratf",
+            "charges": 7,
+            "life": 25.0,
+            "invulnerable": true,
+            "pawnable": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "step": "mass_player_16",
+    "result": {
+      "pid": 18204,
+      "profile": "Legacy 1.29.2.9231",
+      "local_player": 0,
+      "world": 230277320,
+      "applied": 2,
+      "players": [
+        {
+          "slot": 0,
+          "state": 1,
+          "gold": 21270,
+          "lumber": 20110,
+          "food_used": 75,
+          "food_cap": 20
+        },
+        {
+          "slot": 1,
+          "state": 1,
+          "gold": 680,
+          "lumber": 70,
+          "food_used": 24,
+          "food_cap": 24
+        },
+        {
+          "slot": 2,
+          "state": 1,
+          "gold": 630,
+          "lumber": 40,
+          "food_used": 14,
+          "food_cap": 20
+        },
+        {
+          "slot": 3,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 60,
+          "food_used": 11,
+          "food_cap": 20
+        },
+        {
+          "slot": 4,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 5,
+          "state": 1,
+          "gold": 1040,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 6,
+          "state": 1,
+          "gold": 1070,
+          "lumber": 4,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 7,
+          "state": 1,
+          "gold": 630,
+          "lumber": 3,
+          "food_used": 18,
+          "food_cap": 50
+        },
+        {
+          "slot": 8,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 9,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 10,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 11,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 12,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 205,
+          "food_cap": 0
+        },
+        {
+          "slot": 13,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 14,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 15,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 45,
+          "food_cap": 0
+        },
+        {
+          "slot": 16,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 17,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 18,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 19,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 20,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 21,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 22,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 23,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        }
+      ],
+      "units": [
+        {
+          "handle": 1053545,
+          "type_id": "Ekee",
+          "owner": 0,
+          "hero": true,
+          "hp": 700.0,
+          "max_hp": 1234.0,
+          "mp": 123.0,
+          "max_mp": 456.0,
+          "level": 4,
+          "str": 30,
+          "agi": 40,
+          "int": 50
+        }
+      ],
+      "old_map_neutral_aliases": true,
+      "created": [
+        1053603,
+        1053606
+      ],
+      "warnings": 0,
+      "detail": {
+        "handle": 1053545,
+        "type_id": "Ekee",
+        "x": -1744.0,
+        "y": -6416.0,
+        "facing": 277.6422424316406,
+        "xp": 1100,
+        "points": 1,
+        "paused": true,
+        "xp_paused": true,
+        "item_nodes": 2,
+        "abilities": [
+          {
+            "id": "AItf",
+            "level": 1,
+            "flags": 2147483808
+          },
+          {
+            "id": "AEer",
+            "level": 2,
+            "flags": 16
+          },
+          {
+            "id": "AItp",
+            "level": 1,
+            "flags": 8224
+          },
+          {
+            "id": "AEah",
+            "level": 1,
+            "flags": 2415919248
+          },
+          {
+            "id": "BEah",
+            "level": 1,
+            "flags": 1627390352
+          },
+          {
+            "id": "Ault",
+            "level": 1,
+            "flags": 16
+          },
+          {
+            "id": "AInv",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "AHer",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "Aatk",
+            "level": 1,
+            "flags": 532624
+          },
+          {
+            "id": "Amov",
+            "level": 1,
+            "flags": 16
+          }
+        ],
+        "items": [
+          {
+            "slot": 0,
+            "handle": 1053546,
+            "id": "stwp",
+            "charges": 1,
+            "life": 75.0,
+            "invulnerable": false,
+            "pawnable": true
+          },
+          {
+            "slot": 2,
+            "handle": 1053550,
+            "id": "ratf",
+            "charges": 7,
+            "life": 25.0,
+            "invulnerable": true,
+            "pawnable": false
+          }
+        ]
+      },
+      "message": "已复制 2 个单位。"
+    }
+  },
+  {
+    "step": "preview",
+    "result": {
+      "pid": 18204,
+      "profile": "Legacy 1.29.2.9231",
+      "local_player": 0,
+      "world": 230277320,
+      "applied": 0,
+      "players": [
+        {
+          "slot": 0,
+          "state": 1,
+          "gold": 21270,
+          "lumber": 20110,
+          "food_used": 75,
+          "food_cap": 20
+        },
+        {
+          "slot": 1,
+          "state": 1,
+          "gold": 680,
+          "lumber": 70,
+          "food_used": 24,
+          "food_cap": 24
+        },
+        {
+          "slot": 2,
+          "state": 1,
+          "gold": 630,
+          "lumber": 40,
+          "food_used": 14,
+          "food_cap": 20
+        },
+        {
+          "slot": 3,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 60,
+          "food_used": 11,
+          "food_cap": 20
+        },
+        {
+          "slot": 4,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 5,
+          "state": 1,
+          "gold": 1040,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 6,
+          "state": 1,
+          "gold": 1070,
+          "lumber": 4,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 7,
+          "state": 1,
+          "gold": 630,
+          "lumber": 3,
+          "food_used": 18,
+          "food_cap": 50
+        },
+        {
+          "slot": 8,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 9,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 10,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 11,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 12,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 205,
+          "food_cap": 0
+        },
+        {
+          "slot": 13,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 14,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 15,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 45,
+          "food_cap": 0
+        },
+        {
+          "slot": 16,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 17,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 18,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 19,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 20,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 21,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 22,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 23,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        }
+      ],
+      "units": [
+        {
+          "handle": 1053603,
+          "type_id": "Ekee",
+          "owner": 15,
+          "hero": true,
+          "hp": 700.0,
+          "max_hp": 1234.0,
+          "mp": 123.0,
+          "max_mp": 456.0,
+          "level": 4,
+          "str": 30,
+          "agi": 40,
+          "int": 50
+        }
+      ],
+      "old_map_neutral_aliases": true,
+      "created": [],
+      "warnings": 0,
+      "detail": {
+        "handle": 1053603,
+        "type_id": "Ekee",
+        "x": -1968.0,
+        "y": -6480.0,
+        "facing": 277.6422119140625,
+        "xp": 1100,
+        "points": 1,
+        "paused": true,
+        "xp_paused": true,
+        "item_nodes": 2,
+        "abilities": [
+          {
+            "id": "AItf",
+            "level": 1,
+            "flags": 2147483808
+          },
+          {
+            "id": "AItp",
+            "level": 1,
+            "flags": 8224
+          },
+          {
+            "id": "AEah",
+            "level": 1,
+            "flags": 2415919248
+          },
+          {
+            "id": "BEah",
+            "level": 1,
+            "flags": 1627390352
+          },
+          {
+            "id": "AEer",
+            "level": 2,
+            "flags": 16
+          },
+          {
+            "id": "Ault",
+            "level": 1,
+            "flags": 16
+          },
+          {
+            "id": "AInv",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "AHer",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "Aatk",
+            "level": 1,
+            "flags": 532624
+          },
+          {
+            "id": "Amov",
+            "level": 1,
+            "flags": 16
+          }
+        ],
+        "items": [
+          {
+            "slot": 0,
+            "handle": 1053604,
+            "id": "stwp",
+            "charges": 1,
+            "life": 75.0,
+            "invulnerable": false,
+            "pawnable": true
+          },
+          {
+            "slot": 2,
+            "handle": 1053605,
+            "id": "ratf",
+            "charges": 7,
+            "life": 25.0,
+            "invulnerable": true,
+            "pawnable": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "step": "preview",
+    "result": {
+      "pid": 18204,
+      "profile": "Legacy 1.29.2.9231",
+      "local_player": 0,
+      "world": 230277320,
+      "applied": 0,
+      "players": [
+        {
+          "slot": 0,
+          "state": 1,
+          "gold": 21270,
+          "lumber": 20110,
+          "food_used": 75,
+          "food_cap": 20
+        },
+        {
+          "slot": 1,
+          "state": 1,
+          "gold": 680,
+          "lumber": 70,
+          "food_used": 24,
+          "food_cap": 24
+        },
+        {
+          "slot": 2,
+          "state": 1,
+          "gold": 630,
+          "lumber": 40,
+          "food_used": 14,
+          "food_cap": 20
+        },
+        {
+          "slot": 3,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 60,
+          "food_used": 11,
+          "food_cap": 20
+        },
+        {
+          "slot": 4,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 5,
+          "state": 1,
+          "gold": 1040,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 6,
+          "state": 1,
+          "gold": 1070,
+          "lumber": 4,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 7,
+          "state": 1,
+          "gold": 630,
+          "lumber": 3,
+          "food_used": 18,
+          "food_cap": 50
+        },
+        {
+          "slot": 8,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 9,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 10,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 11,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 12,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 205,
+          "food_cap": 0
+        },
+        {
+          "slot": 13,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 14,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 15,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 45,
+          "food_cap": 0
+        },
+        {
+          "slot": 16,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 17,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 18,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 19,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 20,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 21,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 22,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 23,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        }
+      ],
+      "units": [
+        {
+          "handle": 1053606,
+          "type_id": "Ekee",
+          "owner": 15,
+          "hero": true,
+          "hp": 700.0,
+          "max_hp": 1234.0,
+          "mp": 123.0,
+          "max_mp": 456.0,
+          "level": 4,
+          "str": 30,
+          "agi": 40,
+          "int": 50
+        }
+      ],
+      "old_map_neutral_aliases": true,
+      "created": [],
+      "warnings": 0,
+      "detail": {
+        "handle": 1053606,
+        "type_id": "Ekee",
+        "x": -1840.0,
+        "y": -6608.0,
+        "facing": 277.6422119140625,
+        "xp": 1100,
+        "points": 1,
+        "paused": true,
+        "xp_paused": true,
+        "item_nodes": 2,
+        "abilities": [
+          {
+            "id": "AItf",
+            "level": 1,
+            "flags": 2147483808
+          },
+          {
+            "id": "AItp",
+            "level": 1,
+            "flags": 8224
+          },
+          {
+            "id": "AEah",
+            "level": 1,
+            "flags": 2415919248
+          },
+          {
+            "id": "BEah",
+            "level": 1,
+            "flags": 1627390352
+          },
+          {
+            "id": "AEer",
+            "level": 2,
+            "flags": 16
+          },
+          {
+            "id": "Ault",
+            "level": 1,
+            "flags": 16
+          },
+          {
+            "id": "AInv",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "AHer",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "Aatk",
+            "level": 1,
+            "flags": 532624
+          },
+          {
+            "id": "Amov",
+            "level": 1,
+            "flags": 16
+          }
+        ],
+        "items": [
+          {
+            "slot": 0,
+            "handle": 1053607,
+            "id": "stwp",
+            "charges": 1,
+            "life": 75.0,
+            "invulnerable": false,
+            "pawnable": true
+          },
+          {
+            "slot": 2,
+            "handle": 1053608,
+            "id": "ratf",
+            "charges": 7,
+            "life": 25.0,
+            "invulnerable": true,
+            "pawnable": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "step": "mass_source_owner",
+    "result": {
+      "pid": 18204,
+      "profile": "Legacy 1.29.2.9231",
+      "local_player": 0,
+      "world": 230277320,
+      "applied": 2,
+      "players": [
+        {
+          "slot": 0,
+          "state": 1,
+          "gold": 21270,
+          "lumber": 20110,
+          "food_used": 75,
+          "food_cap": 20
+        },
+        {
+          "slot": 1,
+          "state": 1,
+          "gold": 680,
+          "lumber": 70,
+          "food_used": 24,
+          "food_cap": 24
+        },
+        {
+          "slot": 2,
+          "state": 1,
+          "gold": 630,
+          "lumber": 40,
+          "food_used": 14,
+          "food_cap": 20
+        },
+        {
+          "slot": 3,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 60,
+          "food_used": 11,
+          "food_cap": 20
+        },
+        {
+          "slot": 4,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 5,
+          "state": 1,
+          "gold": 1040,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 6,
+          "state": 1,
+          "gold": 1070,
+          "lumber": 4,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 7,
+          "state": 1,
+          "gold": 630,
+          "lumber": 3,
+          "food_used": 18,
+          "food_cap": 50
+        },
+        {
+          "slot": 8,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 9,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 10,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 11,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 12,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 205,
+          "food_cap": 0
+        },
+        {
+          "slot": 13,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 14,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 15,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 55,
+          "food_cap": 0
+        },
+        {
+          "slot": 16,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 17,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 18,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 19,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 20,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 21,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 22,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 23,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        }
+      ],
+      "units": [
+        {
+          "handle": 1053606,
+          "type_id": "Ekee",
+          "owner": 15,
+          "hero": true,
+          "hp": 700.0,
+          "max_hp": 1234.0,
+          "mp": 123.0,
+          "max_mp": 456.0,
+          "level": 4,
+          "str": 30,
+          "agi": 40,
+          "int": 50
+        }
+      ],
+      "old_map_neutral_aliases": true,
+      "created": [
+        1053630,
+        1053633
+      ],
+      "warnings": 0,
+      "detail": {
+        "handle": 1053606,
+        "type_id": "Ekee",
+        "x": -1840.0,
+        "y": -6608.0,
+        "facing": 277.6422119140625,
+        "xp": 1100,
+        "points": 1,
+        "paused": true,
+        "xp_paused": true,
+        "item_nodes": 2,
+        "abilities": [
+          {
+            "id": "AItf",
+            "level": 1,
+            "flags": 2147483808
+          },
+          {
+            "id": "AItp",
+            "level": 1,
+            "flags": 8224
+          },
+          {
+            "id": "AEah",
+            "level": 1,
+            "flags": 2415919248
+          },
+          {
+            "id": "BEah",
+            "level": 1,
+            "flags": 1627390352
+          },
+          {
+            "id": "AEer",
+            "level": 2,
+            "flags": 16
+          },
+          {
+            "id": "Ault",
+            "level": 1,
+            "flags": 16
+          },
+          {
+            "id": "AInv",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "AHer",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "Aatk",
+            "level": 1,
+            "flags": 532624
+          },
+          {
+            "id": "Amov",
+            "level": 1,
+            "flags": 16
+          }
+        ],
+        "items": [
+          {
+            "slot": 0,
+            "handle": 1053607,
+            "id": "stwp",
+            "charges": 1,
+            "life": 75.0,
+            "invulnerable": false,
+            "pawnable": true
+          },
+          {
+            "slot": 2,
+            "handle": 1053608,
+            "id": "ratf",
+            "charges": 7,
+            "life": 25.0,
+            "invulnerable": true,
+            "pawnable": false
+          }
+        ]
+      },
+      "message": "已复制 2 个单位。"
+    }
+  },
+  {
+    "step": "preview",
+    "result": {
+      "pid": 18204,
+      "profile": "Legacy 1.29.2.9231",
+      "local_player": 0,
+      "world": 230277320,
+      "applied": 0,
+      "players": [
+        {
+          "slot": 0,
+          "state": 1,
+          "gold": 21270,
+          "lumber": 20110,
+          "food_used": 75,
+          "food_cap": 20
+        },
+        {
+          "slot": 1,
+          "state": 1,
+          "gold": 680,
+          "lumber": 70,
+          "food_used": 24,
+          "food_cap": 24
+        },
+        {
+          "slot": 2,
+          "state": 1,
+          "gold": 630,
+          "lumber": 40,
+          "food_used": 14,
+          "food_cap": 20
+        },
+        {
+          "slot": 3,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 60,
+          "food_used": 11,
+          "food_cap": 20
+        },
+        {
+          "slot": 4,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 5,
+          "state": 1,
+          "gold": 1040,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 6,
+          "state": 1,
+          "gold": 1070,
+          "lumber": 4,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 7,
+          "state": 1,
+          "gold": 630,
+          "lumber": 3,
+          "food_used": 18,
+          "food_cap": 50
+        },
+        {
+          "slot": 8,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 9,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 10,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 11,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 12,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 205,
+          "food_cap": 0
+        },
+        {
+          "slot": 13,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 14,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 15,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 55,
+          "food_cap": 0
+        },
+        {
+          "slot": 16,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 17,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 18,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 19,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 20,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 21,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 22,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 23,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        }
+      ],
+      "units": [
+        {
+          "handle": 1053630,
+          "type_id": "Ekee",
+          "owner": 15,
+          "hero": true,
+          "hp": 700.0,
+          "max_hp": 1234.0,
+          "mp": 123.0,
+          "max_mp": 456.0,
+          "level": 4,
+          "str": 30,
+          "agi": 40,
+          "int": 50
+        }
+      ],
+      "old_map_neutral_aliases": true,
+      "created": [],
+      "warnings": 0,
+      "detail": {
+        "handle": 1053630,
+        "type_id": "Ekee",
+        "x": -1936.0,
+        "y": -6608.0,
+        "facing": 277.6421813964844,
+        "xp": 1100,
+        "points": 1,
+        "paused": true,
+        "xp_paused": true,
+        "item_nodes": 2,
+        "abilities": [
+          {
+            "id": "AItf",
+            "level": 1,
+            "flags": 2147483808
+          },
+          {
+            "id": "AItp",
+            "level": 1,
+            "flags": 8224
+          },
+          {
+            "id": "AEer",
+            "level": 2,
+            "flags": 16
+          },
+          {
+            "id": "AEah",
+            "level": 1,
+            "flags": 2415919248
+          },
+          {
+            "id": "BEah",
+            "level": 1,
+            "flags": 1627390352
+          },
+          {
+            "id": "Ault",
+            "level": 1,
+            "flags": 16
+          },
+          {
+            "id": "AInv",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "AHer",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "Aatk",
+            "level": 1,
+            "flags": 532624
+          },
+          {
+            "id": "Amov",
+            "level": 1,
+            "flags": 16
+          }
+        ],
+        "items": [
+          {
+            "slot": 0,
+            "handle": 1053631,
+            "id": "stwp",
+            "charges": 1,
+            "life": 75.0,
+            "invulnerable": false,
+            "pawnable": true
+          },
+          {
+            "slot": 2,
+            "handle": 1053632,
+            "id": "ratf",
+            "charges": 7,
+            "life": 25.0,
+            "invulnerable": true,
+            "pawnable": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "step": "preview",
+    "result": {
+      "pid": 18204,
+      "profile": "Legacy 1.29.2.9231",
+      "local_player": 0,
+      "world": 230277320,
+      "applied": 0,
+      "players": [
+        {
+          "slot": 0,
+          "state": 1,
+          "gold": 21270,
+          "lumber": 20110,
+          "food_used": 75,
+          "food_cap": 20
+        },
+        {
+          "slot": 1,
+          "state": 1,
+          "gold": 680,
+          "lumber": 70,
+          "food_used": 24,
+          "food_cap": 24
+        },
+        {
+          "slot": 2,
+          "state": 1,
+          "gold": 630,
+          "lumber": 40,
+          "food_used": 14,
+          "food_cap": 20
+        },
+        {
+          "slot": 3,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 60,
+          "food_used": 11,
+          "food_cap": 20
+        },
+        {
+          "slot": 4,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 5,
+          "state": 1,
+          "gold": 1040,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 6,
+          "state": 1,
+          "gold": 1070,
+          "lumber": 4,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 7,
+          "state": 1,
+          "gold": 630,
+          "lumber": 3,
+          "food_used": 18,
+          "food_cap": 50
+        },
+        {
+          "slot": 8,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 9,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 10,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 11,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 12,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 205,
+          "food_cap": 0
+        },
+        {
+          "slot": 13,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 14,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 15,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 55,
+          "food_cap": 0
+        },
+        {
+          "slot": 16,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 17,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 18,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 19,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 20,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 21,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 22,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 23,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        }
+      ],
+      "units": [
+        {
+          "handle": 1053633,
+          "type_id": "Ekee",
+          "owner": 15,
+          "hero": true,
+          "hp": 700.0,
+          "max_hp": 1234.0,
+          "mp": 123.0,
+          "max_mp": 456.0,
+          "level": 4,
+          "str": 30,
+          "agi": 40,
+          "int": 50
+        }
+      ],
+      "old_map_neutral_aliases": true,
+      "created": [],
+      "warnings": 0,
+      "detail": {
+        "handle": 1053633,
+        "type_id": "Ekee",
+        "x": -1832.25,
+        "y": -6698.25,
+        "facing": 277.6421813964844,
+        "xp": 1100,
+        "points": 1,
+        "paused": true,
+        "xp_paused": true,
+        "item_nodes": 2,
+        "abilities": [
+          {
+            "id": "AItf",
+            "level": 1,
+            "flags": 2147483808
+          },
+          {
+            "id": "AItp",
+            "level": 1,
+            "flags": 8224
+          },
+          {
+            "id": "AEer",
+            "level": 2,
+            "flags": 16
+          },
+          {
+            "id": "AEah",
+            "level": 1,
+            "flags": 2415919248
+          },
+          {
+            "id": "BEah",
+            "level": 1,
+            "flags": 1627390352
+          },
+          {
+            "id": "Ault",
+            "level": 1,
+            "flags": 16
+          },
+          {
+            "id": "AInv",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "AHer",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "Aatk",
+            "level": 1,
+            "flags": 532624
+          },
+          {
+            "id": "Amov",
+            "level": 1,
+            "flags": 16
+          }
+        ],
+        "items": [
+          {
+            "slot": 0,
+            "handle": 1053634,
+            "id": "stwp",
+            "charges": 1,
+            "life": 75.0,
+            "invulnerable": false,
+            "pawnable": true
+          },
+          {
+            "slot": 2,
+            "handle": 1053635,
+            "id": "ratf",
+            "charges": 7,
+            "life": 25.0,
+            "invulnerable": true,
+            "pawnable": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "step": "mass_ordinary_player2",
+    "result": {
+      "pid": 18204,
+      "profile": "Legacy 1.29.2.9231",
+      "local_player": 0,
+      "world": 230277320,
+      "applied": 2,
+      "players": [
+        {
+          "slot": 0,
+          "state": 1,
+          "gold": 21270,
+          "lumber": 20110,
+          "food_used": 75,
+          "food_cap": 20
+        },
+        {
+          "slot": 1,
+          "state": 1,
+          "gold": 680,
+          "lumber": 70,
+          "food_used": 34,
+          "food_cap": 24
+        },
+        {
+          "slot": 2,
+          "state": 1,
+          "gold": 630,
+          "lumber": 40,
+          "food_used": 14,
+          "food_cap": 20
+        },
+        {
+          "slot": 3,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 60,
+          "food_used": 11,
+          "food_cap": 20
+        },
+        {
+          "slot": 4,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 5,
+          "state": 1,
+          "gold": 1040,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 6,
+          "state": 1,
+          "gold": 1070,
+          "lumber": 4,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 7,
+          "state": 1,
+          "gold": 630,
+          "lumber": 3,
+          "food_used": 18,
+          "food_cap": 50
+        },
+        {
+          "slot": 8,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 9,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 10,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 11,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 12,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 205,
+          "food_cap": 0
+        },
+        {
+          "slot": 13,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 14,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 15,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 55,
+          "food_cap": 0
+        },
+        {
+          "slot": 16,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 17,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 18,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 19,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 20,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 21,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 22,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 23,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        }
+      ],
+      "units": [
+        {
+          "handle": 1053545,
+          "type_id": "Ekee",
+          "owner": 0,
+          "hero": true,
+          "hp": 700.0,
+          "max_hp": 1234.0,
+          "mp": 123.0,
+          "max_mp": 456.0,
+          "level": 4,
+          "str": 30,
+          "agi": 40,
+          "int": 50
+        }
+      ],
+      "old_map_neutral_aliases": true,
+      "created": [
+        1053657,
+        1053660
+      ],
+      "warnings": 0,
+      "detail": {
+        "handle": 1053545,
+        "type_id": "Ekee",
+        "x": -1744.0,
+        "y": -6416.0,
+        "facing": 277.6422424316406,
+        "xp": 1100,
+        "points": 1,
+        "paused": true,
+        "xp_paused": true,
+        "item_nodes": 2,
+        "abilities": [
+          {
+            "id": "AItf",
+            "level": 1,
+            "flags": 2147483808
+          },
+          {
+            "id": "AEer",
+            "level": 2,
+            "flags": 16
+          },
+          {
+            "id": "AItp",
+            "level": 1,
+            "flags": 8224
+          },
+          {
+            "id": "AEah",
+            "level": 1,
+            "flags": 2415919248
+          },
+          {
+            "id": "BEah",
+            "level": 1,
+            "flags": 1627390352
+          },
+          {
+            "id": "Ault",
+            "level": 1,
+            "flags": 16
+          },
+          {
+            "id": "AInv",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "AHer",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "Aatk",
+            "level": 1,
+            "flags": 532624
+          },
+          {
+            "id": "Amov",
+            "level": 1,
+            "flags": 16
+          }
+        ],
+        "items": [
+          {
+            "slot": 0,
+            "handle": 1053546,
+            "id": "stwp",
+            "charges": 1,
+            "life": 75.0,
+            "invulnerable": false,
+            "pawnable": true
+          },
+          {
+            "slot": 2,
+            "handle": 1053550,
+            "id": "ratf",
+            "charges": 7,
+            "life": 25.0,
+            "invulnerable": true,
+            "pawnable": false
+          }
+        ]
+      },
+      "message": "已复制 2 个单位。"
+    }
+  },
+  {
+    "step": "preview",
+    "result": {
+      "pid": 18204,
+      "profile": "Legacy 1.29.2.9231",
+      "local_player": 0,
+      "world": 230277320,
+      "applied": 0,
+      "players": [
+        {
+          "slot": 0,
+          "state": 1,
+          "gold": 21270,
+          "lumber": 20110,
+          "food_used": 75,
+          "food_cap": 20
+        },
+        {
+          "slot": 1,
+          "state": 1,
+          "gold": 680,
+          "lumber": 70,
+          "food_used": 34,
+          "food_cap": 24
+        },
+        {
+          "slot": 2,
+          "state": 1,
+          "gold": 630,
+          "lumber": 40,
+          "food_used": 14,
+          "food_cap": 20
+        },
+        {
+          "slot": 3,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 60,
+          "food_used": 11,
+          "food_cap": 20
+        },
+        {
+          "slot": 4,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 5,
+          "state": 1,
+          "gold": 1040,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 6,
+          "state": 1,
+          "gold": 1070,
+          "lumber": 4,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 7,
+          "state": 1,
+          "gold": 630,
+          "lumber": 3,
+          "food_used": 18,
+          "food_cap": 50
+        },
+        {
+          "slot": 8,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 9,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 10,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 11,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 12,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 205,
+          "food_cap": 0
+        },
+        {
+          "slot": 13,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 14,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 15,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 55,
+          "food_cap": 0
+        },
+        {
+          "slot": 16,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 17,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 18,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 19,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 20,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 21,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 22,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 23,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        }
+      ],
+      "units": [
+        {
+          "handle": 1053657,
+          "type_id": "Ekee",
+          "owner": 1,
+          "hero": true,
+          "hp": 700.0,
+          "max_hp": 1234.0,
+          "mp": 123.0,
+          "max_mp": 456.0,
+          "level": 4,
+          "str": 30,
+          "agi": 40,
+          "int": 50
+        }
+      ],
+      "old_map_neutral_aliases": true,
+      "created": [],
+      "warnings": 0,
+      "detail": {
+        "handle": 1053657,
+        "type_id": "Ekee",
+        "x": -1552.0,
+        "y": -6608.0,
+        "facing": 277.6422119140625,
+        "xp": 1100,
+        "points": 1,
+        "paused": true,
+        "xp_paused": true,
+        "item_nodes": 2,
+        "abilities": [
+          {
+            "id": "AItf",
+            "level": 1,
+            "flags": 2147483808
+          },
+          {
+            "id": "AItp",
+            "level": 1,
+            "flags": 8224
+          },
+          {
+            "id": "AEah",
+            "level": 1,
+            "flags": 2415919250
+          },
+          {
+            "id": "BEah",
+            "level": 1,
+            "flags": 1627390352
+          },
+          {
+            "id": "AEer",
+            "level": 2,
+            "flags": 16
+          },
+          {
+            "id": "Ault",
+            "level": 1,
+            "flags": 16
+          },
+          {
+            "id": "AInv",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "AHer",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "Aatk",
+            "level": 1,
+            "flags": 532624
+          },
+          {
+            "id": "Amov",
+            "level": 1,
+            "flags": 1040
+          }
+        ],
+        "items": [
+          {
+            "slot": 0,
+            "handle": 1053658,
+            "id": "stwp",
+            "charges": 1,
+            "life": 75.0,
+            "invulnerable": false,
+            "pawnable": true
+          },
+          {
+            "slot": 2,
+            "handle": 1053659,
+            "id": "ratf",
+            "charges": 7,
+            "life": 25.0,
+            "invulnerable": true,
+            "pawnable": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "step": "preview",
+    "result": {
+      "pid": 18204,
+      "profile": "Legacy 1.29.2.9231",
+      "local_player": 0,
+      "world": 230277320,
+      "applied": 0,
+      "players": [
+        {
+          "slot": 0,
+          "state": 1,
+          "gold": 21270,
+          "lumber": 20110,
+          "food_used": 75,
+          "food_cap": 20
+        },
+        {
+          "slot": 1,
+          "state": 1,
+          "gold": 680,
+          "lumber": 70,
+          "food_used": 34,
+          "food_cap": 24
+        },
+        {
+          "slot": 2,
+          "state": 1,
+          "gold": 630,
+          "lumber": 40,
+          "food_used": 14,
+          "food_cap": 20
+        },
+        {
+          "slot": 3,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 60,
+          "food_used": 11,
+          "food_cap": 20
+        },
+        {
+          "slot": 4,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 5,
+          "state": 1,
+          "gold": 1040,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 6,
+          "state": 1,
+          "gold": 1070,
+          "lumber": 4,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 7,
+          "state": 1,
+          "gold": 630,
+          "lumber": 3,
+          "food_used": 18,
+          "food_cap": 50
+        },
+        {
+          "slot": 8,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 9,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 10,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 11,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 12,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 205,
+          "food_cap": 0
+        },
+        {
+          "slot": 13,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 14,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 15,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 55,
+          "food_cap": 0
+        },
+        {
+          "slot": 16,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 17,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 18,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 19,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 20,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 21,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 22,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 23,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        }
+      ],
+      "units": [
+        {
+          "handle": 1053660,
+          "type_id": "Ekee",
+          "owner": 1,
+          "hero": true,
+          "hp": 700.0,
+          "max_hp": 1234.0,
+          "mp": 123.0,
+          "max_mp": 456.0,
+          "level": 4,
+          "str": 30,
+          "agi": 40,
+          "int": 50
+        }
+      ],
+      "old_map_neutral_aliases": true,
+      "created": [],
+      "warnings": 0,
+      "detail": {
+        "handle": 1053660,
+        "type_id": "Ekee",
+        "x": -1744.0,
+        "y": -6640.0,
+        "facing": 277.6422119140625,
+        "xp": 1100,
+        "points": 1,
+        "paused": true,
+        "xp_paused": true,
+        "item_nodes": 2,
+        "abilities": [
+          {
+            "id": "AItf",
+            "level": 1,
+            "flags": 2147483808
+          },
+          {
+            "id": "AItp",
+            "level": 1,
+            "flags": 8224
+          },
+          {
+            "id": "AEah",
+            "level": 1,
+            "flags": 2415919250
+          },
+          {
+            "id": "BEah",
+            "level": 1,
+            "flags": 1627390352
+          },
+          {
+            "id": "AEer",
+            "level": 2,
+            "flags": 16
+          },
+          {
+            "id": "Ault",
+            "level": 1,
+            "flags": 16
+          },
+          {
+            "id": "AInv",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "AHer",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "Aatk",
+            "level": 1,
+            "flags": 532624
+          },
+          {
+            "id": "Amov",
+            "level": 1,
+            "flags": 1040
+          }
+        ],
+        "items": [
+          {
+            "slot": 0,
+            "handle": 1053661,
+            "id": "stwp",
+            "charges": 1,
+            "life": 75.0,
+            "invulnerable": false,
+            "pawnable": true
+          },
+          {
+            "slot": 2,
+            "handle": 1053662,
+            "id": "ratf",
+            "charges": 7,
+            "life": 25.0,
+            "invulnerable": true,
+            "pawnable": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "step": "replace_zhyd",
+    "result": {
+      "pid": 18204,
+      "profile": "Legacy 1.29.2.9231",
+      "local_player": 0,
+      "world": 230277320,
+      "applied": 1,
+      "players": [
+        {
+          "slot": 0,
+          "state": 1,
+          "gold": 21270,
+          "lumber": 20110,
+          "food_used": 78,
+          "food_cap": 20
+        },
+        {
+          "slot": 1,
+          "state": 1,
+          "gold": 680,
+          "lumber": 70,
+          "food_used": 34,
+          "food_cap": 24
+        },
+        {
+          "slot": 2,
+          "state": 1,
+          "gold": 630,
+          "lumber": 40,
+          "food_used": 14,
+          "food_cap": 20
+        },
+        {
+          "slot": 3,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 60,
+          "food_used": 11,
+          "food_cap": 20
+        },
+        {
+          "slot": 4,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 5,
+          "state": 1,
+          "gold": 1040,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 6,
+          "state": 1,
+          "gold": 1070,
+          "lumber": 4,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 7,
+          "state": 1,
+          "gold": 630,
+          "lumber": 3,
+          "food_used": 18,
+          "food_cap": 50
+        },
+        {
+          "slot": 8,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 9,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 10,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 11,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 12,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 205,
+          "food_cap": 0
+        },
+        {
+          "slot": 13,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 14,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 15,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 55,
+          "food_cap": 0
+        },
+        {
+          "slot": 16,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 17,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 18,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 19,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 20,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 21,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 22,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 23,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        }
+      ],
+      "units": [
+        {
+          "handle": 1053559,
+          "type_id": "Ekee",
+          "owner": 0,
+          "hero": true,
+          "hp": 700.0,
+          "max_hp": 1234.0,
+          "mp": 123.0,
+          "max_mp": 456.0,
+          "level": 4,
+          "str": 30,
+          "agi": 40,
+          "int": 50
+        }
+      ],
+      "old_map_neutral_aliases": true,
+      "created": [
+        1053684
+      ],
+      "warnings": 2,
+      "detail": {
+        "handle": 1053559,
+        "type_id": "Ekee",
+        "x": -1872.0,
+        "y": -6512.0,
+        "facing": 277.6422119140625,
+        "xp": 1100,
+        "points": 1,
+        "paused": true,
+        "xp_paused": true,
+        "item_nodes": 2,
+        "abilities": [
+          {
+            "id": "AItf",
+            "level": 1,
+            "flags": 2147483808
+          },
+          {
+            "id": "AItp",
+            "level": 1,
+            "flags": 8224
+          },
+          {
+            "id": "AEah",
+            "level": 1,
+            "flags": 2415919248
+          },
+          {
+            "id": "BEah",
+            "level": 1,
+            "flags": 1627390352
+          },
+          {
+            "id": "AEer",
+            "level": 2,
+            "flags": 16
+          },
+          {
+            "id": "Ault",
+            "level": 1,
+            "flags": 16
+          },
+          {
+            "id": "AInv",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "AHer",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "Aatk",
+            "level": 1,
+            "flags": 532624
+          },
+          {
+            "id": "Amov",
+            "level": 1,
+            "flags": 16
+          }
+        ],
+        "items": [
+          {
+            "slot": 0,
+            "handle": 1053560,
+            "id": "stwp",
+            "charges": 1,
+            "life": 75.0,
+            "invulnerable": false,
+            "pawnable": true
+          },
+          {
+            "slot": 2,
+            "handle": 1053561,
+            "id": "ratf",
+            "charges": 7,
+            "life": 25.0,
+            "invulnerable": true,
+            "pawnable": false
+          }
+        ]
+      },
+      "message": "已替换 1 个单位。 目标不是英雄，英雄等级/经验/三围/技能点不适用。"
+    }
+  },
+  {
+    "step": "preview",
+    "result": {
+      "pid": 18204,
+      "profile": "Legacy 1.29.2.9231",
+      "local_player": 0,
+      "world": 230277320,
+      "applied": 0,
+      "players": [
+        {
+          "slot": 0,
+          "state": 1,
+          "gold": 21270,
+          "lumber": 20110,
+          "food_used": 78,
+          "food_cap": 20
+        },
+        {
+          "slot": 1,
+          "state": 1,
+          "gold": 680,
+          "lumber": 70,
+          "food_used": 34,
+          "food_cap": 24
+        },
+        {
+          "slot": 2,
+          "state": 1,
+          "gold": 630,
+          "lumber": 40,
+          "food_used": 14,
+          "food_cap": 20
+        },
+        {
+          "slot": 3,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 60,
+          "food_used": 11,
+          "food_cap": 20
+        },
+        {
+          "slot": 4,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 5,
+          "state": 1,
+          "gold": 1040,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 6,
+          "state": 1,
+          "gold": 1070,
+          "lumber": 4,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 7,
+          "state": 1,
+          "gold": 630,
+          "lumber": 3,
+          "food_used": 18,
+          "food_cap": 50
+        },
+        {
+          "slot": 8,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 9,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 10,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 11,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 12,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 205,
+          "food_cap": 0
+        },
+        {
+          "slot": 13,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 14,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 15,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 55,
+          "food_cap": 0
+        },
+        {
+          "slot": 16,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 17,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 18,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 19,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 20,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 21,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 22,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 23,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        }
+      ],
+      "units": [
+        {
+          "handle": 1053684,
+          "type_id": "zhyd",
+          "owner": 0,
+          "hero": false,
+          "hp": 700.0,
+          "max_hp": 1234.0,
+          "mp": 123.0,
+          "max_mp": 456.0,
+          "level": 0,
+          "str": 0,
+          "agi": 0,
+          "int": 0
+        }
+      ],
+      "old_map_neutral_aliases": true,
+      "created": [],
+      "warnings": 0,
+      "detail": {
+        "handle": 1053684,
+        "type_id": "zhyd",
+        "x": -2032.0,
+        "y": -6576.0,
+        "facing": 277.6421813964844,
+        "xp": 0,
+        "points": 0,
+        "paused": true,
+        "xp_paused": false,
+        "item_nodes": 2,
+        "abilities": [
+          {
+            "id": "AItf",
+            "level": 1,
+            "flags": 2147483808
+          },
+          {
+            "id": "AItp",
+            "level": 1,
+            "flags": 8224
+          },
+          {
+            "id": "AInv",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "Aatk",
+            "level": 1,
+            "flags": 532624
+          },
+          {
+            "id": "Amov",
+            "level": 1,
+            "flags": 16
+          }
+        ],
+        "items": [
+          {
+            "slot": 0,
+            "handle": 1053560,
+            "id": "stwp",
+            "charges": 1,
+            "life": 75.0,
+            "invulnerable": false,
+            "pawnable": true
+          },
+          {
+            "slot": 2,
+            "handle": 1053561,
+            "id": "ratf",
+            "charges": 7,
+            "life": 25.0,
+            "invulnerable": true,
+            "pawnable": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "step": "replace_hero",
+    "result": {
+      "pid": 18204,
+      "profile": "Legacy 1.29.2.9231",
+      "local_player": 0,
+      "world": 230277320,
+      "applied": 1,
+      "players": [
+        {
+          "slot": 0,
+          "state": 1,
+          "gold": 21270,
+          "lumber": 20110,
+          "food_used": 83,
+          "food_cap": 20
+        },
+        {
+          "slot": 1,
+          "state": 1,
+          "gold": 680,
+          "lumber": 70,
+          "food_used": 34,
+          "food_cap": 24
+        },
+        {
+          "slot": 2,
+          "state": 1,
+          "gold": 630,
+          "lumber": 40,
+          "food_used": 14,
+          "food_cap": 20
+        },
+        {
+          "slot": 3,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 60,
+          "food_used": 11,
+          "food_cap": 20
+        },
+        {
+          "slot": 4,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 5,
+          "state": 1,
+          "gold": 1040,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 6,
+          "state": 1,
+          "gold": 1070,
+          "lumber": 4,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 7,
+          "state": 1,
+          "gold": 630,
+          "lumber": 3,
+          "food_used": 18,
+          "food_cap": 50
+        },
+        {
+          "slot": 8,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 9,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 10,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 11,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 12,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 205,
+          "food_cap": 0
+        },
+        {
+          "slot": 13,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 14,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 15,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 55,
+          "food_cap": 0
+        },
+        {
+          "slot": 16,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 17,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 18,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 19,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 20,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 21,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 22,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 23,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        }
+      ],
+      "units": [
+        {
+          "handle": 1053545,
+          "type_id": "Ekee",
+          "owner": 0,
+          "hero": true,
+          "hp": 700.0,
+          "max_hp": 1234.0,
+          "mp": 123.0,
+          "max_mp": 456.0,
+          "level": 4,
+          "str": 30,
+          "agi": 40,
+          "int": 50
+        }
+      ],
+      "old_map_neutral_aliases": true,
+      "created": [
+        1053699
+      ],
+      "warnings": 0,
+      "detail": {
+        "handle": 1053545,
+        "type_id": "Ekee",
+        "x": -1744.0,
+        "y": -6416.0,
+        "facing": 277.6422424316406,
+        "xp": 1100,
+        "points": 1,
+        "paused": true,
+        "xp_paused": true,
+        "item_nodes": 2,
+        "abilities": [
+          {
+            "id": "AItf",
+            "level": 1,
+            "flags": 2147483808
+          },
+          {
+            "id": "AEer",
+            "level": 2,
+            "flags": 16
+          },
+          {
+            "id": "AItp",
+            "level": 1,
+            "flags": 8224
+          },
+          {
+            "id": "AEah",
+            "level": 1,
+            "flags": 2415919248
+          },
+          {
+            "id": "BEah",
+            "level": 1,
+            "flags": 1627390352
+          },
+          {
+            "id": "Ault",
+            "level": 1,
+            "flags": 16
+          },
+          {
+            "id": "AInv",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "AHer",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "Aatk",
+            "level": 1,
+            "flags": 532624
+          },
+          {
+            "id": "Amov",
+            "level": 1,
+            "flags": 16
+          }
+        ],
+        "items": [
+          {
+            "slot": 0,
+            "handle": 1053546,
+            "id": "stwp",
+            "charges": 1,
+            "life": 75.0,
+            "invulnerable": false,
+            "pawnable": true
+          },
+          {
+            "slot": 2,
+            "handle": 1053550,
+            "id": "ratf",
+            "charges": 7,
+            "life": 25.0,
+            "invulnerable": true,
+            "pawnable": false
+          }
+        ]
+      },
+      "message": "已替换 1 个单位。"
+    }
+  },
+  {
+    "step": "preview",
+    "result": {
+      "pid": 18204,
+      "profile": "Legacy 1.29.2.9231",
+      "local_player": 0,
+      "world": 230277320,
+      "applied": 0,
+      "players": [
+        {
+          "slot": 0,
+          "state": 1,
+          "gold": 21270,
+          "lumber": 20110,
+          "food_used": 83,
+          "food_cap": 20
+        },
+        {
+          "slot": 1,
+          "state": 1,
+          "gold": 680,
+          "lumber": 70,
+          "food_used": 34,
+          "food_cap": 24
+        },
+        {
+          "slot": 2,
+          "state": 1,
+          "gold": 630,
+          "lumber": 40,
+          "food_used": 14,
+          "food_cap": 20
+        },
+        {
+          "slot": 3,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 60,
+          "food_used": 11,
+          "food_cap": 20
+        },
+        {
+          "slot": 4,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 5,
+          "state": 1,
+          "gold": 1040,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 6,
+          "state": 1,
+          "gold": 1070,
+          "lumber": 4,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 7,
+          "state": 1,
+          "gold": 630,
+          "lumber": 3,
+          "food_used": 18,
+          "food_cap": 50
+        },
+        {
+          "slot": 8,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 9,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 10,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 11,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 12,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 205,
+          "food_cap": 0
+        },
+        {
+          "slot": 13,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 14,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 15,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 55,
+          "food_cap": 0
+        },
+        {
+          "slot": 16,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 17,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 18,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 19,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 20,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 21,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 22,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 23,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        }
+      ],
+      "units": [
+        {
+          "handle": 1053699,
+          "type_id": "Hpal",
+          "owner": 0,
+          "hero": true,
+          "hp": 700.0,
+          "max_hp": 1234.0,
+          "mp": 123.0,
+          "max_mp": 456.0,
+          "level": 4,
+          "str": 30,
+          "agi": 40,
+          "int": 50
+        }
+      ],
+      "old_map_neutral_aliases": true,
+      "created": [],
+      "warnings": 0,
+      "detail": {
+        "handle": 1053699,
+        "type_id": "Hpal",
+        "x": -1840.0,
+        "y": -6512.0,
+        "facing": 277.6422119140625,
+        "xp": 1100,
+        "points": 1,
+        "paused": true,
+        "xp_paused": true,
+        "item_nodes": 2,
+        "abilities": [
+          {
+            "id": "AItf",
+            "level": 1,
+            "flags": 2147483808
+          },
+          {
+            "id": "AItp",
+            "level": 1,
+            "flags": 8224
+          },
+          {
+            "id": "AInv",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "AHer",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "Aatk",
+            "level": 1,
+            "flags": 532624
+          },
+          {
+            "id": "Amov",
+            "level": 1,
+            "flags": 16
+          }
+        ],
+        "items": [
+          {
+            "slot": 0,
+            "handle": 1053546,
+            "id": "stwp",
+            "charges": 1,
+            "life": 75.0,
+            "invulnerable": false,
+            "pawnable": true
+          },
+          {
+            "slot": 2,
+            "handle": 1053550,
+            "id": "ratf",
+            "charges": 7,
+            "life": 25.0,
+            "invulnerable": true,
+            "pawnable": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "step": "invalid_id",
+    "result": {
+      "expected_error": "未能创建目标单位，请核对单位ID是否存在。",
+      "applied": 0
+    }
+  },
+  {
+    "step": "inactive_player",
+    "result": {
+      "expected_error": "该普通玩家槽位未在当前地图启用。",
+      "applied": 0
+    }
+  },
+  {
+    "step": "test_operation_not_shipped",
+    "result": {
+      "expected_error": "参数超出允许范围。",
+      "applied": 0
+    }
+  },
+  {
+    "step": "multi_selection",
+    "result": {
+      "pid": 18204,
+      "profile": "Legacy 1.29.2.9231",
+      "local_player": 0,
+      "world": 230277320,
+      "applied": 4,
+      "players": [
+        {
+          "slot": 0,
+          "state": 1,
+          "gold": 21270,
+          "lumber": 20110,
+          "food_used": 99,
+          "food_cap": 20
+        },
+        {
+          "slot": 1,
+          "state": 1,
+          "gold": 680,
+          "lumber": 70,
+          "food_used": 34,
+          "food_cap": 24
+        },
+        {
+          "slot": 2,
+          "state": 1,
+          "gold": 630,
+          "lumber": 40,
+          "food_used": 14,
+          "food_cap": 20
+        },
+        {
+          "slot": 3,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 60,
+          "food_used": 11,
+          "food_cap": 20
+        },
+        {
+          "slot": 4,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 5,
+          "state": 1,
+          "gold": 1040,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 6,
+          "state": 1,
+          "gold": 1070,
+          "lumber": 4,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 7,
+          "state": 1,
+          "gold": 630,
+          "lumber": 3,
+          "food_used": 18,
+          "food_cap": 50
+        },
+        {
+          "slot": 8,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 9,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 10,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 11,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 12,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 205,
+          "food_cap": 0
+        },
+        {
+          "slot": 13,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 14,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 15,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 55,
+          "food_cap": 0
+        },
+        {
+          "slot": 16,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 17,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 18,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 19,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 20,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 21,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 22,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 23,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        }
+      ],
+      "units": [
+        {
+          "handle": 1052131,
+          "type_id": "Ekee",
+          "owner": 0,
+          "hero": true,
+          "hp": 1000.0,
+          "max_hp": 1000.0,
+          "mp": 553.24,
+          "max_mp": 660.0,
+          "level": 7,
+          "str": 36,
+          "agi": 34,
+          "int": 44
+        },
+        {
+          "handle": 1053684,
+          "type_id": "zhyd",
+          "owner": 0,
+          "hero": false,
+          "hp": 700.0,
+          "max_hp": 1234.0,
+          "mp": 123.0,
+          "max_mp": 456.0,
+          "level": 0,
+          "str": 0,
+          "agi": 0,
+          "int": 0
+        }
+      ],
+      "old_map_neutral_aliases": true,
+      "created": [
+        1053725,
+        1053727,
+        1053729,
+        1053732
+      ],
+      "warnings": 0,
+      "detail": {
+        "handle": 1052131,
+        "type_id": "Ekee",
+        "x": -1604.55517578125,
+        "y": -6335.90283203125,
+        "facing": 277.64227294921875,
+        "xp": 2700,
+        "points": 0,
+        "paused": false,
+        "xp_paused": false,
+        "item_nodes": 1,
+        "abilities": [
+          {
+            "id": "AEtq",
+            "level": 1,
+            "flags": 16
+          },
+          {
+            "id": "AEer",
+            "level": 1,
+            "flags": 16
+          },
+          {
+            "id": "AEfn",
+            "level": 2,
+            "flags": 528
+          },
+          {
+            "id": "AEah",
+            "level": 3,
+            "flags": 2415919248
+          },
+          {
+            "id": "BEah",
+            "level": 1,
+            "flags": 1627390352
+          },
+          {
+            "id": "AItp",
+            "level": 1,
+            "flags": 8224
+          },
+          {
+            "id": "Ault",
+            "level": 1,
+            "flags": 16
+          },
+          {
+            "id": "AInv",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "AHer",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "Aatk",
+            "level": 1,
+            "flags": 570966032
+          },
+          {
+            "id": "Amov",
+            "level": 1,
+            "flags": 16
+          }
+        ],
+        "items": [
+          {
+            "slot": 0,
+            "handle": 1052133,
+            "id": "stwp",
+            "charges": 1,
+            "life": 75.0,
+            "invulnerable": false,
+            "pawnable": true
+          }
+        ]
+      },
+      "message": "已复制 4 个单位。"
+    }
+  },
+  {
+    "step": "preview",
+    "result": {
+      "pid": 18204,
+      "profile": "Legacy 1.29.2.9231",
+      "local_player": 0,
+      "world": 230277320,
+      "applied": 0,
+      "players": [
+        {
+          "slot": 0,
+          "state": 1,
+          "gold": 21270,
+          "lumber": 20110,
+          "food_used": 99,
+          "food_cap": 20
+        },
+        {
+          "slot": 1,
+          "state": 1,
+          "gold": 680,
+          "lumber": 70,
+          "food_used": 34,
+          "food_cap": 24
+        },
+        {
+          "slot": 2,
+          "state": 1,
+          "gold": 630,
+          "lumber": 40,
+          "food_used": 14,
+          "food_cap": 20
+        },
+        {
+          "slot": 3,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 60,
+          "food_used": 11,
+          "food_cap": 20
+        },
+        {
+          "slot": 4,
+          "state": 1,
+          "gold": 1030,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 5,
+          "state": 1,
+          "gold": 1040,
+          "lumber": 3,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 6,
+          "state": 1,
+          "gold": 1070,
+          "lumber": 4,
+          "food_used": 14,
+          "food_cap": 50
+        },
+        {
+          "slot": 7,
+          "state": 1,
+          "gold": 630,
+          "lumber": 3,
+          "food_used": 18,
+          "food_cap": 50
+        },
+        {
+          "slot": 8,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 9,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 10,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 11,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 12,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 205,
+          "food_cap": 0
+        },
+        {
+          "slot": 13,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 14,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 15,
+          "state": 1,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 55,
+          "food_cap": 0
+        },
+        {
+          "slot": 16,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 17,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 18,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 19,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 20,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 21,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 22,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        },
+        {
+          "slot": 23,
+          "state": 0,
+          "gold": 0,
+          "lumber": 0,
+          "food_used": 0,
+          "food_cap": 0
+        }
+      ],
+      "units": [
+        {
+          "handle": 1052131,
+          "type_id": "Ekee",
+          "owner": 0,
+          "hero": true,
+          "hp": 1000.0,
+          "max_hp": 1000.0,
+          "mp": 553.24,
+          "max_mp": 660.0,
+          "level": 7,
+          "str": 36,
+          "agi": 34,
+          "int": 44
+        }
+      ],
+      "old_map_neutral_aliases": true,
+      "created": [],
+      "warnings": 0,
+      "detail": {
+        "handle": 1052131,
+        "type_id": "Ekee",
+        "x": -1604.55517578125,
+        "y": -6335.90283203125,
+        "facing": 277.64227294921875,
+        "xp": 2700,
+        "points": 0,
+        "paused": false,
+        "xp_paused": false,
+        "item_nodes": 1,
+        "abilities": [
+          {
+            "id": "AEtq",
+            "level": 1,
+            "flags": 16
+          },
+          {
+            "id": "AEer",
+            "level": 1,
+            "flags": 16
+          },
+          {
+            "id": "AEfn",
+            "level": 2,
+            "flags": 528
+          },
+          {
+            "id": "AEah",
+            "level": 3,
+            "flags": 2415919248
+          },
+          {
+            "id": "BEah",
+            "level": 1,
+            "flags": 1627390352
+          },
+          {
+            "id": "AItp",
+            "level": 1,
+            "flags": 8224
+          },
+          {
+            "id": "Ault",
+            "level": 1,
+            "flags": 16
+          },
+          {
+            "id": "AInv",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "AHer",
+            "level": 1,
+            "flags": 144
+          },
+          {
+            "id": "Aatk",
+            "level": 1,
+            "flags": 570966032
+          },
+          {
+            "id": "Amov",
+            "level": 1,
+            "flags": 16
+          }
+        ],
+        "items": [
+          {
+            "slot": 0,
+            "handle": 1052133,
+            "id": "stwp",
+            "charges": 1,
+            "life": 75.0,
+            "invulnerable": false,
+            "pawnable": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "step": "passed",
+    "result": {
+      "ok": true,
+      "production_helper_sha256": "fc659f5ba58e7fcb0808ce815d449e190bdc9007bb1de627b2004df0183c4f67",
+      "created_handles": [
+        1053545,
+        1053559,
+        1053576,
+        1053579,
+        1053603,
+        1053606,
+        1053630,
+        1053633,
+        1053657,
+        1053660,
+        1053684,
+        1053699,
+        1053725,
+        1053727,
+        1053729,
+        1053732
+      ],
+      "original_preserved": true,
+      "gameplay_writes_authorized": true,
+      "original_handle": 1052131
+    }
+  }
+]
