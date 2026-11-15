@@ -1,0 +1,113 @@
+
+> war3-trainer-frontend@0.1.0 build
+> npm run check && vite build
+
+
+> war3-trainer-frontend@0.1.0 check
+> tsc --noEmit -p . && node scripts/check-contrast.mjs && node scripts/check-i18n.mjs && python -I scripts/fonts/subset.py --check
+
+ok   13.59:1  --text-primary on stage (needs 4.5)
+ok   11.17:1  --text-primary on stage, lit top (needs 4.5)
+ok   12.00:1  --text-primary on raised (needs 4.5)
+ok   12.95:1  --text-primary on console (needs 4.5)
+ok   11.07:1  --text-primary on console, top (needs 4.5)
+ok    8.66:1  --text-secondary on stage (needs 4.5)
+ok    7.39:1  --text-secondary on stage, lit top (needs 4.5)
+ok    7.85:1  --text-secondary on raised (needs 4.5)
+ok    8.36:1  --text-secondary on console (needs 4.5)
+ok    7.36:1  --text-secondary on console, top (needs 4.5)
+ok    6.23:1  --text-tertiary on stage (needs 4.5)
+ok    5.48:1  --text-tertiary on stage, lit top (needs 4.5)
+ok    5.76:1  --text-tertiary on raised (needs 4.5)
+ok    6.07:1  --text-tertiary on console (needs 4.5)
+ok    5.48:1  --text-tertiary on console, top (needs 4.5)
+ok    9.02:1  --text-label on stage (needs 4.5)
+ok    7.42:1  --text-label on stage, lit top (needs 4.5)
+ok    7.97:1  --text-label on raised (needs 4.5)
+ok    8.60:1  --text-label on console (needs 4.5)
+ok    7.36:1  --text-label on console, top (needs 4.5)
+ok   12.82:1  --text-value on stage (needs 4.5)
+ok   10.54:1  --text-value on stage, lit top (needs 4.5)
+ok   11.33:1  --text-value on raised (needs 4.5)
+ok   12.22:1  --text-value on console (needs 4.5)
+ok   10.45:1  --text-value on console, top (needs 4.5)
+ok   15.47:1  --text-primary on sunken (needs 4.5)
+ok    6.61:1  --text-tertiary on sunken (needs 4.5)
+ok    5.67:1  --text-danger on stage (needs 4.5)
+ok   11.18:1  --frost on stage (needs 4.5)
+ok    7.76:1  --lumber on stage (needs 4.5)
+ok   10.65:1  --text-on-document on document (needs 4.5)
+ok    6.02:1  --text-on-bronze on bronze pill (needs 4.5)
+ok    9.02:1  --focus on stage (needs 3)
+ok    8.60:1  --focus on console (needs 3)
+ok    5.45:1  --line-strong on stage (needs 3)
+contrast ok
+i18n ok (832 literal strings)
+font subset ok (968 UI characters)
+vite v8.3.5 building client environment for production...
+transforming...
+✓ 631 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                 1.00 kB │ gzip:   0.66 kB
+dist/assets/serif-ui-600-dbT7YbOj.woff2       170.66 kB
+dist/assets/serif-ui-900-CPr6ZgFN.woff2       172.71 kB
+dist/assets/serif-names-600-C3UWCx_4.woff2    612.45 kB
+dist/assets/CatalogPage-CDXXWHeM.css            0.41 kB │ gzip:   0.24 kB
+dist/assets/FullClonePanel-C6ceM-aW.css         0.55 kB │ gzip:   0.31 kB
+dist/assets/LocksPage-CepUf2u9.css              0.72 kB │ gzip:   0.40 kB
+dist/assets/QuestPage-DPQZ3vvi.css              1.13 kB │ gzip:   0.53 kB
+dist/assets/Layout-CtKopiRM.css                 1.15 kB │ gzip:   0.52 kB
+dist/assets/ArchivePage-B5usZgCP.css            1.20 kB │ gzip:   0.60 kB
+dist/assets/Jobs-MO0UlVMz.css                   1.49 kB │ gzip:   0.59 kB
+dist/assets/DataTable-CG1jvGYE.css              1.54 kB │ gzip:   0.67 kB
+dist/assets/BatchPage-Chg6wbLW.css              2.34 kB │ gzip:   0.97 kB
+dist/assets/shared-DMukbrfg.css                 2.40 kB │ gzip:   0.97 kB
+dist/assets/Codex-UQZU0cn3.css                  2.45 kB │ gzip:   0.99 kB
+dist/assets/ResourcesPage-uNgP4PAr.css          2.52 kB │ gzip:   0.95 kB
+dist/assets/PlayerDirectoryPage-ChwRPcGR.css    2.61 kB │ gzip:   0.93 kB
+dist/assets/HotkeysPage-DhWuCbwU.css            2.79 kB │ gzip:   1.05 kB
+dist/assets/UnitPage-CkHOmUWQ.css               3.18 kB │ gzip:   1.11 kB
+dist/assets/MapCatalogPage-D6GifwkW.css         3.35 kB │ gzip:   1.07 kB
+dist/assets/FieldTable-CDOcZFnD.css             3.74 kB │ gzip:   1.20 kB
+dist/assets/ExtensionsPage-EzoUQ7Tu.css         3.82 kB │ gzip:   1.38 kB
+dist/assets/MapScriptsPage-CgNmlfk-.css         3.84 kB │ gzip:   1.24 kB
+dist/assets/ElephantPage-CCG4-z0b.css           5.21 kB │ gzip:   1.59 kB
+dist/assets/index-D2ZW7Eke.css                 57.25 kB │ gzip:  14.31 kB
+dist/assets/CatalogPage.module-BfsHwtR5.js      0.11 kB │ gzip:   0.10 kB
+dist/assets/locks-CDromI3K.js                   0.49 kB │ gzip:   0.30 kB
+dist/assets/catalog-mqXnI-no.js                 0.86 kB │ gzip:   0.50 kB
+dist/assets/Layout-B_0C3osY.js                  1.40 kB │ gzip:   0.65 kB
+dist/assets/DataTable-BOVvEJFN.js               1.65 kB │ gzip:   0.81 kB
+dist/assets/shared-DyYIFEPi.js                  1.69 kB │ gzip:   0.97 kB
+dist/assets/Equipment3Page-D3_3BthQ.js          2.73 kB │ gzip:   1.56 kB
+dist/assets/LocksPage-BJCR0M0c.js               2.79 kB │ gzip:   1.46 kB
+dist/assets/HeroSkillsPage-Cz7nSXlv.js          3.31 kB │ gzip:   1.74 kB
+dist/assets/FieldTable-RVo4qk0w.js              4.06 kB │ gzip:   1.83 kB
+dist/assets/AbilityFieldsPage-DKeImf7m.js       4.12 kB │ gzip:   2.00 kB
+dist/assets/UnitFieldsPage-B7CpQgbx.js          4.33 kB │ gzip:   2.12 kB
+dist/assets/QuestPage-CnQL707i.js               4.47 kB │ gzip:   2.07 kB
+dist/assets/CatalogPage-UvKlDreG.js             4.84 kB │ gzip:   2.17 kB
+dist/assets/Codex-DpYL0iuU.js                   4.97 kB │ gzip:   2.21 kB
+dist/assets/Jobs-Ui-JaiMm.js                    5.29 kB │ gzip:   2.08 kB
+dist/assets/ItemFieldsPage-BnnrCn5a.js          5.42 kB │ gzip:   2.57 kB
+dist/assets/FullClonePanel-CxHWbKi6.js          6.01 kB │ gzip:   2.55 kB
+dist/assets/HotkeysPage-DlLLUVLu.js             6.82 kB │ gzip:   2.84 kB
+dist/assets/BatchPage-PainzPiY.js               7.27 kB │ gzip:   3.12 kB
+dist/assets/ArchivePage-BPbk1JC1.js             8.04 kB │ gzip:   3.28 kB
+dist/assets/UnitPage-DGtSNQkb.js               10.34 kB │ gzip:   4.25 kB
+dist/assets/ElephantPage-DJo6ka9e.js           10.52 kB │ gzip:   3.48 kB
+dist/assets/ResourcesPage-DsWQpB1Y.js          10.92 kB │ gzip:   4.19 kB
+dist/assets/MapScriptsPage-DJC-I_ZV.js         11.05 kB │ gzip:   4.95 kB
+dist/assets/PlayerDirectoryPage--CGR_8kv.js    11.14 kB │ gzip:   4.37 kB
+dist/assets/MapCatalogPage-D4q76ewx.js         13.78 kB │ gzip:   5.21 kB
+dist/assets/ExtensionsPage-Db-MDkpX.js         19.45 kB │ gzip:   6.92 kB
+dist/assets/mockBridge-VYsxoqHw.js             32.64 kB │ gzip:  12.99 kB
+dist/assets/index-DEgTmDX7.js                 682.19 kB │ gzip: 237.32 kB
+
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 958ms

@@ -1,0 +1,38 @@
+{
+  "edition": "v2.2.4 FullClone R32-Test",
+  "date": "2026-11-14",
+  "source_commit": "853508f9d096596617d1a446fc562dbdcf6ae42f",
+  "exe": {
+    "path": "E:\\Games\\Warcraft III\\War3ReforgedTrainer-v2.2.4-FullClone-R32-Test.exe",
+    "sha256": "ea7235d193b3cff52e81835553a97996872fe9ac656e399bdfb49199a698bf62",
+    "bytes": 27441795,
+    "file_version": "2.2.4.332"
+  },
+  "source": {
+    "path": "E:\\Games\\Warcraft III\\FullClone-R32\\War3ReforgedTrainer-v2.2.4-FullClone-R32-Test-source.zip",
+    "sha256": "7e9bd34f419445fd03259c15454a7aab46fcb3af099325b30835b0877a6e65a1",
+    "files": 673,
+    "all_members_re_read": true
+  },
+  "guide": "E:\\Games\\Warcraft III\\FullClone-R32\\R32_使用说明.md",
+  "ownership": "catalogue spawn follows existing panel switch; off means local player",
+  "author_source_exe_exact_modules": 197,
+  "tests": 262,
+  "frozen_modules": 221,
+  "source_inputs": 564,
+  "ui": {
+    "pages": 18,
+    "hotkeys": 77,
+    "real_edge_mock_rpc": true,
+    "catalogue_actions": 24,
+    "layouts": 3
+  },
+  "backend": {
+    "readers_and_profiles_preserved": true,
+    "helper_sha256": "d0191e97c77c3bc2c38bb35e072bcb9e8004aaefa3636ef841aacb2cb633893f",
+    "new_native_actions": []
+  },
+  "gameplay_write_tested": false,
+  "originals_preserved": true,
+  "published": false
+}

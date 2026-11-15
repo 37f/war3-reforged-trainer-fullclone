@@ -16,3 +16,7 @@ releases/v2.2.3-R31.14/** -text
 # Separate Legacy source and release evidence retain exact bytes.
 source-legacy/** -text
 releases/legacy-v0.2.0/** -text
+
+# R32 exact source and release evidence bytes.
+source-v2.2.4/** -text
+releases/v2.2.4-R32/** -text

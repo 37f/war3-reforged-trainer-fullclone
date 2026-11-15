@@ -1,0 +1,62 @@
+{
+  "ok": true,
+  "gameplay_mutations": false,
+  "backend": "mock RPC only",
+  "modes": [
+    {
+      "mode": "modern",
+      "memory_preserved": true,
+      "stale_map_cleared": true,
+      "bulk_buttons_shared": true,
+      "calls": {
+        "directory": 4,
+        "context": 4,
+        "scan": 0,
+        "quests": 5,
+        "unit": 3,
+        "owner": 2,
+        "actions": [
+          "restore_all_teams",
+          "restore_all_teams"
+        ]
+      }
+    },
+    {
+      "mode": "classic",
+      "memory_preserved": true,
+      "stale_map_cleared": true,
+      "bulk_buttons_shared": true,
+      "calls": {
+        "directory": 4,
+        "context": 2,
+        "scan": 0,
+        "quests": 5,
+        "unit": 0,
+        "owner": 2,
+        "actions": [
+          "restore_all_teams",
+          "restore_all_teams"
+        ]
+      }
+    },
+    {
+      "mode": "legacy19",
+      "memory_preserved": true,
+      "stale_map_cleared": true,
+      "bulk_buttons_shared": true,
+      "calls": {
+        "directory": 4,
+        "context": 2,
+        "scan": 0,
+        "quests": 5,
+        "unit": 0,
+        "owner": 2,
+        "actions": [
+          "restore_all_teams",
+          "restore_all_teams"
+        ]
+      }
+    }
+  ],
+  "unit_timer_overlap_error_and_hidden_tested": true
+}

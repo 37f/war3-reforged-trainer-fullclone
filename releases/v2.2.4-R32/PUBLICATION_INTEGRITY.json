@@ -1,0 +1,21 @@
+{
+  "tag": "v2.2.4-fullclone-r32-test",
+  "publication_date": "2026-11-15",
+  "source_path": "source-v2.2.4",
+  "build_source_commit": "853508f9d096596617d1a446fc562dbdcf6ae42f",
+  "source_files": 673,
+  "rebuilt": false,
+  "exe_sha256": "ea7235d193b3cff52e81835553a97996872fe9ac656e399bdfb49199a698bf62",
+  "source_zip_sha256": "7e9bd34f419445fd03259c15454a7aab46fcb3af099325b30835b0877a6e65a1",
+  "local_to_published_names": {
+    "R32_使用说明.md": "R32_USAGE_ZH.md",
+    "R32_更新说明.md": "R32_CHANGELOG_ZH.md",
+    "SHA256SUMS-R32.txt": "SHA256SUMS-R32-LOCAL.txt"
+  },
+  "original_bytes_preserved": true,
+  "tests_passed": 262,
+  "embedded_modules_verified": 221,
+  "actual_gameplay_write_acceptance": false,
+  "prior_releases_to_preserve": 15,
+  "scope": "Author v2.2.4 with cumulative R31.14 extensions; catalogue spawn follows panel ownership switch"
+}

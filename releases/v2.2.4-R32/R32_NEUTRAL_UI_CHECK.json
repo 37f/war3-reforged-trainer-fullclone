@@ -1,0 +1,65 @@
+{
+  "ok": true,
+  "modes": [
+    "modern",
+    "classic",
+    "legacy19"
+  ],
+  "neutral_slots": [
+    24,
+    27
+  ],
+  "round_trips": 6,
+  "moves": [
+    [
+      24,
+      0
+    ],
+    [
+      24,
+      12
+    ],
+    [
+      27,
+      0
+    ],
+    [
+      27,
+      13
+    ],
+    [
+      24,
+      0
+    ],
+    [
+      24,
+      12
+    ],
+    [
+      27,
+      0
+    ],
+    [
+      27,
+      13
+    ],
+    [
+      24,
+      0
+    ],
+    [
+      24,
+      12
+    ],
+    [
+      27,
+      0
+    ],
+    [
+      27,
+      13
+    ]
+  ],
+  "backend": "mock RPC only",
+  "gameplay_mutations": false
+}

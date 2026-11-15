@@ -1,0 +1,185 @@
+{
+  "ok": true,
+  "results": [
+    {
+      "mode": "modern",
+      "actions": [
+        {
+          "action": "add_item",
+          "params": {
+            "rawcode": "ratf"
+          }
+        },
+        {
+          "action": "add_ability",
+          "params": {
+            "rawcode": "AHbz",
+            "level": "1"
+          }
+        },
+        {
+          "action": "set_tech",
+          "params": {
+            "rawcode": "Rhme",
+            "level": "5"
+          }
+        },
+        {
+          "action": "create_unit",
+          "params": {
+            "rawcode": "hfoo",
+            "to_self": false
+          }
+        },
+        {
+          "action": "add_item",
+          "params": {
+            "rawcode": "ratf"
+          }
+        },
+        {
+          "action": "add_ability",
+          "params": {
+            "rawcode": "AHbz",
+            "level": "1"
+          }
+        },
+        {
+          "action": "set_tech",
+          "params": {
+            "rawcode": "Rhme",
+            "level": "5"
+          }
+        },
+        {
+          "action": "create_unit",
+          "params": {
+            "rawcode": "hfoo",
+            "to_self": false
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "mode": "classic",
+      "actions": [
+        {
+          "action": "add_item",
+          "params": {
+            "rawcode": "ratf"
+          }
+        },
+        {
+          "action": "add_ability",
+          "params": {
+            "rawcode": "AHbz",
+            "level": "1"
+          }
+        },
+        {
+          "action": "set_tech",
+          "params": {
+            "rawcode": "Rhme",
+            "level": "5"
+          }
+        },
+        {
+          "action": "create_unit",
+          "params": {
+            "rawcode": "hfoo",
+            "to_self": false
+          }
+        },
+        {
+          "action": "add_item",
+          "params": {
+            "rawcode": "ratf"
+          }
+        },
+        {
+          "action": "add_ability",
+          "params": {
+            "rawcode": "AHbz",
+            "level": "1"
+          }
+        },
+        {
+          "action": "set_tech",
+          "params": {
+            "rawcode": "Rhme",
+            "level": "5"
+          }
+        },
+        {
+          "action": "create_unit",
+          "params": {
+            "rawcode": "hfoo",
+            "to_self": false
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "mode": "legacy19",
+      "actions": [
+        {
+          "action": "add_item",
+          "params": {
+            "rawcode": "ratf"
+          }
+        },
+        {
+          "action": "add_ability",
+          "params": {
+            "rawcode": "AHbz",
+            "level": "1"
+          }
+        },
+        {
+          "action": "set_tech",
+          "params": {
+            "rawcode": "Rhme",
+            "level": "5"
+          }
+        },
+        {
+          "action": "create_unit",
+          "params": {
+            "rawcode": "hfoo",
+            "to_self": false
+          }
+        },
+        {
+          "action": "add_item",
+          "params": {
+            "rawcode": "ratf"
+          }
+        },
+        {
+          "action": "add_ability",
+          "params": {
+            "rawcode": "AHbz",
+            "level": "1"
+          }
+        },
+        {
+          "action": "set_tech",
+          "params": {
+            "rawcode": "Rhme",
+            "level": "5"
+          }
+        },
+        {
+          "action": "create_unit",
+          "params": {
+            "rawcode": "hfoo",
+            "to_self": false
+          }
+        }
+      ],
+      "errors": []
+    }
+  ]
+}

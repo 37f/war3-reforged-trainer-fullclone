@@ -1,0 +1,56 @@
+{
+  "upstream_version": "2.2.4",
+  "extension_baseline": "b688d721e91680dfb9bbfb68529367371348d4a1",
+  "original_assets": {
+    "C:\\Users\\22824\\Downloads\\Compressed\\War3ReforgedTrainer-v2.2.4-source-9292b4f6ee40.zip": {
+      "bytes": 7978762,
+      "sha256": "cb3c091f41680300207213a4d135335d575390520ea10febe51a5a085681cfbe"
+    },
+    "C:\\Users\\22824\\Downloads\\Compressed\\War3ReforgedTrainer-v2.2.4-54AA78D2D418.zip": {
+      "bytes": 31965636,
+      "sha256": "832c1fa6081b9c8e3dbc04f21b7d7a22eb5fa043a9e57e2e29e6f9bb0d4b22e5"
+    },
+    "C:\\Users\\22824\\Downloads\\Programs\\War3ReforgedTrainer-v2.2.4-54AA78D2D418.exe": {
+      "bytes": 32383704,
+      "sha256": "54aa78d2d4189735d22d15cfbb451514de222dd7bdc8aedf34aced0633917fec"
+    },
+    "E:\\Games\\Warcraft III\\War3ReforgedTrainer-v2.2.3-FullClone-R31.14-Test.exe": {
+      "sha256": "7c240537045213831d11115c4596172c921a1201287b7fac3963a2f677f84d7e",
+      "bytes": 27438928
+    },
+    "E:\\Games\\Warcraft III\\FullClone-R31.14\\War3ReforgedTrainer-v2.2.3-FullClone-R31.14-Test-source.zip": {
+      "sha256": "60d567f5cfb9b650136af1bcd70332ba5620489e2f8b75ddf1bb2918ef0224d2",
+      "bytes": 11061266
+    }
+  },
+  "unchanged_upstream_readers_and_profiles": {
+    "war3_object_registry.py": "e663c245c4d72c704f52035409d0e237071256a1c3bab27cc3c4d383afc4db05",
+    "war3_engine_transport.py": "0a364714a196e09d3f1834122568866c2bad9e9cefbb50c7992e90762530a067",
+    "war3_game_session.py": "e6d1559ee1aae945b05e1c9b6ae4730f9609d132f5c0f54929cef4fcd18355fb",
+    "war3_services/facade_selection.py": "35d1f62a40b7b3edb56691da0be04164f9413a7d59ddc43621afaebc3ea3ab8b",
+    "war3_services/facade_fields.py": "b5e941125b7aa2f9b7cb3ab0e18f48a76e6c1e71a599db7805f174d2e354a3d4",
+    "war3_services/facade_abilities.py": "43a62507221b026b58c560b62f61bf4454f88fd18bb442a68bc1d1453fadbe29",
+    "war3_services/units.py": "c292ef62ca5faeaa3869f93cb112a6672da0e7ab081e2406b6cc6398383ac451",
+    "war3_services/items.py": "fde23e3d2d6a8a50b4dc8694fc1b3f45dd4326df0b39f547243549de346c9962",
+    "profiles/3.0.0.24268.json": "55f433d08a36e3c86f4f1445787722231513035ece696808b32982e5b10bfd1f",
+    "profiles/3.0.1.24323.json": "8b75a78caa0c4c88a50976b28279c5b1dd140804bcbf871c08387529a97c3097",
+    "profiles/3.0.1.24332.json": "034a033f95e1a031cea72400819fd299820690499a00bd2336fb941ec986fb61",
+    "profiles/3.0.1.24342.json": "9cad0788a8b3b2e1575070d10356906f45abe3a1c8f70c296456237b3440a8fb",
+    "profiles/3.0.1.24360.json": "ef2eb4ca94995e388299d6eee19049646ef0672c278fbce47ad5ab6d58348014",
+    "profiles/3.0.1.24365.json": "b1748fe3ec9fdb4a8430397ba620d9c393048cb46db4938e42989b337c0ae979",
+    "profiles/3.0.1.24371.json": "0333ee38ceab395567e32c61800d5f0dd7d993e0ee7fcd82162da6b4ff2f9391",
+    "profiles/discovery/references.json": "740c0282e9238eb63e1eac5b7c78988515b68980973e55e1074a28475032d3e7",
+    "profiles/discovery/semantics.json": "8e2b0042cadfb14a359f0f8f906e5be13af654296c33b7f159ce866da5c4de36"
+  },
+  "backend_functions_ast_identical": true,
+  "unchanged_fullclone_native": {
+    "tools/war3_bridge_24268.c": "d77c4dcee867cd4d034c7339be0ecf7c0ea895e9827dfcf185903b5347f2b8a6",
+    "tools/war3_bridge_fullclone.h": "35c2a4c0aa44cdf71c2e288852f7451481b136eb619dc5ad9fb171e1f275fb63",
+    "tools/war3_bridge_fullclone_clone.h": "ca883b89379aa8fec47d7ae184b26539b633d0bdab35ba3e95989ebacd5fc707",
+    "tools/war3_bridge_fullclone_items.h": "fd6cec95ad16aebb2a1b2fcb70dd9d83657b2e5eb3663331551c003b372154be",
+    "tools/war3_bridge_fullclone_status.h": "c262a302c5a6c5b9ad696f797b53504062e98ccab8b3c6f13cdc433c78921459",
+    "tools/war3_bridge_24268.dll": "d0191e97c77c3bc2c38bb35e072bcb9e8004aaefa3636ef841aacb2cb633893f"
+  },
+  "new_native_actions": [],
+  "gameplay_write_tested": false
+}

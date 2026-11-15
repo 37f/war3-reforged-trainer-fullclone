@@ -1,5 +1,40 @@
 # 魔兽争霸 III 重制版修改器 FullClone
 
+## 当前3.0扩展测试版：v2.2.4 FullClone R32-Test
+
+基于[原作者项目](https://github.com/dc114154qq/war3-reforged-trainer)提供的v2.2.4／9292b4f6ee40源码，迁入截至R31.14的累计FullClone扩展，保留作者新版目录操作与界面改进。
+
+- **[R32发布与下载](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v2.2.4-fullclone-r32-test)**
+- **[Windows单文件EXE](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v2.2.4-fullclone-r32-test/War3ReforgedTrainer-v2.2.4-FullClone-R32-Test.exe)**
+- [完整源码ZIP](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v2.2.4-fullclone-r32-test/War3ReforgedTrainer-v2.2.4-FullClone-R32-Test-source.zip)
+- [完整中文使用说明](source-v2.2.4/R32_使用说明.md) · [更新说明](source-v2.2.4/R32_更新说明.md) · [验证与校验材料](releases/v2.2.4-R32/)
+
+### R32目录操作与归属
+
+ID目录和自定义地图目录均保留作者的物品／技能添加、单位生成和科技等级设置。生成单位保留三秒鼠标放置，支持取消。
+
+**两个目录的生成单位也服从大象面板归属开关：**关闭时给自己；开启后按“给自己／给选中单位所属玩家／给指定玩家”执行，包括中立敌对25和中立被动28。Ctrl+A仍始终给自己。
+
+### 保留的累计扩展
+
+- 完整复制、大量复制、创建与呼叫增援归属；替换、生命魔法全满、复活、碰撞、颜色、等级／三围与金矿。
+- 外交模板查看及玩家拖放、单个／全部真正原关系恢复；R31.14中立往返修复及共享控制位保护；玩家名字队伍和每5秒单位状态监视。
+- AUin地狱火、地面原物品聚集、当前地图自定义ID。
+- 主支线任务原说明、可靠解析的完成／失败条件与状态同步，勾选触发位置后展示地点并可定位本地视角；Lua只处理可靠静态子集，未知项明确提示。
+- 现代深色、白色标签页、1.0.19旧式三种UI，页面记忆与任务滚轮。
+
+262项自动化测试、Edge三种布局24次模拟目录操作和取消流程、冻结EXE离线18页／77快捷键检查通过。221个包内应用模块与源码一致，673个源码文件逐个回读校验。未进行本轮游戏写入验收。实际版本适配沿用作者profiles；任务自动来源与实时绑定仍有精确构建／脚本限制，详见使用说明。
+
+先在旧修改器恢复需要恢复的关系，再关闭旧版打开R32；新EXE不继承旧进程恢复快照。R32生产FullClone DLL与R31.14相同。源码位于[source-v2.2.4](source-v2.2.4/)，与独立源码ZIP内容一致；本次上传现成EXE和ZIP，没有重编译。报告中的“未发布”为本地交付当时的状态，以发布页和PUBLICATION_INTEGRITY.json为准。
+
+这是非官方测试预发布，稳定版Latest保持原样。旧Reforged版本和Legacy版均保留：[R31.14](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v2.2.3-fullclone-r31.14-test) · [Legacy v0.2.0](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/legacy-v0.2.0-test)。
+
+---
+
+## 以往版本与说明
+
+# 魔兽争霸 III 重制版修改器 FullClone
+
 ## Legacy 1.29.2 独立测试版：v0.2.0-Test
 
 本仓库另提供Legacy独立版本；下方Reforged 3.0+ FullClone及全部历史发布继续保留。
