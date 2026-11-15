@@ -27,7 +27,7 @@ ID目录和自定义地图目录均保留作者的物品／技能添加、单位
 
 先在旧修改器恢复需要恢复的关系，再关闭旧版打开R32；新EXE不继承旧进程恢复快照。R32生产FullClone DLL与R31.14相同。源码位于[source-v2.2.4](source-v2.2.4/)，与独立源码ZIP内容一致；本次上传现成EXE和ZIP，没有重编译。报告中的“未发布”为本地交付当时的状态，以发布页和PUBLICATION_INTEGRITY.json为准。
 
-这是非官方测试预发布，稳定版Latest保持原样。旧Reforged版本和Legacy版均保留：[R31.14](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v2.2.3-fullclone-r31.14-test) · [Legacy v0.2.0](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/legacy-v0.2.0-test)。
+这是非官方测试预发布，稳定版Latest保持原样。旧Reforged版本保留；Legacy已迁移至独立仓库：[R31.14](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v2.2.3-fullclone-r31.14-test) · [Legacy v0.2.0](https://github.com/37f/war3-legacy-trainer/releases/tag/v0.2.0-test)。
 
 ---
 
@@ -35,17 +35,9 @@ ID目录和自定义地图目录均保留作者的物品／技能添加、单位
 
 # 魔兽争霸 III 重制版修改器 FullClone
 
-## Legacy 1.29.2 独立测试版：v0.2.0-Test
+## Legacy 1.29.2 已迁移到独立仓库
 
-本仓库另提供Legacy独立版本；下方Reforged 3.0+ FullClone及全部历史发布继续保留。
-
-- **[Legacy发布与下载](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/legacy-v0.2.0-test)**
-- **[Legacy EXE](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/legacy-v0.2.0-test/War3LegacyTrainer-v0.2.0-Test.exe)** · [Legacy完整源码ZIP](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/legacy-v0.2.0-test/War3LegacyTrainer-v0.2.0-Test-source.zip)
-- [使用说明](releases/legacy-v0.2.0/LEGACY_USAGE_ZH.md) · **[已知问题](releases/legacy-v0.2.0/LEGACY_KNOWN_ISSUES_ZH.md)** · [独立源码目录](source-legacy/v0.2.0/)
-
-功能：玩家资源、选中单位生命魔法、英雄等级/永久三围、复制/大量复制、归属选择、替换单位及游戏前台快捷键。仅适配1.29.2.9231 x86，默认目标路径固定为`E:\Games\Warcraft III (Legacy)\Warcraft III.exe`；外壳为Windows x64，内含x86助手，无需Python。
-
-**本次上传现有v0.2.0成品，尚有普通单位复制报错、源单位附近创建而非鼠标落点、手动升级无原生特效等问题，未包含未完成的v0.2.1修复。**33个源码文件、内嵌后端/助手及离线三页UI已重新核对；没有重新编译或操作当前游戏。不要将历史测试地图结果视为任意地图保证。
+Legacy版请使用 **[war3-legacy-trainer 独立仓库](https://github.com/37f/war3-legacy-trainer)**，或直接打开 **[v0.2.0-Test发布页](https://github.com/37f/war3-legacy-trainer/releases/tag/v0.2.0-test)**。本仓库发布列表专用于Reforged FullClone；旧Legacy发布已迁出，原Git标签和源码历史保留。
 
 ---
 
