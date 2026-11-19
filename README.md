@@ -1,3 +1,5 @@
+[中文](README.md) | [English](README.en.md)
+
 # 魔兽争霸 III 重制版修改器 FullClone
 
 ## 当前正式版 · v2.2.5 FullClone R33
