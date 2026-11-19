@@ -20,3 +20,7 @@ releases/legacy-v0.2.0/** -text
 # R32 exact source and release evidence bytes.
 source-v2.2.4/** -text
 releases/v2.2.4-R32/** -text
+
+# Preserve the published R33 source bytes.
+source-v2.2.5/** -text
+releases/v2.2.5-R33/** -text

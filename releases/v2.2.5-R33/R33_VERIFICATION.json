@@ -1,0 +1,18 @@
+{
+  "tag": "v2.2.5-fullclone-r33",
+  "build_commit": "b7501b8de77e35eff2d59818b79088f243ff1bf8",
+  "development_base": "2dcdab7935e89aa0f6153c431b9465b09810e088",
+  "file_version": "2.2.5.338",
+  "tests_passed": 378,
+  "source_files": 725,
+  "embedded_modules": 226,
+  "build_inputs": 574,
+  "offline_panels": 18,
+  "hotkeys": 77,
+  "browser_layouts": [
+    "modern",
+    "classic",
+    "legacy19"
+  ],
+  "gameplay_write_tested": false
+}

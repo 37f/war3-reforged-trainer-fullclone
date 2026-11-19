@@ -1,0 +1,79 @@
+/* R31.3 presentation only. Scoped to the selected layout, including portals. */
+html:is([data-interface='classic'], [data-interface='legacy19']) {
+  color-scheme: light;
+  --nightfall: #f0f0f0;
+  --nightfall-hi: #ffffff;
+  --nightfall-lo: #f0f0f0;
+  --surface-stage: #f5f5f5;
+  --surface-raised: #ffffff;
+  --surface-sunken: #ffffff;
+  --surface-socket: #ffffff;
+  --surface-metal: #f0f0f0;
+  --surface-document: #ffffff;
+  --text-primary: #202020;
+  --text-secondary: #484848;
+  --text-tertiary: #626262;
+  --text-heading: #202020;
+  --text-label: #353535;
+  --text-value: #14558e;
+  --text-on-bronze: #202020;
+  --text-on-document: #202020;
+  --text-danger: #a3241a;
+  --line-faint: #dddddd;
+  --line-soft: #cccccc;
+  --line: #b8b8b8;
+  --line-strong: #999999;
+  --border-muted: #b8b8b8;
+  --focus: #0078d4;
+  --tint-hover: #e5f1fb;
+  --tint-selected: #cce8ff;
+  --bronze: #888888;
+  --bronze-hi: #0078d4;
+  --gold: #14558e;
+  --lumber: #087536;
+  --bonus: #087536;
+  --frost: #176389;
+  --mana: #2457b9;
+  --quality-common: #333333;
+  --font-serif: var(--font-sans);
+  --tracking-heading: 0;
+  --tracking-nav: 0;
+  --shadow-pop: 0 4px 16px #0002;
+  --shadow-band: none;
+  --shadow-console: none;
+  --shadow-text: none;
+  --shadow-text-outline: none;
+}
+html:is([data-interface='classic'], [data-interface='legacy19']) * { text-shadow: none !important; }
+html:is([data-interface='classic'], [data-interface='legacy19']) :is(.ds-metal, .ds-stage) { background: var(--surface-stage) !important; box-shadow: none !important; }
+html:is([data-interface='classic'], [data-interface='legacy19']) :is(.ds-stage::before, .ds-rim-top::before, .ds-frame-ornate::after, .ds-frame-grand::after) { display: none; }
+html:is([data-interface='classic'], [data-interface='legacy19']) :is(button, [data-ui='field'], .ds-well, [data-ui='rawcode']) { background: #fff !important; border: 1px solid #aaa !important; box-shadow: none !important; border-radius: 2px; }
+html:is([data-interface='classic'], [data-interface='legacy19']) button { color: var(--text-primary); background: #fafafa !important; letter-spacing: normal !important; }
+html:is([data-interface='classic'], [data-interface='legacy19']) button:hover:not(:disabled) { background: #e5f1fb !important; border-color: #0078d4 !important; }
+html:is([data-interface='classic'], [data-interface='legacy19']) button:disabled { filter: none !important; color: #737373; background: #ededed !important; }
+html:is([data-interface='classic'], [data-interface='legacy19']) button[aria-checked='true'] { color: #fff !important; background: #0078d4 !important; border-color: #0069ba !important; }
+html:is([data-interface='classic'], [data-interface='legacy19']) button[aria-selected='true'] { background: #fff !important; border-top: 2px solid #0078d4 !important; }
+html:is([data-interface='classic'], [data-interface='legacy19']) button[data-variant='danger'] { color: #a3241a; }
+html:is([data-interface='classic'], [data-interface='legacy19']) :is(input, select, textarea) { accent-color: #0078d4; }
+html:is([data-interface='classic'], [data-interface='legacy19']) :is(input, select, textarea):disabled { background: #ededed; color: #737373; }
+html:is([data-interface='classic'], [data-interface='legacy19']) [data-ui='checkbox'] > span:first-of-type { background: #fff; border: 1px solid #888; box-shadow: none !important; }
+html:is([data-interface='classic'], [data-interface='legacy19']) [data-ui='checkbox'] > span:first-of-type::after {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M3 8.5l3.2 3.2L13 4.5' fill='none' stroke='%230078d4' stroke-width='2.4'/></svg>");
+  filter: none;
+}
+html:is([data-interface='classic'], [data-interface='legacy19']) svg[data-icon-tone='bone'] { filter: none; }
+html:is([data-interface='classic'], [data-interface='legacy19']) svg[data-icon-tone='bone'] path { fill: #505050; }
+html:is([data-interface='classic'], [data-interface='legacy19']) :is([role='dialog'], [data-ui='popup'], [role='tooltip']) { color: var(--text-primary); background: #f5f5f5 !important; border: 1px solid #aaa; }
+html:is([data-interface='classic'], [data-interface='legacy19']) [data-ui='dialog-header'] { background: #ededed; }
+html:is([data-interface='classic'], [data-interface='legacy19']) [data-ui='dialog-body'] { background: #fff !important; box-shadow: inset 0 0 0 1px #ddd !important; }
+html:is([data-interface='classic'], [data-interface='legacy19']) [data-ui='fog'] { background: #f0f0f0; }
+html:is([data-interface='classic'], [data-interface='legacy19']) [data-ui='fog'] > canvas { opacity: 0; }
+html:is([data-interface='classic'], [data-interface='legacy19']) [data-ui='chat'] :is(input, ul) { color: #222; background: #fff; }
+html:is([data-interface='classic'], [data-interface='legacy19']) [data-ui='chat'] form { background: #fff; }
+html:is([data-interface='classic'], [data-interface='legacy19']) [data-testid='stage'] { padding: 10px 14px; }
+
+/* R31.5: 1.0.19 used the page area rather than a game-like bottom console. */
+html[data-interface='legacy19'] { --console-h: 0px; --control-h: 28px; }
+html[data-interface='legacy19'] [data-testid='console'],
+html[data-interface='legacy19'] [data-ui='chat'] { display: none; }
+html[data-interface='legacy19'] [data-testid='stage'] { padding: 8px 12px; }
