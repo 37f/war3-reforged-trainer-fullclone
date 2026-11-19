@@ -7,6 +7,12 @@ typedef struct FullCloneRow {
     uint32_t rawcode;
     int32_t level,a,b,c,team;
 } FullCloneRow;
+typedef struct FullCloneTeamRecord {
+    uint32_t owner_low,owner_high,present;
+    uint32_t flags[14],reserved[3];
+} FullCloneTeamRecord;
+_Static_assert(sizeof(FullCloneTeamRecord)==80,"FullCloneTeamRecord ABI");
+
 typedef struct FullCloneWork {
     SelectionWork selection;
     void *fn[64];
@@ -16,13 +22,13 @@ typedef struct FullCloneWork {
     uint64_t target,expected_owner;
     uint32_t verified_faults,last_fault;uint8_t pad[24];
     FullCloneRow rows[24];
-    uint32_t matrix[560];
+    union {uint32_t matrix[560]; FullCloneTeamRecord restore[28]; uint64_t owner_moves[24][2];};
     int32_t peer_teams[28];
 } FullCloneWork;
 _Static_assert(sizeof(FullCloneRow)==48,"FullCloneRow ABI");
 _Static_assert(offsetof(FullCloneWork,rows)==1088,"FullClone header ABI");
 _Static_assert(sizeof(FullCloneWork)==4592,"FullCloneWork ABI");
-__declspec(dllexport) const uint32_t fullclone_abi[3]={0x46333101,216,4592};
+__declspec(dllexport) const uint32_t fullclone_abi[3]={0x46333104,216,4592};
 
 #define FC_FN(i,result,args) ((result (*)args)w->fn[i])
 #define FC_OWNER(u) FC_FN(0,uint64_t,(uint64_t))(u)
@@ -51,6 +57,145 @@ static uint32_t FullCloneSetAllianceChecked(FullCloneWork*w,uint64_t a,uint64_t 
         if(fault!=EXCEPTION_ACCESS_VIOLATION)return fault;
         ++w->verified_faults;w->last_fault=fault;
     }
+    return 0;
+}
+
+/* Directory slots 24–27 always describe the same neutral roles. The game
+   supplies their native indices, which can be lower on older maps. */
+static uint32_t FullCloneDiplomacyPlayers(FullCloneWork*w,uint64_t players[28]) {
+    uint32_t neutral=0,found=0;
+    int32_t slots[4];
+    for(int32_t i=0;i<4;i++){
+        int32_t id=FC_FN(57+i,int32_t,(void))();
+        if(id<0 || id>=28 || (neutral&(1u<<id)))return 0;
+        slots[i]=id;
+        neutral|=1u<<id;
+    }
+    for(int32_t p=0;p<28;p++){
+        if(p<24 && (neutral&(1u<<p)))continue;
+        int32_t id=p<24?p:slots[p-24];
+        uint64_t player=FC_PLAYER(id);
+        if(player && FC_ID(player)==id){
+            players[p]=player;
+            found|=1u<<p;
+        }
+    }
+    return found;
+}
+
+static int32_t FullClonePlayerSlot(const uint64_t players[28],uint64_t owner) {
+    if(owner)for(int32_t p=0;p<28;p++)if(players[p]==owner)return p;
+    return -1;
+}
+
+static uint64_t FullCloneUnitIdentity(FullCloneWork*w,uint64_t unit) {
+    uint64_t object=FC_FN(63,uint64_t,(uint64_t))(unit);
+    return object?*(const uint64_t*)(uintptr_t)(object+bridge_profile.object_handle):0;
+}
+
+static uint32_t FullCloneReadOwners(FullCloneWork*w,const uint64_t players[28]) {
+    if(w->count || !w->fn[63] || w->value < -1 || w->value>=28)return 1000;
+    uint64_t count=BridgeSelect();
+    if(w->selection.error || !w->selection.destroyed || count>24)return 1004;
+    if(count && w->value>=0){
+        uint64_t target=players[w->value];
+        if(!FullClonePlayerExists(w,target,w->value))return 1168;
+        w->expected_owner=target;
+        w->rawcode=(uint32_t)w->value;
+    }
+    w->count=(uint32_t)count;
+    for(uint32_t i=0;i<w->count;i++){
+        FullCloneRow*r=&w->rows[i];
+        r->unit=w->selection.rows[i].unit;
+        r->rawcode=w->selection.rows[i].rawcode;
+        r->created=FullCloneUnitIdentity(w,r->unit);
+        if(r->created && r->rawcode==w->selection.unit_type_id(r->unit))r->owner=FC_OWNER(r->unit);
+        r->a=FullClonePlayerSlot(players,r->owner);
+        r->b=r->a>=0?1:2;
+    }
+    w->completed=1;
+    return 0;
+}
+
+static uint32_t FullCloneWriteOwners(FullCloneWork*w,const uint64_t players[28]) {
+    if(!w->count || !w->fn[63] || (w->value!=0 && w->value!=1))return 1000;
+    for(uint32_t i=0;i<w->count;i++){
+        FullCloneRow*r=&w->rows[i];
+        uint64_t destination=w->owner_moves[i][0],alternate=w->owner_moves[i][1];
+        if(!r->unit || !r->created || !r->owner || !r->rawcode || !destination ||
+           r->a<0 || r->a>=28 || (!w->value && alternate))return 1000;
+        for(uint32_t j=0;j<i;j++)if(w->rows[j].created==r->created)return 1000;
+    }
+    for(uint32_t i=0;i<w->count;i++){
+        FullCloneRow*r=&w->rows[i];
+        uint64_t unit=r->unit,destination=w->owner_moves[i][0];
+        if(FullCloneUnitIdentity(w,unit)!=r->created || w->selection.unit_type_id(unit)!=r->rawcode){r->b=2;continue;}
+        if(players[r->a]!=destination || (!w->value && !FullClonePlayerExists(w,destination,r->a))){r->b=3;continue;}
+        uint64_t current=FC_OWNER(unit);
+        if(current==destination){r->b=w->value?1:4;continue;}
+        if(!current || (current!=r->owner && current!=w->owner_moves[i][1])){r->b=4;continue;}
+        FC_FN(6,void,(uint64_t,uint64_t,uint32_t))(unit,destination,1);
+        if(FullCloneUnitIdentity(w,unit)!=r->created || w->selection.unit_type_id(unit)!=r->rawcode ||
+           FC_OWNER(unit)!=destination){r->b=5;continue;}
+        r->b=1;
+        ++w->changed;
+    }
+    w->completed=1;
+    return 0;
+}
+
+/* The earliest snapshot that contains each pair is its original value.
+   Resolve every recorded identity before writing any pair. */
+static uint32_t FullCloneRestoreTeams(FullCloneWork*w,const uint64_t player[28]) {
+    int32_t rank[28];
+    uint32_t seen=0,restored=0,skipped=0;
+    if(w->value<1 || w->value>26 || w->count || w->target || w->expected_owner)return 1000;
+    for(uint32_t p=0;p<28;p++)rank[p]=-1;
+    for(int32_t i=0;i<w->value;i++){
+        int32_t p=w->peer_teams[i];
+        if(p<0 || (p>=25 && p!=27))return 1000;
+        uint32_t bit=1u<<p;
+        uint64_t owner=(uint64_t)w->restore[p].owner_low | (uint64_t)w->restore[p].owner_high<<32;
+        if(!owner || (seen&bit) || !(w->restore[p].present&bit) || w->restore[p].present>>28)return 1000;
+        seen|=bit;
+        if(player[p]!=owner){
+            skipped|=bit;
+        }else{
+            restored|=bit;
+            rank[p]=i;
+        }
+    }
+    /* A stable recorded owner may be rescuable or have left the match.
+       Leave any pair involving a missing/unconfirmed recorded owner alone. */
+    for(uint32_t pass=0;pass<2;pass++){
+        for(uint32_t a=0;a<28;a++){
+            if(!player[a] || (skipped&(1u<<a)))continue;
+            for(uint32_t b=a+1;b<28;b++){
+                if(!player[b] || player[a]==player[b] || (skipped&(1u<<b)))continue;
+                int first=rank[a]>=0 && (w->restore[a].present&(1u<<b));
+                int second=rank[b]>=0 && (w->restore[b].present&(1u<<a));
+                if(!first && !second)continue;
+                uint32_t from=a,to=b;
+                if(!first || (second && rank[b]<rank[a])){from=b;to=a;}
+                const uint32_t *bits=w->restore[from].flags;
+                for(uint32_t flag=0;flag<10;flag++){
+                    if(flag==6 || flag==7)continue;
+                    for(uint32_t reverse=0;reverse<2;reverse++){
+                        uint32_t k=to*16+(flag<6?flag:flag-2)+reverse*8;
+                        uint32_t value=(bits[k/32]>>(k%32))&1u;
+                        uint64_t source=player[reverse?to:from],target=player[reverse?from:to];
+                        uint32_t error=pass?(FC_GET(source,target,flag)==value?0:1006):
+                            FullCloneSetAllianceChecked(w,source,target,flag,value);
+                        if(error)return error;
+                    }
+                }
+            }
+        }
+    }
+    w->target=restored;
+    w->expected_owner=skipped;
+    for(uint32_t p=0;p<28;p++)if(restored&(1u<<p))w->changed++;
+    w->completed=1;
     return 0;
 }
 
@@ -128,7 +273,7 @@ static uint32_t FullCloneReplace(FullCloneWork*w,FullCloneRow*r) {
 __declspec(dllexport) uint64_t BridgeFullCloneQuery(void) {
     FullCloneWork*w=(FullCloneWork*)g_dispatch->work;
     uint64_t count=0,local=0,owner=0;
-    if(!w || w->tls!=g_dispatch->tls_value || w->action>20 || w->action==13 || w->count>24) {
+    if(!w || w->tls!=g_dispatch->tls_value || w->action>23 || w->action==13 || w->count>24) {
         if(w)w->error=1000;return 0;
     }
     __try {
@@ -177,27 +322,29 @@ __declspec(dllexport) uint64_t BridgeFullCloneQuery(void) {
             w->rows[0].created=u;w->rows[0].unit=u;w->rows[0].owner=p;w->rows[0].rawcode=w->rawcode;
             w->count=1;w->changed=1;w->completed=1;return 1;
         }
-        /* R31.12 explicit-player diplomacy. It does not select a game unit or
-           alter the existing selected-owner actions 8/9. */
         uint32_t direct=w->action==19 || w->action==20;
+        uint32_t diplomacy=w->action==8 || w->action==9 || direct || w->action==21;
+        uint32_t ownership=w->action==22 || w->action==23;
+        uint64_t players[28]={0};
+        uint32_t present=(diplomacy || ownership)?FullCloneDiplomacyPlayers(w,players):0;
+        if(ownership){
+            w->error=!present?1005:w->action==22?FullCloneReadOwners(w,players):FullCloneWriteOwners(w,players);
+            return w->count;
+        }
+        if(w->action==21){
+            w->error=present?FullCloneRestoreTeams(w,players):1005;
+            return w->changed;
+        }
         if(direct){
             if(w->target>=28 || w->count){w->error=1000;return 0;}
-            owner=FC_PLAYER((int32_t)w->target);
-            if(!owner || FC_ID(owner)!=(int32_t)w->target || (w->expected_owner && owner!=w->expected_owner)){w->error=1237;return 0;}
-            if(w->action==20 && (!w->expected_owner || !FullClonePlayerExists(w,owner,(int32_t)w->target))){w->error=1168;return 0;}
+            owner=players[w->target];
+            if(!owner || (w->expected_owner && owner!=w->expected_owner)){w->error=1237;return 0;}
+            if(w->action==20 && !w->expected_owner){w->error=1000;return 0;}
             count=1;w->count=1;w->rows[0].b=FC_ID(local);
-            /* Control is outside this entry's scope, including requests that
-               bypass the Python facade. Validate before the first setter. */
-            if(w->action==20){
-                for(uint32_t p=0;p<28;p++){
-                    uint64_t peer=FC_PLAYER(p);if(!peer){w->error=1005;return 0;}
-                    for(uint32_t a=0;a<10;a++){
-                        uint32_t k=p*20+a;
-                        if(w->matrix[k]>1 || w->matrix[k+10]>1){w->error=1000;return 0;}
-                        if((a==6 || a==7) && (w->matrix[k]!=FC_GET(owner,peer,a) || w->matrix[k+10]!=FC_GET(peer,owner,a))){w->error=1007;return 0;}
-                    }
-                }
-            }
+        }else if(w->action==8 && w->target==1){
+            if(w->value<0 || w->value>=28){w->error=1000;return 0;}
+            owner=players[w->value];
+            count=1;w->count=1;
         }else if(w->count){
             /* Explicit handles are emitted by the author's clone transaction.
                Recheck type before every extension; never infer a handle from rawcode. */
@@ -218,23 +365,33 @@ __declspec(dllexport) uint64_t BridgeFullCloneQuery(void) {
             }
         }
         if(!count){w->completed=1;return 0;}
-        if(w->fn[0] && !direct){
+        if(w->fn[0] && !direct && !(w->action==8 && w->target==1)){
             owner=FC_OWNER(w->rows[0].unit);
             if(w->expected_owner && owner!=w->expected_owner){w->error=1237;return count;}
         }
-        if(w->action==8 || w->action==9 || direct){
+        if(diplomacy){
             uint32_t write=w->action==9 || w->action==20;
-            if(w->action==8 && w->target==1){
-                if(w->value<0 || w->value>=28){w->error=1000;return count;}
-                owner=FC_PLAYER(w->value);
+            int32_t slot=FullClonePlayerSlot(players,owner);
+            if(slot<0){w->error=1168;return count;}
+            if(write && w->rawcode && w->rawcode!=present){w->error=1238;return count;}
+            w->rows[0].owner=owner;w->rows[0].a=slot;w->rows[0].team=FC_TEAM(owner);
+            w->rows[0].c=(int32_t)present;
+            /* The two entry points use the same readback and diplomacy rules.
+               Shared control is outside the direct-player operation's scope. */
+            if(w->action==20){
+                for(uint32_t p=0;p<28;p++){
+                    uint64_t peer=players[p];if(!peer)continue;
+                    for(uint32_t a=0;a<10;a++){
+                        uint32_t k=p*20+a;
+                        if(w->matrix[k]>1 || w->matrix[k+10]>1){w->error=1000;return count;}
+                        if((a==6 || a==7) && (w->matrix[k]!=FC_GET(owner,peer,a) || w->matrix[k+10]!=FC_GET(peer,owner,a))){w->error=1007;return count;}
+                    }
+                }
             }
-            w->rows[0].owner=owner;w->rows[0].a=FC_ID(owner);w->rows[0].team=FC_TEAM(owner);
-            /* Keep native team index unchanged. As in R12-R30 this applies a
-               diplomacy template; saved original relations are restored exactly. */
             for(uint32_t p=0;p<28;p++){
-                uint64_t peer=FC_PLAYER(p);
-                if(!peer){w->error=1005;return count;}
-                w->peer_teams[p]=FC_TEAM(peer);
+                uint64_t peer=players[p];
+                w->peer_teams[p]=peer?FC_TEAM(peer):-1;
+                if(!peer)continue;
                 for(uint32_t a=0;a<10;a++){
                     uint32_t k=p*20+a;
                     if(write && peer!=owner){
@@ -252,7 +409,7 @@ __declspec(dllexport) uint64_t BridgeFullCloneQuery(void) {
                 /* Later flag setters can affect earlier flags. Confirm the
                    entire final matrix, not just each intermediate write. */
                 for(uint32_t p=0;p<28;p++){
-                    uint64_t peer=FC_PLAYER(p);if(peer==owner)continue;
+                    uint64_t peer=players[p];if(!peer || peer==owner)continue;
                     for(uint32_t a=0;a<10;a++){
                         uint32_t k=p*20+a;
                         if(FC_GET(owner,peer,a)!=w->matrix[k] || FC_GET(peer,owner,a)!=w->matrix[k+10]){w->error=1006;return count;}

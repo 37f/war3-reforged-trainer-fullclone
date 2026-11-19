@@ -7,10 +7,12 @@
 以原作者 v2.2.5 为基础，收录截至本地 R38 的累计改动。
 
 - [发布与下载](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v2.2.5-fullclone-r33)
-- [Windows x64 单文件 EXE](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v2.2.5-fullclone-r33/War3ReforgedTrainer-v2.2.5-FullClone-r33.exe)
+- [Windows x64 单文件 EXE](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v2.2.5-fullclone-r33/War3ReforgedTrainer-v2.2.5-FullClone-R33.exe)
 - [完整源码 ZIP](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v2.2.5-fullclone-r33/War3ReforgedTrainer-v2.2.5-FullClone-r33-source.zip) · [源码目录](source-v2.2.5/) · [累计更新记录](source-v2.2.5/R33_CHANGELOG_ZH.md) · [校验清单](releases/v2.2.5-R33/SHA256SUMS-r33.txt)
 
 本版加入玩家昵称与地图配置名切换、扩展界面的中英文切换和拖放外交模板即时更新。也包含全军补满、物品按 ID 聚集、复制阵型、部队冻结与恢复、补给包、鼠标位置技能，以及中文任务原文和 JASS 任务状态改进。Lua 实时状态仍待适配。
+
+2026-11-20 更新包含队伍批量恢复提速、更多槽位的外交拖放、队伍页记忆模式、按住卡片时的整页滚轮滚动，以及单位原玩家恢复。
 
 ## 以往版本说明
 

@@ -2,7 +2,7 @@
 import struct
 
 from war3_selection_protocol import SIGNATURES as SELECTION
-from war3_fullclone_protocol import ACTIONS, SIGNATURES, build_work, decode_work
+from war3_fullclone_protocol import ACTIONS, ALL_TEAM_SLOTS, SIGNATURES, TEAM_PLAYERS, build_work, decode_work
 
 
 class FullCloneService:
@@ -50,14 +50,19 @@ class FullCloneService:
         with self.session.lock:
             def builder(entries,tls):
                 if expected_epoch is not None and self.session.epoch!=expected_epoch:raise ValueError('地图会话已变化，未执行扩展操作')
-                if action in (16,17,18):
+                if action in (16,17,18,22,23):
                     with self.memory_factory(self.pid) as memory:
                         registry,_,_=self.session.prepare(memory)
+                        if expected_epoch is not None and self.session.epoch!=expected_epoch:
+                            raise ValueError('地图会话已变化，未执行扩展操作')
                         options['resolver']=registry.base+self.session.profile.section('addresses')['unit_resolver']
                 return build_work(entries,tls,action,**options)
-            return self._execute('fullclone',names,
-                builder,decode_work,
-                dict(action=action,**options))
+            arguments=dict(action=action,**options)
+            if action==21:
+                arguments['restore_records']=tuple(record[0] for record in options['restore_records'])
+            if action==23:
+                arguments['owner_moves']=len(options['owner_moves'])
+            return self._execute('fullclone',names,builder,decode_work,arguments)
 
 
 def team_matrix(snapshot,target):
@@ -107,8 +112,11 @@ def neutral_template_matrix(snapshot,saved,reference):
         player=record.get('player');original=record.get('matrix',())
         if type(player) is not int or not 0<=player<28 or len(original)!=560 or any(v not in (0,1) for v in original):
             raise ValueError('原队伍记录不完整，未套用中立模板')
-        if player==reference:matrix=list(original)
-        else:
+        present=record.get('present',ALL_TEAM_SLOTS)
+        if player==reference:
+            for i,value in enumerate(original):
+                if present&(1<<(i//20)):matrix[i]=value
+        elif present&(1<<reference):
             # The other player's snapshot stores the same pair in reverse.
             for flag in range(10):
                 matrix[player*20+flag]=original[reference*20+10+flag]
@@ -166,7 +174,82 @@ def pinned_native_teams(cache,teams=None):
     return cache.get(NATIVE_TEAMS_SNAPSHOT)
 
 
+def write_owner_moves(engine,moves,epoch,*,restore):
+    result=engine.fullclone(23,value=int(restore),owner_moves=tuple(moves),expected_epoch=epoch)
+    expected=[(unit,full,current,code,slot) for unit,full,current,code,slot,_,_ in moves]
+    rows=result['rows']
+    received=[(r['handle'],r['created'],r['owner'],r['rawcode'],r['a']) for r in rows]
+    if received!=expected or engine.session.epoch!=epoch:
+        raise ValueError('单位归属回执或地图已变化，原玩家记录保留')
+    return rows
+
+
 class FullCloneFacade:
+    def fullclone_give_owner(self,player):
+        if type(player) is not int or player not in TEAM_PLAYERS:raise ValueError('目标玩家无效')
+        engine=self._engine_instance_24268()
+        with engine.session.lock:
+            snapshot=engine.fullclone(22,value=player)
+            if not snapshot['rows']:return dict(selected=0,changed=0,skipped=0)
+            epoch=engine.session.epoch
+            destination=snapshot['destination']
+            records=engine.session.cache.setdefault('fullclone_original_owners',{})
+            moves=[];previous={};skipped=0
+            for row in snapshot['rows']:
+                if row['b']!=1:
+                    skipped+=1
+                    continue
+                if row['owner']==destination:continue
+                full=row['created']
+                old=records.get(full)
+                previous[full]=old
+                records[full]=dict(old or row,handle=row['handle'],rawcode=row['rawcode'],
+                                   last_owner=destination,prior_owner=row['owner'])
+                moves.append((row['handle'],full,row['owner'],row['rawcode'],player,destination,0))
+            if not moves:return dict(selected=len(snapshot['rows']),changed=0,skipped=skipped)
+            rows=write_owner_moves(engine,moves,epoch,restore=False)
+            changed=0
+            for row in rows:
+                full=row['created']
+                if row['b']==1:
+                    changed+=1
+                    if records[full]['owner']==destination:records.pop(full)
+                    else:records[full]['prior_owner']=0
+                else:
+                    skipped+=1
+                    if row['b']==5:continue  # A setter ran; keep both known owners for recovery.
+                    if previous[full] is None:records.pop(full)
+                    else:records[full]=previous[full]
+            return dict(selected=len(snapshot['rows']),changed=changed,skipped=skipped)
+
+    def fullclone_restore_owners(self,*,all_units=False):
+        engine=self._engine_instance_24268()
+        with engine.session.lock:
+            epoch=engine.session.epoch
+            records=engine.session.cache.get('fullclone_original_owners',{})
+            if not records:return dict(changed=0,skipped=0)
+            if all_units:
+                pending=list(records.values())
+            else:
+                snapshot=engine.fullclone(22,expected_epoch=epoch)
+                pending=[dict(records[r['created']],handle=r['handle'],rawcode=r['rawcode'])
+                         for r in snapshot['rows'] if r['b']==1 and r['created'] in records]
+            changed=skipped=0
+            for start in range(0,len(pending),24):
+                batch=pending[start:start+24]
+                moves=[(r['handle'],r['created'],r['last_owner'],r['rawcode'],r['a'],r['owner'],r['prior_owner'])
+                       for r in batch]
+                try:
+                    rows=write_owner_moves(engine,moves,epoch,restore=True)
+                except Exception as exc:
+                    raise RuntimeError(f'已确认 {changed} 个单位归还原玩家，未确认的原玩家记录保留：{exc}') from exc
+                for row in rows:
+                    if row['b']==1:
+                        records.pop(row['created'])
+                        changed+=1
+                    else:skipped+=1
+            return dict(changed=changed,skipped=skipped)
+
     def fullclone_infernal(self):
         import threading,time
         engine=self._engine_instance_24268()
@@ -243,9 +326,12 @@ class FullCloneFacade:
             # Pin the pre-write teams so a later directory read cannot regroup.
             remember_native_teams(engine.session.cache,before.get('teams'))
             saved=engine.session.cache.setdefault('fullclone_teams',{})
+            present=row.get('c',ALL_TEAM_SLOTS)
             if restore:
                 if owner not in saved:raise ValueError('当前地图尚未记录该玩家的原队伍')
-                desired=saved[owner]['matrix']
+                record=saved[owner];original_present=record.get('present',ALL_TEAM_SLOTS)
+                desired=tuple(v if original_present&(1<<(i//20)) else before['matrix'][i]
+                              for i,v in enumerate(record['matrix']))
             else:
                 reference=team_matrix(before,target)
                 # Capture a template using the actual reference player. The query
@@ -255,7 +341,7 @@ class FullCloneFacade:
                     peers=dict(peers,matrix=neutral_template_matrix(peers,saved,reference))
                 desired=list(before['matrix'])
                 for p in range(28):
-                    if p==owner_id:continue
+                    if p==owner_id or not present&(1<<p):continue
                     if reference<0:
                         allied=p<24 and before['teams'][p]==target
                         for a in range(10):
@@ -269,38 +355,29 @@ class FullCloneFacade:
             # Control is not part of the template: keep the live bits in both paths.
             desired=keep_control(before,desired,owner_id)
             # Save before the first write so a partial failure can still be restored.
-            saved.setdefault(owner,dict(matrix=before['matrix'],team=row['team'],applied=None,player=owner_id));saved[owner]['player']=owner_id
-            result=engine.fullclone(20,target=player,matrix=desired,expected_owner=owner,expected_epoch=expected_epoch) if direct else engine.fullclone(9,matrix=desired,expected_owner=owner)
+            saved.setdefault(owner,dict(matrix=before['matrix'],present=present,team=row['team'],applied=None,player=owner_id))
+            saved[owner]['player']=owner_id
+            options=dict(matrix=desired,expected_owner=owner,rawcode=row.get('c',0))
+            result=(engine.fullclone(20,target=player,expected_epoch=expected_epoch,**options)
+                    if direct else engine.fullclone(9,**options))
             saved[owner]['applied']=None if restore else target
             return dict(result,restored=restore,target_team=target)
 
     def fullclone_restore_all_teams(self):
-        """Replay first snapshots newest-first so the earliest pair wins last.
-
-        A later player's first snapshot can already contain an earlier move.
-        Include individually restored records too; never replace the originals.
-        """
+        """Restore the earliest snapshot of each relationship in one game callback."""
         engine=self._engine_instance_24268()
         with engine.session.lock:
             epoch=engine.session.epoch
             records=list(engine.session.cache.get('fullclone_teams',{}).items())
             if not records:return dict(changed=0,total=0)
-            # Validate every identity/snapshot before the first alliance setter.
-            for owner,record in records:
-                player=record.get('player');matrix=record.get('matrix',())
-                if type(player) is not int or player not in (*range(24),24,27):raise ValueError('原队伍记录的玩家无效，未执行批量恢复')
-                if len(matrix)!=560 or any(v not in (0,1) for v in matrix):raise ValueError('原队伍记录不完整，未执行批量恢复')
-                before=engine.fullclone(19,target=player,expected_epoch=epoch)
-                if not before['rows'] or before['rows'][0]['owner']!=owner:raise ValueError('玩家或地图已变化，未执行批量恢复')
-            changed=0
-            for owner,record in reversed(records):
-                try:
-                    result=self.fullclone_team(restore=True,player=record['player'],expected_epoch=epoch)
-                    if not result.get('changed'):raise ValueError('未确认该玩家恢复成功')
-                    changed+=1
-                except Exception as exc:
-                    raise ValueError(f'已恢复 {changed}/{len(records)} 个玩家，批量恢复已停止；原记录保留：{exc}') from exc
-            return dict(changed=changed,total=len(records))
+            snapshots=tuple((r.get('player'),owner,r.get('matrix',()),r.get('present',ALL_TEAM_SLOTS)) for owner,r in records)
+            result=engine.fullclone(21,restore_records=snapshots,expected_epoch=epoch)
+            restored=set(result['restored']);skipped=set(result['skipped'])
+            if (engine.session.epoch!=epoch or restored&skipped or (restored|skipped)!={record[0] for record in snapshots}):
+                raise ValueError('地图或批量恢复回执已变化，原记录保留')
+            for _,record in records:
+                if record['player'] in restored:record['applied']=None
+            return result
 
     def fullclone_alliances(self,player):
         # action 8's explicit player target is a query only; no unit selection change.

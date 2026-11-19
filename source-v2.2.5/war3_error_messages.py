@@ -229,6 +229,12 @@ def describe_error(exc, language='zh'):
     winerror=next((getattr(e,'winerror',None) for e in chain if getattr(e,'winerror',None) is not None),None)
     integrity=report.get('integrity') or next((getattr(e,'integrity_report') for e in chain
         if isinstance(getattr(e,'integrity_report',None),dict)),{})
+    slot_error=re.search(r'无法确认玩家 (\d+) 的槽位，未修改外交模板。请重新读取玩家信息|玩家 (\d+) 的槽位当前未启用，未修改外交模板',text)
+    if reason is None and operation=='fullclone' and slot_error:
+        p=slot_error[1] or slot_error[2]
+        en=(f'Player {p} could not be verified. Refresh the player list.' if slot_error[1]
+            else f'Player {p} is currently inactive. Its diplomacy was unchanged.')
+        reason=(slot_error[0],en);category='player_slot';confirmed=True
     if reason is None and '修改器与游戏完整性级别不一致' in text:
         reason=('修改器和游戏的运行权限不同。游戏若以管理员运行，请以管理员重新启动修改器后连接。','The trainer and game have different privilege levels. If the game is elevated, restart the trainer as administrator.');category='integrity';confirmed=True
         if integrity.get('trainer',{}).get('rid')==0x2000 and integrity.get('target',{}).get('rid')==0x3000:

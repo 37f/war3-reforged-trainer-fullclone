@@ -7,11 +7,18 @@ FullClone is an unofficial extension of the [original Warcraft III: Reforged Tra
 ## Current release · v2.2.5 FullClone R33
 
 - [Release and downloads](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v2.2.5-fullclone-r33)
-- [Windows x64 standalone executable](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v2.2.5-fullclone-r33/War3ReforgedTrainer-v2.2.5-FullClone-r33.exe)
+- [Windows x64 standalone executable](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v2.2.5-fullclone-r33/War3ReforgedTrainer-v2.2.5-FullClone-R33.exe)
 - [Complete source ZIP](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v2.2.5-fullclone-r33/War3ReforgedTrainer-v2.2.5-FullClone-r33-source.zip) · [Browse source](source-v2.2.5/)
 - [Cumulative changelog in Chinese](source-v2.2.5/R33_CHANGELOG_ZH.md) · [SHA-256 checksums](releases/v2.2.5-R33/SHA256SUMS-r33.txt)
 
 R33 is the public release number. The Windows file version is `2.2.5.338`.
+
+## R33 update · 2026-11-20
+
+- Bulk alliance restoration processes all recorded players in one game call and keeps records for unverified slots.
+- Neutral Hostile, Neutral Passive, and inactive slots can be dragged to diplomacy templates. Optional page memory has returned to Teams and Players.
+- Hold a player card and use the mouse wheel to scroll the whole page before dropping it on another team.
+- Restore the original owner of selected units or all recorded units. The transfer button and Ctrl+I+U share the records saved before each unit's first transfer in the current map session.
 
 ## Changes since the public R32 release
 
@@ -31,7 +38,7 @@ R33 is the public release number. The Windows file version is `2.2.5.338`.
 - The read-only quest viewer shows map-authored objectives, completion and failure conditions that can be resolved, and location links where available. Live status is available for uniquely matched JASS quests. Lua quest analysis is static.
 - Choose **English** in **System → Interface language**. Map-authored text and player nicknames retain the language of the source data.
 
-See the [supported game builds and usage limits](source-v2.2.5/R33_CHANGELOG_ZH.md#当前行为和使用范围). The release passed 378 automated tests and an offline startup check. Browser tests exercised all three layouts with fixture data. This release verification did not test live game writes. [Verification record](releases/v2.2.5-R33/R33_VERIFICATION.json)
+See the [supported game builds and usage limits](source-v2.2.5/R33_CHANGELOG_ZH.md#当前行为和使用范围). This update passed 395 automated tests with one upstream source comparison skipped. Browser tests exercised wheel scrolling, diplomacy, page memory, and the ownership controls in all three layouts with fixture data. Live game writes were outside this verification run. [Verification record](releases/v2.2.5-R33/R33_VERIFICATION.json)
 
 ## Older releases
 

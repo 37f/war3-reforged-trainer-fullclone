@@ -90,11 +90,15 @@ export default function FullClonePanel({ layout }: { layout?: (controls: FullClo
       <p>{t('阵型以鼠标为中心，间距32至2048，服从原归属开关。新阵型先支持单选源单位，多选请使用原排列；游戏避障可能微调实际落点。')}</p>
     </>,
     targets: <>
-      <div className={s.row}>{button('give_owner', t('把单位给指定玩家（Ctrl+I+U）'))}{playerSelect('target_player')}</div>
+      <div className={s.row}>{button('give_owner', t('把选中单位给指定玩家（Ctrl+I+U）'))}{playerSelect('target_player')}
+        {button('restore_selected_owners', t('把选中单位恢复真正原玩家'))}
+        {button('restore_all_owners', t('恢复所有真正原玩家'))}
+      </div>
+      <p>{t('归属恢复使用当前地图中首次转交前的记录。')}</p>
       <div className={s.row}>{button('toggle_owner_control', t('控制/恢复选中玩家（Ctrl+I+O，不改变阵营）'))}</div>
       <div className={s.row}>{button('join_team', t('把选中玩家加入队伍（Ctrl+F1）'))}
         <Select aria-label={t('队伍')} value={String(o.team ?? 0)} options={TEAMS.map(team => ({ ...team, label: t(team.label) }))} onChange={e => void set('team', Number(e.target.value))} />
-        {button('restore_team', t('恢复真正原队伍'))}
+        {button('restore_team', t('把选中玩家恢复真正原队伍'))}
         {button('restore_all_teams', t('恢复所有玩家真正原队伍'))}
       </div>
       <p>{t('队伍功能套用外交关系模板；恢复使用当前地图首次切换前记录的双向关系。原生队伍编号单独显示。')}</p>

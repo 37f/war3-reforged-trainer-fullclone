@@ -54,6 +54,10 @@ class World:
         bind('GetOwningPlayer',U,(U,),lambda u:self.units[u]['owner'])
         bind('GetPlayerId',I,(U,),lambda p:p-1)
         bind('Player',U,(I,),lambda p:p+1)
+        self.neutral_slots=[24,25,26,27]
+        for ix,name in enumerate(('GetPlayerNeutralAggressive','GetBJPlayerNeutralVictim',
+                                  'GetBJPlayerNeutralExtra','GetPlayerNeutralPassive')):
+            bind(name,I,(),lambda ix=ix:self.neutral_slots[ix])
         bind('GetPlayerTeam',I,(U,),lambda p:(p-1)//2 if p<25 else -1)
         bind('GetPlayerSlotState',U,(U,),lambda p:1 if p<=24 else 0)
         bind('ConvertPlayerSlotState',U,(I,),lambda i:i)
@@ -165,7 +169,7 @@ def test_explicit_player_write_rejects_control_change_or_stale_owner_before_sett
     w.bind('SetPlayerAlliance',V,(U,U,U,I),lambda *args:calls.append(args))
     before=w.run(dll,19,target=1);desired=list(before['matrix']);desired[6]=1
     with pytest.raises(RuntimeError):w.run(dll,20,target=1,matrix=desired,expected_owner=2)
-    with pytest.raises(RuntimeError):w.run(dll,20,target=1,matrix=before['matrix'],expected_owner=3)
+    with pytest.raises(ValueError):w.run(dll,20,target=1,matrix=before['matrix'],expected_owner=3)
     assert calls==[]
 
 
@@ -574,3 +578,85 @@ def test_join_team_pins_native_teams_before_write():
     Host().fullclone_team(5)
     assert cache['native_teams_snapshot']==original_teams
 
+
+
+@pytest.fixture
+def ownership(dll):
+    w=World()
+    objects={}
+    def identity(unit,full):
+        obj=c.create_string_buffer(64)
+        struct.pack_into('<Q',obj,24,full)
+        objects[unit]=obj
+    for u in w.units:identity(u,0x100000000+u)
+    resolver=c.CFUNCTYPE(U,U)(lambda u:c.addressof(objects[u]) if u in objects else 0)
+    class Engine:
+        session=SimpleNamespace(lock=threading.RLock(),cache={},epoch=3)
+        def fullclone(self,action,**options):
+            if options.pop('expected_epoch',self.session.epoch)!=self.session.epoch:
+                raise ValueError('地图会话已变化')
+            return w.run(dll,action,resolver=c.cast(resolver,c.c_void_p).value,**options)
+    engine=Engine()
+    class Host(FullCloneFacade):
+        def _engine_instance_24268(self):return engine
+    return w,Host(),engine,identity
+
+
+def test_restore_selected_and_all_keep_each_first_owner(ownership):
+    w,h,e,_=ownership
+    w.selected=[1001,1002]
+    assert h.fullclone_give_owner(2)['changed']==2
+    assert h.fullclone_give_owner(3)['changed']==2
+    w.selected=[1002]
+    assert h.fullclone_restore_owners()==dict(changed=1,skipped=0)
+    assert [w.units[u]['owner'] for u in (1001,1002,1003)]==[4,2,2]
+    w.selected=[]
+    assert h.fullclone_restore_owners(all_units=True)==dict(changed=1,skipped=0)
+    assert w.units[1001]['owner']==1
+    assert not e.session.cache['fullclone_original_owners']
+
+
+def test_all_restore_preserves_invalid_and_unrelated_changes(ownership):
+    w,h,e,identity=ownership
+    assert h.fullclone_give_owner(2)['changed']==3
+    identity(1001,0x200000000+1001)  # Same reused native handle and type, different full identity.
+    w.units[1002]['owner']=6       # A map script changed this unit later.
+    assert h.fullclone_restore_owners(all_units=True)==dict(changed=1,skipped=2)
+    assert [w.units[u]['owner'] for u in (1001,1002,1003)]==[3,6,2]
+    assert len(e.session.cache['fullclone_original_owners'])==2
+
+
+def test_original_neutral_and_inactive_owners_can_receive_units_back(ownership):
+    w,h,_,_=ownership
+    w.neutral_slots=[12,13,14,15]
+    w.units[1001]['owner']=16
+    w.bind('GetPlayerSlotState',U,(U,),lambda p:0 if p==2 else 1)
+    assert h.fullclone_give_owner(24)['changed']==3
+    assert {u['owner'] for u in w.units.values()}=={13}
+    assert h.fullclone_restore_owners(all_units=True)==dict(changed=3,skipped=0)
+    assert [w.units[u]['owner'] for u in (1001,1002,1003)]==[16,2,2]
+
+
+def test_restore_all_works_across_multiple_selection_batches(ownership):
+    w,h,_,identity=ownership
+    units=list(range(2001,2028))
+    for u in units:
+        w.units[u]=dict(w.units[1002])
+        identity(u,0x100000000+u)
+    for selection in (units[:20],units[20:]):
+        w.selected=selection
+        assert h.fullclone_give_owner(2)['changed']==len(selection)
+    w.selected=[]
+    assert h.fullclone_restore_owners(all_units=True)==dict(changed=27,skipped=0)
+    assert {w.units[u]['owner'] for u in units}=={2}
+
+
+def test_unconfirmed_transfer_retains_restore_record(ownership):
+    w,h,e,_=ownership
+    w.selected=[1001]
+    def refused(unit,target,color):
+        w.units[unit]['owner']=4  # The map script takes the unit before readback.
+    w.bind('SetUnitOwner',V,(U,U,I),refused)
+    assert h.fullclone_give_owner(2)==dict(selected=1,changed=0,skipped=1)
+    assert h.fullclone_restore_owners(all_units=True)==dict(changed=0,skipped=1)
+    assert len(e.session.cache['fullclone_original_owners'])==1

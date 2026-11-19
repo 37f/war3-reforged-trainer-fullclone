@@ -15,7 +15,7 @@ class Chord:
 
 def specs(base):
     return tuple(base)+(
-        Chord('give_owner','Ctrl+I+U  把单位给指定玩家',2,ord('U'),(ord('I'),)),
+        Chord('give_owner','Ctrl+I+U  把选中单位给指定玩家',2,ord('U'),(ord('I'),)),
         Chord('toggle_owner_control','Ctrl+I+O  控制/恢复选中玩家（不改变阵营）',2,ord('O'),(ord('I'),)),
         Chord('join_team','Ctrl+F1  把选中玩家加入队伍',2,0x70),
         Chord('replace_unit','Ctrl+U+8  替换单位',2,ord('8'),(ord('U'),)),

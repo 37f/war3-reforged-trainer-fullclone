@@ -44,6 +44,10 @@ export function translateFullClone(text: string, label: (value: string) => strin
   if (match) return 'Gathered ' + match[1] + ' ground items.' + (match[2] ? ' ' + label(match[2]) : '')
   match = /^已投放补给物品(\d+)个$/.exec(text)
   if (match) return 'Delivered ' + match[1] + ' supply items.'
+  match = /^无法确认玩家 (\d+) 的槽位，未修改外交模板。请重新读取玩家信息$/.exec(text)
+  if (match) return "Player "+match[1]+" could not be verified. Refresh the player list."
+  match = /^已恢复 (\d+)\/(\d+) 个玩家。玩家 ([\d、]+) 槽位身份未确认，已保留其原记录$/.exec(text)
+  if (match) return "Restored "+match[1]+"/"+match[2]+" players. Original records retained for unconfirmed slots "+match[3].replaceAll('、', ', ')+"."
   match = /^已恢复 (\d+) 个玩家真正原队伍（共享控制权限保持不变）$/.exec(text)
   if (match) return 'Restored original alliances for ' + match[1] + ' players. Shared control is unchanged.'
   match = /^已为(.+)补满 (\d+) 个单位的生命魔法（符合范围共 (\d+) 个）$/.exec(text)
@@ -54,6 +58,10 @@ export function translateFullClone(text: string, label: (value: string) => strin
   if (match) return label(match[1]) + ' has no eligible living, visible units.'
   match = /^已接受鼠标位置(.+)（([!-~]{4})）施法命令，归自己$/.exec(text)
   if (match) return 'Accepted cast at cursor: ' + label(match[1] + ' ' + match[2]) + '. Caster belongs to you.'
+  match = /^已转交 (\d+) 个单位；跳过或未确认 (\d+) 个$/.exec(text)
+  if (match) return "Transferred "+match[1]+" units. Skipped or unconfirmed: "+match[2]+"."
+  match = /^已确认 (\d+) 个单位归还原玩家；跳过或未确认 (\d+) 个$/.exec(text)
+  if (match) return "Restored "+match[1]+" units to their original owners. Skipped or unconfirmed: "+match[2]+"."
   match = /^已处理 (\d+) 个目标$/.exec(text)
   if (match) return 'Processed ' + match[1] + ' targets.'
   match = /^已将 (\d+) 个英雄的等级增加1级$/.exec(text)

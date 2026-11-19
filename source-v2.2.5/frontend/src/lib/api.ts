@@ -191,7 +191,7 @@ export const fullclone = {
   saveSupplies: () => callApi<any>('fullclone_save_supplies'),
   pageContext: () => callApi<any>('fullclone_page_context'),
   players: (refreshMap = false) => callApi<any>('fullclone_player_directory', refreshMap),
-  movePlayer: (player: number, target: number, context: string) => callApi<{ player: number; target: number; context: string; message: string }>('fullclone_move_player_team', player, target, context),
+  movePlayer: (player: number, target: number, context: string) => callApi<{ player: number; target: number; context: string; message: string; applied?: boolean }>('fullclone_move_player_team', player, target, context),
   currentCatalog: () => callApi<any>('fullclone_current_catalog'),
   settings: () => callApi<any>('fullclone_settings'),
   set: (key: string, value: unknown) => callApi<any>('fullclone_set_option', key, value),

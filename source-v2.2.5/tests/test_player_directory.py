@@ -319,3 +319,31 @@ def test_known_names_survive_a_bad_poll_but_do_not_follow_a_map_change(monkeypat
     engine.session.epoch=4
     live['stamp']=('game',4,tuple(range(28)))
     assert d.directory(api)['rows'][6]['name']=='Undead Army'
+
+
+@pytest.mark.parametrize('slot_state',[0,2,None])
+def test_inactive_move_stays_in_template_after_refresh(slot_state):
+    live=live_fixture()
+    p=live['rows'][8]
+    p.update(slot_state=slot_state,diplomacy=1)
+    r=d.combine(live)
+    assert 8 in next(g for g in r['current_groups'] if g['key']=='inactive')['members']
+    assert 8 not in next(g for g in r['diplomacy_groups'] if g['key']=='inactive')['members']
+    group=next(g for g in r['diplomacy_groups'] if g.get('template')==1)
+    assert 8 in group['members'] and r['rows'][8]['diplomacy_label']==group['name']
+
+
+def test_unavailable_drag_returns_inline_no_write_status():
+    from threading import RLock
+    from war3_fullclone_protocol import DiplomacySlotUnavailable
+    engine=NS(session=NS(lock=RLock(),identity=NS(pid=10,created=20),epoch=3))
+    def unavailable(*args,**kwargs):
+        try:
+            raise DiplomacySlotUnavailable(24)
+        except DiplomacySlotUnavailable as exc:
+            raise RuntimeError(str(exc)) from exc
+    trainer=NS(_engine_instance_24268=lambda:engine,fullclone_team=unavailable)
+    api=NS(app=NS(elephant_trainer=lambda:trainer),_run_action=lambda fn,key:fn())
+    result=d.move_player(api,24,1,'10:20:3')
+    assert result['success'] and not result['applied']
+    assert '无法确认玩家 25' in result['message']

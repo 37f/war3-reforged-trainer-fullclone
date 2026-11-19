@@ -39,7 +39,7 @@ const server = http.createServer(async (req, res) => {
           fullclone_quest_scan: () => { window.__calls.scan++; return { success: true } },
           fullclone_settings: () => ({ success: true, options: {} }),
           fullclone_owner_status: () => { window.__calls.owner++; return { success: true, message: '玩家1：队伍1' } },
-          fullclone_action: name => { window.__calls.actions.push(name); return { success: true, message: '恢复完成' } },
+          fullclone_action: name => { window.__calls.actions.push(name); return { success: true, message: '恢复完成', restored: [1], skipped: [] } },
           read_all_selected_units: async () => {
             window.__calls.unit++
             if (window.__slowUnit) await new Promise(r => window.__finishRead = r)
@@ -62,7 +62,9 @@ const server = http.createServer(async (req, res) => {
       }
       const players = page.getByTestId('player-directory'), quest = page.getByTestId('quest-page')
       await nav('players')
-      assert.equal(await players.getByLabel('记忆模式', { exact: true }).count(), 0)
+      const memory = players.getByLabel('记忆模式', { exact: true })
+      assert.equal(await memory.isChecked(), false)
+      await players.getByText('记忆模式', { exact: true }).click()
       await players.getByRole('button', { name: '读取／刷新玩家信息', exact: true }).click()
       await players.getByLabel('分组方式', { exact: true }).selectOption('diplomacy')
       await players.locator('nav [data-player="1"]').click()
@@ -92,13 +94,32 @@ const server = http.createServer(async (req, res) => {
       }
       await nav('players')
       assert.equal(await page.evaluate(() => window.__calls.directory), before)
-      assert.equal(await players.locator('nav [data-player]').count(), 0)
-      assert.equal(await players.getByLabel('每5秒监视', { exact: true }).isChecked(), false)
-      await players.getByRole('button', { name: '读取／刷新玩家信息', exact: true }).click()
-      await players.getByLabel('分组方式', { exact: true }).selectOption('diplomacy')
+      await page.waitForFunction(() => window.__calls.context > 0, null, { timeout: 7000 }).catch(async e => {
+        console.error(await page.evaluate(() => ({
+          calls: window.__calls,
+          checked: document.querySelector('[data-testid="player-directory"] input[type=checkbox]').checked,
+          status: document.querySelector('[data-testid="player-directory"] [role=status]').textContent,
+          visible: document.querySelector('[data-page-view="players"]').hidden,
+        })))
+        throw e
+      })
+      assert(await players.locator('nav [data-player]').count() > 0)
+      assert.equal(await players.getByLabel('每5秒监视', { exact: true }).isChecked(), true)
+      assert.equal(await players.getByLabel('分组方式', { exact: true }).inputValue(), 'diplomacy')
+      assert.equal(await players.getByLabel('搜索玩家信息').inputValue(), '玩家')
+      const reads = await page.evaluate(() => window.__calls.directory)
       await players.getByRole('button', { name: '恢复所有玩家真正原队伍', exact: true }).click()
+      await players.getByRole('status').getByText('恢复完成', { exact: true }).waitFor()
+      assert.equal(await players.locator('nav [data-team="0"] [data-player="1"]').count(), 1)
+      assert.equal(await page.evaluate(() => window.__calls.directory), reads)
       await nav('elephant')
       await page.getByRole('button', { name: '恢复所有玩家真正原队伍', exact: true }).click()
+      const transfer = page.getByRole('button', { name: '把选中单位给指定玩家（Ctrl+I+U）', exact: true })
+      const transferRow = transfer.locator('..')
+      await transfer.click()
+      await transferRow.getByRole('button', { name: '把选中单位恢复真正原玩家', exact: true }).click()
+      await transferRow.getByRole('button', { name: '恢复所有真正原玩家', exact: true }).click()
+      await page.getByRole('button', { name: '把选中玩家恢复真正原队伍', exact: true }).waitFor()
       await page.getByText('每秒监视玩家名字和队伍', { exact: true }).click()
       await nav('unit')
       const unitMonitor = page.getByLabel('每5秒监视单位状态', { exact: true })
@@ -132,9 +153,11 @@ const server = http.createServer(async (req, res) => {
       await page.getByText('每秒监视玩家名字和队伍', { exact: true }).click()
       await nav('resources'); await page.evaluate(() => window.__context = 'different-map')
       await nav('players')
+      await players.getByText('地图已变化，请重新读取玩家信息', { exact: true }).waitFor()
       assert.equal(await players.locator('nav [data-player]').count(), 0)
-      assert.equal(await players.getByLabel('记忆模式', { exact: true }).count(), 0)
-      assert.equal(await page.evaluate(() => window.__calls.actions.join(',')), 'restore_all_teams,restore_all_teams')
+      assert.equal(await memory.isChecked(), true)
+      await players.getByText('记忆模式', { exact: true }).click()
+      assert.equal(await page.evaluate(() => window.__calls.actions.join(',')), 'restore_all_teams,restore_all_teams,give_owner,restore_selected_owners,restore_all_owners')
       await nav('quests')
       await page.evaluate(() => window.__quest = { status: 'stale', started: true, rows: [], chapters: [], error: '地图已变化，请重新检测' })
       await nav('resources'); await nav('quests')
@@ -148,7 +171,7 @@ const server = http.createServer(async (req, res) => {
       await nav('players')
       assert.equal(errors.length, 0, errors.join('\n'))
       await page.screenshot({ path: resolve(out, `${mode}-players.png`) })
-      results.push({ mode, quest_memory_preserved: true, players_reset_on_return: true, bulk_buttons_shared: true, calls: await page.evaluate(() => window.__calls) })
+      results.push({ mode, quest_memory_preserved: true, players_memory_and_map_reset: true, bulk_buttons_shared: true, calls: await page.evaluate(() => window.__calls) })
       await page.close()
     }
     const report = { ok: true, gameplay_mutations: false, backend: 'mock RPC only', modes: results, unit_timer_overlap_error_and_hidden_tested: true }

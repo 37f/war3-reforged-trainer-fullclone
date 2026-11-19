@@ -5,7 +5,7 @@ VSVersionInfo(
     StringStruct('FileDescription', 'Warcraft III Reforged Trainer 2.2.5 FullClone R33 - Warcraft III 3.0.0.24268 / 3.0.1.24323 / 3.0.1.24332 / 3.0.1.24342 / 3.0.1.24360 / 3.0.1.24365 / 3.0.1.24371'),
     StringStruct('FileVersion', '2.2.5.338'),
     StringStruct('InternalName', 'War3ReforgedTrainer-v2.2.5'),
-    StringStruct('OriginalFilename', 'War3ReforgedTrainer-v2.2.5-FullClone-r33.exe'),
+    StringStruct('OriginalFilename', 'War3ReforgedTrainer-v2.2.5-FullClone-R33.exe'),
     StringStruct('ProductName', 'Warcraft III Reforged Trainer 2.2.5'),
     StringStruct('ProductVersion', '2.2.5'),
   ])]), VarFileInfo([VarStruct('Translation', [2052, 1200])])],

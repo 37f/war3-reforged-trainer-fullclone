@@ -15,6 +15,7 @@ from war3_fullclone_runtime import read_context,player_name
 from war3_fullclone_source import current_script,check_source
 from war3_fullclone_quests import _merge_strings,game_text_locale
 from war3_player_map_info import parse_player_info
+from war3_fullclone_protocol import DiplomacySlotUnavailable
 from war3_services.fullclone import applied_diplomacy_templates,diplomacy_template_label,pinned_native_teams
 
 GETTERS={
@@ -71,7 +72,7 @@ def scalar_offset(memory,entry,name_entry,signature):
 
 
 def live_players(trainer):
-    engine=trainer._engine_instance_24268();issues=[];teams=None
+    engine=trainer._engine_instance_24268();issues=[];teams=None;verified_players=None
     with engine.session.lock:
         with read_context(trainer) as (_,memory,registry,mode,table):
             before=(engine.session.identity,engine.session.epoch,tuple(registry.players(memory)))
@@ -81,6 +82,7 @@ def live_players(trainer):
             result=engine.fullclone(19,target=0)
             if result['rows'] and result['rows'][0]['a']==0 and len(result['teams'])==28 and all(-1<=v<28 for v in result['teams']):
                 teams=pinned_native_teams(engine.session.cache,result['teams'])
+                verified_players=result['rows'][0].get('c')
             else:issues.append('实时队伍未读出：指定玩家查询没有返回已确认的队伍列表；其他玩家信息仍可读取。')
         except Exception as exc:issues.append('实时队伍未确认：'+str(exc).split('; engine24268=',1)[0])
         with read_context(trainer) as (engine,memory,registry,mode,table):
@@ -97,6 +99,8 @@ def live_players(trainer):
             rows=[]
             for index,address in enumerate(players):
                 row=dict(id=index,team=teams[index] if teams else None,diplomacy=applied.get(index),is_local=index==local_id,name='',name_source='未读出')
+                if verified_players is not None:
+                    row['diplomacy_available']=bool(verified_players&(1<<index))
                 try:
                     row['name']=player_name(trainer,index)
                     if row['name']:row['name_source']='游戏读取值'
@@ -220,7 +224,9 @@ def combine(live,config=None,config_error='',*,aliases=None,previous_names=None)
         titles[target]=f'{suffix[1:-1] if suffix else "未读取队伍名"}（队伍 {target+1}）'
     titles.update({12:'中立敌对',13:'中立被动'})
     members={};unknown=[]
-    for p in normal+[p for p in rows if p['id'] in (24,27)]:
+    for p in rows:
+        if p['id'] not in active and p['id'] not in (24,27) and not (p['id'] in inactive and p['diplomacy'] is not None):
+            continue
         target=p['diplomacy']
         if target is None:
             original=p.get('team')
@@ -244,9 +250,10 @@ def combine(live,config=None,config_error='',*,aliases=None,previous_names=None)
     for p in unknown:p['diplomacy_label']='队伍未确认'
     other_neutral=[p for p in special if p not in (24,27)]
     if other_neutral:templates.append(dict(key='neutral',name='其他特殊中立槽位',members=other_neutral))
-    if inactive:templates.append(dict(key='inactive',name='空槽／已离开／状态未确认',members=inactive))
+    inactive_origins=[p['id'] for p in rows if p['id'] in inactive and p['diplomacy'] is None]
+    if inactive:templates.append(dict(key='inactive',name='空槽／已离开／状态未确认',members=inactive_origins))
     for p in rows:
-        if p['id'] in inactive:p['diplomacy_label']='空槽／已离开／状态未确认'
+        if p['id'] in inactive_origins:p['diplomacy_label']='空槽／已离开／状态未确认'
         elif p['id'] in other_neutral:p['diplomacy_label']=p['special']
     issues=list(live['issues'])+list((config or {}).get('issues',[]))
     if config_error:issues.append('地图初始配置未确认：'+config_error)
@@ -296,7 +303,9 @@ def move_player(api,player,target,context):
     if type(player) is not int or player not in (*range(24),24,27):raise ValueError('不支持拖动该玩家')
     if type(target) is not int or target not in range(14):raise ValueError('目标外交模板无效')
     if type(context) is not str or not context:raise ValueError('请先读取当前地图玩家')
+    applied=False
     def apply():
+        nonlocal applied
         trainer=api.app.elephant_trainer();engine=trainer._engine_instance_24268()
         with engine.session.lock:
             identity=engine.session.identity;epoch=engine.session.epoch
@@ -304,8 +313,14 @@ def move_player(api,player,target,context):
                 raise ValueError('地图或连接已变化，请重新读取玩家后再拖放')
             # fullclone_team revalidates the session and expected epoch in the
             # engine before its first query and before the write.
-            result=trainer.fullclone_team(target,player=player,expected_epoch=epoch)
+            try:
+                result=trainer.fullclone_team(target,player=player,expected_epoch=epoch)
+            except Exception as exc:
+                unavailable=exc if isinstance(exc,DiplomacySlotUnavailable) else exc.__cause__
+                if not isinstance(unavailable,DiplomacySlotUnavailable):raise
+                return str(unavailable)
             if not result.get('changed'):raise ValueError('未确认外交模板修改成功，请重新读取')
+            applied=True
             return f'玩家 {player+1} 已套用{diplomacy_template_label(target)}外交模板（控制权限保持不变）'
     message=api._run_action(apply,'fullclone:move_player_team')
-    return dict(success=True,message=message,player=player,target=target,context=context)
+    return dict(success=True,applied=applied,message=message,player=player,target=target,context=context)

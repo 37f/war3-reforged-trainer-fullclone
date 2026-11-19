@@ -2,7 +2,7 @@ import { create } from 'zustand'
 
 // UI preferences only, kept for this window. Game identities/snapshots are never
 // written to localStorage. Stage remounts remembered pages on reconnection.
-type RememberedPage = 'quests'
+type RememberedPage = 'quests' | 'players'
 export const usePageMemory = create<{
   remember: Record<RememberedPage, boolean>
   setRemember(page: RememberedPage, enabled: boolean): void
@@ -12,7 +12,7 @@ export const usePageMemory = create<{
   setOwnerMonitor(enabled: boolean): void
   resetMonitors(): void
 }>(set => ({
-  remember: { quests: true },
+  remember: { quests: true, players: false },
   setRemember: (page, enabled) => set(st => ({ remember: { ...st.remember, [page]: enabled } })),
   unitMonitor: false, ownerMonitor: false,
   setUnitMonitor: unitMonitor => set({ unitMonitor }),

@@ -1,5 +1,5 @@
 """Additional desktop commands; exposed through the existing serialized RPC."""
-from war3_fullclone_application import DEFAULTS
+from war3_fullclone_application import DEFAULTS,restore_team_records
 
 
 def settings(api):
@@ -57,6 +57,13 @@ def action(api,name):
     if name=='supply_save':
         from war3_fullclone_supplies import save
         return dict(success=True,message=save(api.app.fc_settings()))
+    if name=='restore_all_teams':
+        result={}
+        def restore():
+            result.update(restore_team_records(api.app.elephant_trainer()))
+            return result['message']
+        api._run_action(restore,'fullclone:'+name)
+        return dict(success=True,**result)
     message=api._run_action(lambda:api.app.fc_action(name),'fullclone:'+name)
     if name not in ('join_team','restore_team','restore_all_teams'):api._mark_units_changed()
     return dict(success=True,message=str(message or '操作完成'))

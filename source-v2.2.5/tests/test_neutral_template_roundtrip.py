@@ -102,3 +102,38 @@ def test_owner_monitor_distinguishes_neutral_raw_team_from_ordinary_team(player,
         assert f'特殊中立槽位（原生队伍原始值 {team}）' in result['message']
         assert '原生队伍 1' not in result['message']
     else:assert ('原生队伍 1' if team==0 else '未分配普通队伍') in result['message']
+
+
+@pytest.mark.parametrize('logical,engine_id',[(24,12),(27,15)])
+def test_legacy_neutral_indices_share_selected_and_drag_paths(dll,logical,engine_id):
+    w,e,h=fixture(dll)
+    w.neutral_slots=[12,13,14,15]
+    w.selected=[1001];w.units[1001]['owner']=engine_id+1
+    direct=w.run(dll,19,target=logical)
+    selected=w.run(dll,8)
+    assert direct['rows'][0]['owner']==engine_id+1
+    assert direct['rows'][0]['a']==selected['rows'][0]['a']==logical
+    assert direct['matrix']==selected['matrix']
+    assert not direct['rows'][0]['c']&(1<<engine_id)
+    h.fullclone_team(0,player=logical)
+    dragged=dict(w.alliances)
+    h.fullclone_restore_all_teams()
+    h.fullclone_team(0)
+    assert w.alliances==dragged
+    assert w.selected==[1001]
+
+
+@pytest.mark.parametrize('slot_state',[0,2])
+def test_inactive_slots_use_selected_owner_diplomacy_rules(dll,slot_state):
+    from test_fullclone_migration import U
+    w,e,h=fixture(dll)
+    w.bind('GetPlayerSlotState',U,(U,),lambda p:slot_state if p==2 else 1)
+    w.selected=[1002]
+    original=dict(w.alliances)
+    assert h.fullclone_team(2,player=1)['changed']==1
+    dragged=dict(w.alliances)
+    assert dragged!=original
+    assert h.fullclone_restore_all_teams()['restored']==(1,)
+    assert w.alliances==original
+    assert h.fullclone_team(2)['changed']==1
+    assert w.alliances==dragged

@@ -25,6 +25,7 @@ def desktop(monkeypatch,tmp_path):
     def attributes(value):calls.append(('custom_attributes',value));return 1
     def cheat(command):calls.append(('cheat',command))
     trainer=SimpleNamespace(_native_selection_unavailable=True,fullclone_action=action,
+        fullclone_give_owner=lambda player:(calls.append(('give',player)) or dict(selected=1,changed=1,skipped=0)),
         fullclone_clone=clone,fullclone_toggle_control=control,gold_mines=gold,
         fullclone_infernal=infernal,fullclone_gather_items=gather,
         hero_progress_24268=progress,set_selected_group_hero_attributes=attributes,
@@ -61,6 +62,7 @@ def test_real_desktop_binds_every_extension_and_registers_enabled_keys(desktop):
     ('clone_to_self',('clone',1,dict(owner_mode='self',player=24))),
     ('mass_clone',('clone',3,dict(owner_mode='player',player=24))),
     ('toggle_owner_control',('control',)),('gold_mine',('gold','selected','250000')),
+    ('give_owner',('give',1)),
     ('point_spell',('infernal',)),('gather_ground_items',('gather',)),
 ])
 def test_keyboard_dispatch_reaches_same_commands_as_extension_buttons(desktop,name,expected):

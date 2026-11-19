@@ -7,6 +7,19 @@ DEFAULTS=dict(owner_enabled=False,owner_mode='self',owner_player=0,target_player
     supply_text_1='',supply_text_2='',supply_text_3='',point_spell='AUin')
 
 
+def restore_team_records(trainer):
+    result=trainer.fullclone_restore_all_teams()
+    skipped=result.get('skipped',())
+    if skipped:
+        slots='、'.join(str(p+1) for p in skipped)
+        message=f'已恢复 {result["changed"]}/{result["total"]} 个玩家。玩家 {slots} 槽位身份未确认，已保留其原记录'
+    elif result['total']:
+        message=f'已恢复 {result["changed"]} 个玩家真正原队伍（共享控制权限保持不变）'
+    else:
+        message='本次地图没有可恢复的原队伍记录'
+    return dict(result,message=message)
+
+
 class FullCloneApplication:
     def fc_settings(self):
         state=self.view.value('state')
@@ -31,14 +44,22 @@ class FullCloneApplication:
         elif action=='point_spell':
             from war3_fullclone_extras import point_spell
             return point_spell(t,o['point_spell'])
-        elif action=='give_owner':r=t.fullclone_action(1,value=o['target_player'])
+        elif action=='give_owner':
+            r=t.fullclone_give_owner(o['target_player'])
+            if not r['selected']:return '请先在游戏里选中单位'
+            return f'已转交 {r["changed"]} 个单位；跳过或未确认 {r["skipped"]} 个'
+        elif action in ('restore_selected_owners','restore_all_owners'):
+            all_units=action=='restore_all_owners'
+            r=t.fullclone_restore_owners(all_units=all_units)
+            if not r['changed'] and not r['skipped']:
+                return '本次地图没有可恢复的单位归属记录' if all_units else '选中单位没有可恢复的原玩家记录'
+            return f'已确认 {r["changed"]} 个单位归还原玩家；跳过或未确认 {r["skipped"]} 个'
         elif action=='toggle_owner_control':
             r=t.fullclone_toggle_control();return '已恢复选中玩家的控制状态' if r['restored'] else '已控制选中玩家（阵营不变）'
         elif action=='join_team':r=t.fullclone_team(o['team'])
         elif action=='restore_team':r=t.fullclone_team(restore=True)
         elif action=='restore_all_teams':
-            r=t.fullclone_restore_all_teams()
-            return f'已恢复 {r["changed"]} 个玩家真正原队伍（共享控制权限保持不变）' if r['total'] else '本次地图没有可恢复的原队伍记录'
+            return restore_team_records(t)['message']
         elif action=='replace_unit':r=t.fullclone_action(12,rawcode=self.fc_rawcode(o['replace_id']))
         elif action=='fill_life_mana':r=t.fullclone_action(2)
         elif action=='fill_owner_life_mana':

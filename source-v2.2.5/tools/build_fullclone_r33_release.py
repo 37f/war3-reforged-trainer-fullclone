@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'dist-2.2.5-fullclone-r33-release'
 CASE = ROOT / 'build/fullclone-r33-release/exe-build'
 SPEC = 'War3ReforgedTrainer-FullClone-R33-Release.spec'
-EXE = 'War3ReforgedTrainer-v2.2.5-FullClone-r33.exe'
+EXE = 'War3ReforgedTrainer-v2.2.5-FullClone-R33.exe'
 BRIDGE_IMAGE = None
 
 

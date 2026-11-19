@@ -1,18 +1,23 @@
 {
   "tag": "v2.2.5-fullclone-r33",
-  "build_commit": "b7501b8de77e35eff2d59818b79088f243ff1bf8",
-  "development_base": "2dcdab7935e89aa0f6153c431b9465b09810e088",
+  "updated": "2026-11-20",
   "file_version": "2.2.5.338",
-  "tests_passed": 378,
+  "build_base_commit": "b7501b8de77e35eff2d59818b79088f243ff1bf8",
+  "source_tree_sha256": "ec8e74dda2af4b5fb99e6337df3e1534b70e42ed95cbf1309b4dc2aa4a8d54a5",
+  "tests_passed": 395,
+  "tests_skipped": 1,
   "source_files": 725,
   "embedded_modules": 226,
   "build_inputs": 574,
-  "offline_panels": 18,
-  "hotkeys": 77,
+  "exe_sha256": "d900623c6445fb24ccb03a72bd51ee1097f3fee6c63d83be78e8334a7d20036d",
+  "native_sha256": "cb2d276b638fb6b1a687a57678fba63616b30670baadeaa385d04256abbcb1b6",
   "browser_layouts": [
     "modern",
     "classic",
     "legacy19"
   ],
+  "wheel_while_held_both_directions": true,
+  "owner_restore_controls_verified": true,
+  "mock_game_data": true,
   "gameplay_write_tested": false
 }

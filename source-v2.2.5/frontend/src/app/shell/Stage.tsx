@@ -17,12 +17,12 @@ export function Stage() {
   const remember = usePageMemory(st => st.remember)
   const connection = useSystem(st => `${st.status.connected}:${st.status.pid}:${st.status.connectionId ?? ''}`)
   const [retained, setRetained] = useState<{ connection: string; pages: PageId[] }>({ connection, pages: [] })
-  const cacheable = (id: PageId) => id === 'quests' && remember.quests
+  const cacheable = (id: PageId) => id === 'quests' && remember.quests || id === 'players' && remember.players
   const visited = retained.connection === connection ? retained.pages : []
   const pages = [...new Set([...visited.filter(cacheable), page])]
   useEffect(() => {
     setRetained(st => ({ connection, pages: [...new Set([...(st.connection === connection ? st.pages.filter(cacheable) : []), ...cacheable(page) ? [page] : []])] }))
-  }, [page, connection, remember.quests]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [page, connection, remember.quests, remember.players]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { usePageMemory.getState().resetMonitors() }, [connection])
   return (
     <main className={`ds-stage ${s.stage}`} data-testid="stage" data-page={page} data-ready={isReady(page)}>

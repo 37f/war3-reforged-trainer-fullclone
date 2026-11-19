@@ -10,8 +10,18 @@
 .groups ul { list-style: none; margin: 4px 0; padding-left: 12px; }
 .groups button { text-align: left; background: transparent; color: inherit; border: 0; padding: 6px; overflow-wrap: anywhere; }
 .groups button[aria-pressed='true'], .groups button[aria-current='true'] { background: var(--tint-selected); outline: 1px solid var(--focus); }
-.groups button[draggable='true'] { cursor: grab; }
+.groups button[data-draggable='true'] { cursor: grab; user-select: none; }
 .groups .dragging { opacity: .55; }
+.dragPreview {
+  position: fixed;
+  z-index: 100;
+  pointer-events: none;
+  padding: 5px 8px;
+  color: var(--text-primary);
+  background: var(--surface-raised);
+  border: 1px solid var(--focus);
+  opacity: .92;
+}
 .groups .dropTarget { outline: 2px solid var(--focus); background: var(--tint-selected); }
 .content { display: grid; gap: 12px; min-width: 0; }
 .table { width: 100%; max-height: 480px; overflow: auto; border: 1px solid var(--line); }
@@ -29,4 +39,4 @@
 .detail h2, .detail h3 { margin: 0 0 10px; font-size: 16px; }
 .detail dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 18px; margin: 0; }
 .detail dd { margin: 0; }
-@media (max-width: 850px) { .body { grid-template-columns: 1fr; } .groups { max-height: 260px; overflow: auto; } }
+@media (max-width: 850px) { .body { grid-template-columns: 1fr; } }
