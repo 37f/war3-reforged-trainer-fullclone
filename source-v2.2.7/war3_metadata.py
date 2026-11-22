@@ -4,7 +4,7 @@ APP_RELEASE_CHANNEL = "stable"
 GAME_BUILD = "3.0.0.24268"
 PRODUCT_READ_MODE = "normal"
 PRODUCT_EDITION_LABEL = "普通读取版"
-FULLCLONE_EDITION = "FullClone R36 Test"
+FULLCLONE_EDITION = "FullClone R35 Test"
 WIN10_COMPAT_REVISION = "2.2.7-resource-lock-and-errors-20261122"
 
 

@@ -1,4 +1,4 @@
-# 魔兽争霸 III 重制版修改器 v2.2.7 FullClone R36-Test
+# 魔兽争霸 III 重制版修改器 v2.2.7 FullClone R35-Test
 
 本次为预发布，基于原作者 v2.2.7 源码 `2211ad0846fb`，保留累计 FullClone 扩展。适用于 Windows x64 和《魔兽争霸 III》重制版 3.0 系列，具体功能取决于游戏构建与地图。
 

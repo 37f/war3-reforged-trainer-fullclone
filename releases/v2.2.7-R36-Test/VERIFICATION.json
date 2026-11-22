@@ -1,7 +1,7 @@
 {
   "version": "2.2.7",
   "revision": "R36-Test",
-  "source_commit": "31630302c0c762009521071e1bdfe8011e10337a",
+  "source_commit": "06c10e4d3c5c06149f612b143e5c662d996b586d",
   "automated_tests_passed": 403,
   "frozen_ui": {
     "panels": 18,
@@ -29,16 +29,16 @@
   "source_archive_entries": 739,
   "artifacts": {
     "War3ReforgedTrainer-v2.2.7-FullClone-R36-Test.exe": {
-      "bytes": 27632348,
-      "sha256": "afbc978c7e6066e83b11afb18331099d64f9b9154d636a3908ab9e5718bd80c4"
+      "bytes": 27631720,
+      "sha256": "23f173dbec8fca70b8b90e4f9c409f35bd25c4bc97f98c942f124465f579237a"
     },
     "War3ReforgedTrainer-v2.2.7-FullClone-R36-Test-source.zip": {
-      "bytes": 31239434,
-      "sha256": "752061d2f98bbcf26b8b83d93a3ccdcab48788ea680b48fdddfad94459ec493e"
+      "bytes": 31239435,
+      "sha256": "b526a2c57f92afc9dd122d981a8e24e51d89c8270ba6d796710355b1508f405e"
     },
     "SHA256SUMS-R36-Test.txt": {
       "bytes": 241,
-      "sha256": "b4b5f12a0c4c6660d5b15ffc58e3bc41f09c8c79795978dc7e420f6311a30442"
+      "sha256": "3e025c5b0b91bd782102e6b2b66c3f8b6047e6717b5658ffc745c233af63f32c"
     }
   },
   "header_links": {
@@ -52,5 +52,6 @@
     "author": "https://twomengxi.xyz/",
     "clickable": true,
     "aligned_beside_author": true
-  }
+  },
+  "display_edition": "R35 Test"
 }

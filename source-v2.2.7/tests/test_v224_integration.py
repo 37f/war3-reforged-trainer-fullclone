@@ -6,7 +6,7 @@ from test_fullclone_desktop_dispatch import desktop
 def test_v224_version_and_catalogue_maximum_survive_migration(desktop):
     from war3_metadata import APP_VERSION,WIN10_COMPAT_REVISION,FULLCLONE_EDITION
     assert APP_VERSION=='2.2.7' and WIN10_COMPAT_REVISION=='2.2.7-resource-lock-and-errors-20261122'
-    assert FULLCLONE_EDITION=='FullClone R36 Test'
+    assert FULLCLONE_EDITION=='FullClone R35 Test'
     api,calls=desktop
     result=api.search_id_catalog('upgrade','Rhme')
     row=next(r for r in result['rows'] if r['rawcode']=='Rhme')
