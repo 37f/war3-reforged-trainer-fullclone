@@ -1,4 +1,4 @@
-# 魔兽争霸 III 重制版修改器 v2.2.6 FullClone
+# 魔兽争霸 III 重制版修改器 v2.2.6 FullClone R34
 
 本版以原作者 v2.2.6 源码 `e6051f7d4fd8` 为底，迁入已发布的 v2.2.5 FullClone R33 扩展。适用于 Windows x64 的《魔兽争霸 III》重制版 3.0 系列，具体可用功能取决于游戏构建和地图。
 
@@ -28,4 +28,4 @@ python tools/build_fullclone_release_226.py --bridge-image tools/war3_bridge_242
 python tools/build_fullclone_release_226.py --verify-only
 ```
 
-构建产物位于 `dist-2.2.6-fullclone-verified`。
+构建产物 `War3ReforgedTrainer-v2.2.6-FullClone-R34.exe` 位于 `dist-2.2.6-fullclone-r34-verified`。

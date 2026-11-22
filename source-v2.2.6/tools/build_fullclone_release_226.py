@@ -15,10 +15,10 @@ from PyInstaller.archive.readers import CArchiveReader
 import pefile
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / 'dist-2.2.6-fullclone-verified'
-CASE = ROOT / 'build/fullclone-2.2.6/exe-build'
+OUT = ROOT / 'dist-2.2.6-fullclone-r34-verified'
+CASE = ROOT / 'build/fullclone-2.2.6-r34/exe-build'
 SPEC = 'War3ReforgedTrainer-FullClone-2.2.6.spec'
-EXE = 'War3ReforgedTrainer-v2.2.6-FullClone.exe'
+EXE = 'War3ReforgedTrainer-v2.2.6-FullClone-R34.exe'
 BRIDGE_IMAGE = None
 
 
@@ -51,7 +51,11 @@ def inputs():
 def inspect(exe, source_root, source_hashes, baseline):
     pe = pefile.PE(str(exe), fast_load=False)
     fixed = pe.VS_FIXEDFILEINFO[0]
-    assert (fixed.FileVersionMS, fixed.FileVersionLS) == ((2 << 16) | 2, 6 << 16)
+    assert (fixed.FileVersionMS, fixed.FileVersionLS) == ((2 << 16) | 2, (6 << 16) | 34)
+    strings = next(table.entries for group in pe.FileInfo for info in group
+                   if info.Key == b'StringFileInfo' for table in info.StringTable)
+    assert strings[b'OriginalFilename'] == EXE.encode('ascii')
+    assert strings[b'ProductVersion'] == b'2.2.6 FullClone R34'
     archive = CArchiveReader(str(exe))
     pyz_names = [name for name in archive.toc if name.lower().endswith('.pyz')]
     assert len(pyz_names) == 1, pyz_names
@@ -162,7 +166,7 @@ def build():
             assert digest(destination.read_bytes()) == sha
         else:
             shutil.copy2(exe, destination)
-        manifest = dict(ok=True, version='2.2.6', kind='fullclone_2.2.6',
+        manifest = dict(ok=True, version='2.2.6', revision='R34', kind='fullclone_2.2.6',
             status='built_not_published', artifact=artifact.as_posix(), exe_sha256=sha,
             exe_bytes=exe.stat().st_size, source_sha256=source_hashes,
             head=head,

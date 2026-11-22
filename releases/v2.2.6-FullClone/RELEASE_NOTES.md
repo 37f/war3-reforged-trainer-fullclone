@@ -1,12 +1,12 @@
-# 魔兽争霸 III 重制版修改器 v2.2.6 FullClone
+# 魔兽争霸 III 重制版修改器 v2.2.6 FullClone R34
 
 以原作者 v2.2.6（`e6051f7d4fd8`）为底，迁入已发布的 R33 累计扩展。适用于 Windows x64 的《魔兽争霸 III》重制版 3.0 系列，具体功能取决于游戏构建和地图。
 
 ## 下载
 
-- `War3ReforgedTrainer-v2.2.6-FullClone.exe` · Windows x64 单文件程序。
-- `War3ReforgedTrainer-v2.2.6-FullClone-source.zip` · 完整独立源码包，含构建说明。
-- `SHA256SUMS.txt` · EXE 与源码包的 SHA-256 校验值。
+- `War3ReforgedTrainer-v2.2.6-FullClone-R34.exe` · Windows x64 单文件程序。
+- `War3ReforgedTrainer-v2.2.6-FullClone-R34-source.zip` · 完整独立源码包，含构建说明。
+- `SHA256SUMS-R34.txt` · EXE 与源码包的 SHA-256 校验值。
 
 ## 原作者 v2.2.6 更新
 
@@ -21,7 +21,7 @@
 - **任务与条件**。手动检测主支线任务，展示原说明、可解析的完成及失败条件和触发位置。唯一匹配的 JASS 任务可同步状态，Lua 任务提供静态检索。
 - **三套界面**。保留现代深色、白色标签页及 1.0.19 旧式布局和扩展控件的中英文切换。
 
-完整历史见 [R33 累计更新记录](https://github.com/37f/war3-reforged-trainer-fullclone/blob/v2.2.6-fullclone/source-v2.2.6/R33_CHANGELOG_ZH.md)。
+完整历史见 [R33 累计更新记录](https://github.com/37f/war3-reforged-trainer-fullclone/blob/v2.2.6-fullclone-r34/source-v2.2.6/R33_CHANGELOG_ZH.md)。
 
 ## 验证
 

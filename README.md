@@ -2,13 +2,13 @@
 
 # 魔兽争霸 III 重制版修改器 FullClone
 
-## 当前正式版 · v2.2.6 FullClone
+## 当前正式版 · v2.2.6 FullClone R34
 
 基于原作者 v2.2.6，保留 30 格背包套装、同层天赋合并和快捷键设置记忆，迁入 R33 的大象功能、外交模板拖放、原队伍与单位归属恢复、任务与条件和三套界面。
 
-- [发布与下载](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v2.2.6-fullclone)
-- [Windows x64 单文件 EXE](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v2.2.6-fullclone/War3ReforgedTrainer-v2.2.6-FullClone.exe)
-- [完整源码 ZIP](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v2.2.6-fullclone/War3ReforgedTrainer-v2.2.6-FullClone-source.zip) · [源码目录](source-v2.2.6/) · [更新说明](source-v2.2.6/FULLCLONE_2.2.6_说明.md) · [校验清单](releases/v2.2.6-FullClone/SHA256SUMS.txt)
+- [发布与下载](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v2.2.6-fullclone-r34)
+- [Windows x64 单文件 EXE](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v2.2.6-fullclone-r34/War3ReforgedTrainer-v2.2.6-FullClone-R34.exe)
+- [完整源码 ZIP](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v2.2.6-fullclone-r34/War3ReforgedTrainer-v2.2.6-FullClone-R34-source.zip) · [源码目录](source-v2.2.6/) · [更新说明](source-v2.2.6/FULLCLONE_2.2.6_说明.md) · [校验清单](releases/v2.2.6-FullClone/SHA256SUMS-R34.txt)
 
 396 项自动化测试通过，冻结 EXE 已完成离线界面核对。实际游戏内操作尚未验收。
 
