@@ -1,0 +1,29 @@
+{
+  "automated_tests_passed": 396,
+  "frozen_ui": {
+    "panels": 18,
+    "hotkeys": 77,
+    "layouts": [
+      "modern",
+      "classic",
+      "legacy19"
+    ]
+  },
+  "mocked_drag_and_restore": true,
+  "live_game_operations_verified": false,
+  "source_archive_entries": 735,
+  "artifacts": {
+    "War3ReforgedTrainer-v2.2.6-FullClone.exe": {
+      "bytes": 27575652,
+      "sha256": "ee9ec2f2d112896188d9807d73c6f4f296561455e8ecb3d7d456318e02e22176"
+    },
+    "War3ReforgedTrainer-v2.2.6-FullClone-source.zip": {
+      "bytes": 31199141,
+      "sha256": "de4e7ef3844e3e4702e72c53cdfccb1d20a4472fd167f30de3b442a2692d1551"
+    },
+    "SHA256SUMS.txt": {
+      "bytes": 223,
+      "sha256": "f34f1a0faffa252af4dd8eeb52c383198bc7fa572f4befa0465d7a346ee053b6"
+    }
+  }
+}

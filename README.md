@@ -2,7 +2,19 @@
 
 # 魔兽争霸 III 重制版修改器 FullClone
 
-## 当前正式版 · v2.2.5 FullClone R33
+## 当前正式版 · v2.2.6 FullClone
+
+基于原作者 v2.2.6，保留 30 格背包套装、同层天赋合并和快捷键设置记忆，迁入 R33 的大象功能、外交模板拖放、原队伍与单位归属恢复、任务与条件和三套界面。
+
+- [发布与下载](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v2.2.6-fullclone)
+- [Windows x64 单文件 EXE](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v2.2.6-fullclone/War3ReforgedTrainer-v2.2.6-FullClone.exe)
+- [完整源码 ZIP](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v2.2.6-fullclone/War3ReforgedTrainer-v2.2.6-FullClone-source.zip) · [源码目录](source-v2.2.6/) · [更新说明](source-v2.2.6/FULLCLONE_2.2.6_说明.md) · [校验清单](releases/v2.2.6-FullClone/SHA256SUMS.txt)
+
+396 项自动化测试通过，冻结 EXE 已完成离线界面核对。实际游戏内操作尚未验收。
+
+## 以往版本说明
+
+### v2.2.5 FullClone R33
 
 以原作者 v2.2.5 为基础，收录截至本地 R38 的累计改动。
 
@@ -13,8 +25,6 @@
 本版加入玩家昵称与地图配置名切换、扩展界面的中英文切换和拖放外交模板即时更新。也包含全军补满、物品按 ID 聚集、复制阵型、部队冻结与恢复、补给包、鼠标位置技能，以及中文任务原文和 JASS 任务状态改进。Lua 实时状态仍待适配。
 
 2026-11-20 更新包含队伍批量恢复提速、更多槽位的外交拖放、队伍页记忆模式、按住卡片时的整页滚轮滚动，以及单位原玩家恢复。
-
-## 以往版本说明
 
 ### v2.2.4 FullClone R32-Test
 

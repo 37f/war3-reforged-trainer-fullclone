@@ -2,9 +2,19 @@
 
 # Warcraft III: Reforged Trainer FullClone
 
-FullClone is an unofficial extension of the [original Warcraft III: Reforged Trainer](https://github.com/dc114154qq/war3-reforged-trainer). The current release builds on the original project's v2.2.5 and includes the cumulative FullClone changes through local build R38.
+FullClone is an unofficial extension of the [original Warcraft III: Reforged Trainer](https://github.com/dc114154qq/war3-reforged-trainer).
 
-## Current release · v2.2.5 FullClone R33
+## Current release · v2.2.6 FullClone
+
+This release brings the R33 extensions to the original trainer’s v2.2.6. It includes the new 30-slot backpack loadouts, same-tier talent effect merging, saved hotkey preferences, and the existing FullClone gameplay, diplomacy, quest inspection, and layout features.
+
+- [Release and downloads](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v2.2.6-fullclone)
+- [Windows x64 standalone executable](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v2.2.6-fullclone/War3ReforgedTrainer-v2.2.6-FullClone.exe)
+- [Complete source ZIP](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v2.2.6-fullclone/War3ReforgedTrainer-v2.2.6-FullClone-source.zip) · [Browse source](source-v2.2.6/) · [SHA-256 checksums](releases/v2.2.6-FullClone/SHA256SUMS.txt)
+
+The build passed 396 automated tests and an offline check of the packaged desktop UI. Live game operations have yet to be verified for this release.
+
+## Previous release · v2.2.5 FullClone R33
 
 - [Release and downloads](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v2.2.5-fullclone-r33)
 - [Windows x64 standalone executable](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v2.2.5-fullclone-r33/War3ReforgedTrainer-v2.2.5-FullClone-R33.exe)
