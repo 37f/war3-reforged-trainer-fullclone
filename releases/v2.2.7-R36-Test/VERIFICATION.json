@@ -1,7 +1,7 @@
 {
   "version": "2.2.7",
   "revision": "R36-Test",
-  "source_commit": "8f1c9f97fac3e5ba29d72867d57bb490fc28d83c",
+  "source_commit": "31630302c0c762009521071e1bdfe8011e10337a",
   "automated_tests_passed": 403,
   "frozen_ui": {
     "panels": 18,
@@ -29,16 +29,28 @@
   "source_archive_entries": 739,
   "artifacts": {
     "War3ReforgedTrainer-v2.2.7-FullClone-R36-Test.exe": {
-      "bytes": 27631370,
-      "sha256": "3320d2dd76512e407288a18d29c181f4ce1e2593b705d1fdccbc53cc57a07cc5"
+      "bytes": 27632348,
+      "sha256": "afbc978c7e6066e83b11afb18331099d64f9b9154d636a3908ab9e5718bd80c4"
     },
     "War3ReforgedTrainer-v2.2.7-FullClone-R36-Test-source.zip": {
-      "bytes": 31239291,
-      "sha256": "9f8296bd8f47a8c366e85b44becfbac004594004ff05e9fecf740fef2293b4f6"
+      "bytes": 31239434,
+      "sha256": "752061d2f98bbcf26b8b83d93a3ccdcab48788ea680b48fdddfad94459ec493e"
     },
     "SHA256SUMS-R36-Test.txt": {
       "bytes": 241,
-      "sha256": "e9aaa7dac8b5bb9a3a67151dd123822e048715a5272d4d9893fdb3b07530ed04"
+      "sha256": "b4b5f12a0c4c6660d5b15ffc58e3bc41f09c8c79795978dc7e420f6311a30442"
     }
+  },
+  "header_links": {
+    "ok": true,
+    "modes": [
+      "modern",
+      "classic",
+      "legacy19"
+    ],
+    "repository": "https://github.com/37f/war3-reforged-trainer-fullclone",
+    "author": "https://twomengxi.xyz/",
+    "clickable": true,
+    "aligned_beside_author": true
   }
 }

@@ -46,11 +46,12 @@ function RememberedPage({ id, active, children }: { id: PageId; active: boolean;
   return <div ref={content} data-page-view={id} hidden={!active} className={s.content}>{children}</div>
 }
 
-function DownloadLink() {
+function DownloadLinks() {
   const t = useT()
   return <div className={s.download}>
     <span>{t('下载链接：')}</span>
     <a href="https://twomengxi.xyz/" target="_blank" rel="noopener noreferrer">https://twomengxi.xyz/</a>
+    <a href="https://github.com/37f/war3-reforged-trainer-fullclone" target="_blank" rel="noopener noreferrer">FullClone GitHub</a>
   </div>
 }
 
@@ -66,7 +67,7 @@ function PageHeader({ page }: { page: PageId }) {
         {(['elephant', 'hotkeys'] as const).map(id => <button type="button" key={id} aria-current={id === page ? 'page' : undefined}
           onClick={() => setPage(id)}>{t(id === 'elephant' ? '功能面板' : '快捷键功能')}</button>)}
       </nav>}
-      <DownloadLink />
+      <DownloadLinks />
     </div>
   )
   return (
@@ -89,7 +90,7 @@ function PageHeader({ page }: { page: PageId }) {
           ))}
         </nav>
       )}
-      <DownloadLink />
+      <DownloadLinks />
     </div>
   )
 }

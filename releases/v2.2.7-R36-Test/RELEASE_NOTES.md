@@ -23,6 +23,10 @@
 - `War3ReforgedTrainer-v2.2.7-FullClone-R36-Test-source.zip` · 完整独立源码包，含构建说明。
 - `SHA256SUMS-R36-Test.txt` · EXE 与源码包的 SHA-256 校验值。
 
+## 界面更新
+
+修改器顶栏的作者博客旁新增「FullClone GitHub」，可直接打开扩展版仓库。
+
 ## 验证
 
 403 项自动化测试通过。三套界面使用模拟数据核对了单次撤销、部分跳过与换图清理。打包后的 EXE 已离线验证 18 个页面和 77 项快捷键。实际游戏内操作尚未验收。

@@ -23,6 +23,10 @@
 
 完整历史见 [R33 累计更新记录](https://github.com/37f/war3-reforged-trainer-fullclone/blob/v2.2.6-fullclone-r34/source-v2.2.6/R33_CHANGELOG_ZH.md)。
 
+## 界面更新
+
+修改器顶栏的作者博客旁新增「FullClone GitHub」，可直接打开扩展版仓库。
+
 ## 验证
 
 396 项自动化测试通过。冻结 EXE 离线检查覆盖三套界面、18 个页面与 77 项快捷键。外交拖放、滚轮和恢复入口使用模拟游戏数据验证，实际游戏内操作尚未验收。真人与电脑互换操纵槽位在本版暂不可用。

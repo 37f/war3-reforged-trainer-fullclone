@@ -64,6 +64,7 @@
 
 .download a:hover { color: var(--gold); }
 .download a:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+.download a + a { margin-inline-start: 12px; }
 
 /* Page tabs: plates that read as buttons, the open page cast in bronze like a chosen pill. */
 .tabs {

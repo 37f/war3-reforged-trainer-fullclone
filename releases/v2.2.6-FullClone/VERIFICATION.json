@@ -14,18 +14,31 @@
   "source_archive_entries": 735,
   "artifacts": {
     "War3ReforgedTrainer-v2.2.6-FullClone-R34.exe": {
-      "bytes": 27575333,
-      "sha256": "603e56dd3007182e864c875cca845fe5853b9eb6d9b03c4c817ef8d97a77c389"
+      "bytes": 27574691,
+      "sha256": "52da16b7cb24022a502dd6cb782de6f6ee5749c7c6ccdf5e6d6f16f0b3213f14"
     },
     "War3ReforgedTrainer-v2.2.6-FullClone-R34-source.zip": {
-      "bytes": 31199320,
-      "sha256": "79dcb0a6d46da1cbb70899aec61db8f783cf1b925b7aacc4147a785f05bb0f83"
+      "bytes": 31199466,
+      "sha256": "2623b4e1bae4954a26fc609e605a86a3cb2d0aa4285cea7747dc5dfc72341205"
     },
     "SHA256SUMS-R34.txt": {
       "bytes": 231,
-      "sha256": "0b1f2493cfa07bfe1d23ae23e62ed34270e4f7ed58cbe607870952c9869d677b"
+      "sha256": "1abcabc23894220a6cab77612fc7f10bacc6b9cd1e120844b4cf5e8e1ef189a1"
     }
   },
   "revision": "R34",
-  "file_version": "2.2.6.34"
+  "file_version": "2.2.6.34",
+  "source_commit": "3147aa92cc29bb183c9ca9d40f5b64fa41eba9c7",
+  "header_links": {
+    "ok": true,
+    "modes": [
+      "modern",
+      "classic",
+      "legacy19"
+    ],
+    "repository": "https://github.com/37f/war3-reforged-trainer-fullclone",
+    "author": "https://twomengxi.xyz/",
+    "clickable": true,
+    "aligned_beside_author": true
+  }
 }
