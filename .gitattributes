@@ -28,3 +28,7 @@ releases/v2.2.5-R33/** -text
 # Preserve the v2.2.6 FullClone archive and release evidence bytes.
 source-v2.2.6/** -text
 releases/v2.2.6-FullClone/** -text
+
+# Preserve the v2.2.7 FullClone archive and release evidence bytes.
+source-v2.2.7/** -text
+releases/v2.2.7-R36-Test/** -text

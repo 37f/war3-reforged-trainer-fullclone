@@ -14,6 +14,16 @@ This release brings the R33 extensions to the original trainer’s v2.2.6. It in
 
 The build passed 396 automated tests and an offline check of the packaged desktop UI. Live game operations have yet to be verified for this release.
 
+## Latest prerelease · v2.2.7 FullClone R36-Test
+
+This build incorporates the original trainer’s v2.2.7 fixes for resource locks, batch operation feedback, and save folder scanning. In the Elephant panel, Operation History shows the last 30 unit transfers and diplomacy template changes for the current map and lets you undo individual operations.
+
+- [Prerelease and downloads](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v2.2.7-fullclone-r36-test)
+- [Windows x64 standalone executable](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v2.2.7-fullclone-r36-test/War3ReforgedTrainer-v2.2.7-FullClone-R36-Test.exe)
+- [Complete source ZIP](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v2.2.7-fullclone-r36-test/War3ReforgedTrainer-v2.2.7-FullClone-R36-Test-source.zip) · [Browse source](source-v2.2.7/) · [SHA-256 checksums](releases/v2.2.7-R36-Test/SHA256SUMS-R36-Test.txt)
+
+The build passed 403 automated tests. All three layouts were tested with mock game data. Live game operations have yet to be verified. [Verification record](releases/v2.2.7-R36-Test/VERIFICATION.json)
+
 ## Previous release · v2.2.5 FullClone R33
 
 - [Release and downloads](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v2.2.5-fullclone-r33)

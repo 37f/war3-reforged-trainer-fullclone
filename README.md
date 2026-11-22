@@ -12,6 +12,16 @@
 
 396 项自动化测试通过，冻结 EXE 已完成离线界面核对。实际游戏内操作尚未验收。
 
+## 最新预发布 · v2.2.7 FullClone R36-Test
+
+迁入原作者 v2.2.7 的资源锁定、批量操作反馈和存档扫描修复。大象功能新增「操作历史」，可查看本图最近 30 次单位转交及外交模板操作，并按次撤销。
+
+- [发布与下载](https://github.com/37f/war3-reforged-trainer-fullclone/releases/tag/v2.2.7-fullclone-r36-test)
+- [Windows x64 单文件 EXE](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v2.2.7-fullclone-r36-test/War3ReforgedTrainer-v2.2.7-FullClone-R36-Test.exe)
+- [完整源码 ZIP](https://github.com/37f/war3-reforged-trainer-fullclone/releases/download/v2.2.7-fullclone-r36-test/War3ReforgedTrainer-v2.2.7-FullClone-R36-Test-source.zip) · [源码目录](source-v2.2.7/) · [使用说明](source-v2.2.7/FULLCLONE_2.2.7_说明.md) · [SHA-256 校验](releases/v2.2.7-R36-Test/SHA256SUMS-R36-Test.txt)
+
+403 项自动化测试通过，三套界面已用模拟数据核对撤销流程。实际游戏内操作尚未验收。详见[验证记录](releases/v2.2.7-R36-Test/VERIFICATION.json)。
+
 ## 以往版本说明
 
 ### v2.2.5 FullClone R33

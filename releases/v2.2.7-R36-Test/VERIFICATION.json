@@ -1,0 +1,44 @@
+{
+  "version": "2.2.7",
+  "revision": "R36-Test",
+  "source_commit": "8f1c9f97fac3e5ba29d72867d57bb490fc28d83c",
+  "automated_tests_passed": 403,
+  "frozen_ui": {
+    "panels": 18,
+    "hotkeys": 77,
+    "layouts": [
+      "modern",
+      "classic",
+      "legacy19"
+    ]
+  },
+  "operation_history_ui": {
+    "ok": true,
+    "modes": [
+      "modern",
+      "classic",
+      "legacy19"
+    ],
+    "partial_result": true,
+    "correctly_targeted_undo": true,
+    "map_change_refresh": true,
+    "backend": "mock RPC"
+  },
+  "existing_diplomacy_drag_mock_verified": true,
+  "live_game_operations_verified": false,
+  "source_archive_entries": 739,
+  "artifacts": {
+    "War3ReforgedTrainer-v2.2.7-FullClone-R36-Test.exe": {
+      "bytes": 27631370,
+      "sha256": "3320d2dd76512e407288a18d29c181f4ce1e2593b705d1fdccbc53cc57a07cc5"
+    },
+    "War3ReforgedTrainer-v2.2.7-FullClone-R36-Test-source.zip": {
+      "bytes": 31239291,
+      "sha256": "9f8296bd8f47a8c366e85b44becfbac004594004ff05e9fecf740fef2293b4f6"
+    },
+    "SHA256SUMS-R36-Test.txt": {
+      "bytes": 241,
+      "sha256": "e9aaa7dac8b5bb9a3a67151dd123822e048715a5272d4d9893fdb3b07530ed04"
+    }
+  }
+}
