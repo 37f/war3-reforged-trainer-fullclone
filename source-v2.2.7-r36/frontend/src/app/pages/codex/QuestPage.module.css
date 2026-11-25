@@ -1,0 +1,17 @@
+/* Stay inside the stage and scroll long task results instead of being clipped. */
+.page { display: grid; gap: 16px; padding: 18px; min-width: 0; height: 100%; min-height: 0; overflow-y: auto; align-content: start; }
+.toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.toolbar > input { flex: 1; min-width: 240px; }
+.source { overflow-wrap: anywhere; font-size: 12px; }
+.body { display: grid; grid-template-columns: minmax(170px, 27%) minmax(0, 1fr); gap: 16px; }
+.body nav ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.body nav button { width: 100%; text-align: left; padding: 10px; border: 1px solid #76603f; background: transparent; color: inherit; }
+.body nav button[aria-current=true] { border-color: #e4bb60; }
+.body nav small { display: block; margin-top: 6px; }
+.body article { min-width: 0; }
+.body h2, .body h3 { margin-block: 12px; }
+.body pre { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; font-size: 14px; line-height: 1.8; }
+.places { display: flex; flex-wrap: wrap; gap: 8px; margin-block: 10px; }
+.places > * { white-space: normal; text-align: left; height: auto; }
+.muted { opacity: .65; }
+@media (max-width: 700px) { .body { grid-template-columns: 1fr; } }

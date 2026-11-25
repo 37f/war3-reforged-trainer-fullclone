@@ -1,0 +1,1 @@
+import{I as e,X as t,c as n,n as r}from"./index-zf1aoLGj.js";var i=t();function a(){let t=n(),a=r(e=>e.playerNameMode),o=r(e=>e.setPlayerNameMode);return(0,i.jsx)(e,{label:t(`玩家名显示`),"aria-label":t(`玩家名显示`),value:a,options:[{value:`game`,label:t(`游戏中名字（含玩家昵称）`)},{value:`map`,label:t(`地图配置名`)}],onChange:e=>o(e.target.value===`map`?`map`:`game`)})}export{a as t};

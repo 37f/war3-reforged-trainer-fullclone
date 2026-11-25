@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+.venv/
+node_modules/
+build/
+dist-*/
+*.exe
+*.dll
+*.zip
+!assets/extension-definitions-v1.zip
+*.exp
+*.lib
+*.log
+*.tmp
